@@ -1,0 +1,206 @@
+{
+  "metadata": {
+    "report": "Scan Report-10",
+    "stage": "post-remediation verification",
+    "target": "All validated ThreatForge findings",
+    "source_module": "main.py",
+    "generated_at": "2026-09-24",
+    "verification_scope": "Focused retest of original findings only; no broad security scan performed.",
+    "source_code_modified_during_verification": false,
+    "baseline_inputs": [
+      "Scan Report-6/triage.json",
+      "Scan Report-8/remediation-plan.md",
+      "Scan Report-9/remediation-result.json",
+      "main.py post-remediation implementation"
+    ]
+  },
+  "summary": {
+    "total_findings_verified": 11,
+    "verified_fixed": 11,
+    "still_present": 0,
+    "partially_resolved": 0,
+    "unable_to_verify": 0,
+    "focused_runtime_checks": {
+      "passed": 16,
+      "failed": 0
+    }
+  },
+  "findings": [
+    {
+      "id": "TF-001",
+      "title": "Unsafe expression evaluation enables code execution",
+      "classification": "Verified Fixed",
+      "affected_area": "/evaluate",
+      "code_locations": ["main.py:359", "main.py:154"],
+      "pre_remediation": "User-controlled expression data reached Python eval, allowing arbitrary code execution.",
+      "post_remediation": "The endpoint calls safe_eval_expression, which parses expressions with ast and permits only numeric constants, arithmetic operators, unary operators, and numeric expression nodes.",
+      "verification_evidence": [
+        "Static scan found no eval( call in main.py.",
+        "Runtime check accepted '1 + 2 * 3' and rejected '__import__(\"os\").system(\"id\")' with unsupported-expression handling."
+      ],
+      "root_cause_addressed": true,
+      "original_attack_path_possible": false
+    },
+    {
+      "id": "TF-002",
+      "title": "OS command injection in DNS lookup",
+      "classification": "Verified Fixed",
+      "affected_area": "/lookup",
+      "code_locations": ["main.py:336", "main.py:143", "main.py:147"],
+      "pre_remediation": "The address parameter was concatenated into a shell command and executed through popen.",
+      "post_remediation": "The shell execution helper rp raises unconditionally, and /lookup uses dns_lookup with strict host/IP character validation and socket.gethostbyname_ex rather than shell execution.",
+      "verification_evidence": [
+        "Static scan found no popen import or call.",
+        "Runtime check submitted 'example.com; whoami' and received generic lookup failure without reflecting/executing the shell payload."
+      ],
+      "root_cause_addressed": true,
+      "original_attack_path_possible": false
+    },
+    {
+      "id": "TF-003",
+      "title": "Insecure pickle deserialization from cookie",
+      "classification": "Verified Fixed",
+      "affected_area": "/cookie",
+      "code_locations": ["main.py:321", "main.py:164", "main.py:176"],
+      "pre_remediation": "The value cookie was base64-decoded and passed to pickle.loads, allowing code execution through malicious pickle payloads.",
+      "post_remediation": "Cookie data is signed JSON using HMAC helpers; invalid or legacy pickle-shaped values are rejected before application use.",
+      "verification_evidence": [
+        "Static scan found no pickle import or pickle.loads call.",
+        "Runtime check placed a base64 pickle in the value cookie and observed safe 'Invalid cookie' handling."
+      ],
+      "root_cause_addressed": true,
+      "original_attack_path_possible": false
+    },
+    {
+      "id": "TF-004",
+      "title": "Server-side template injection in greeting",
+      "classification": "Verified Fixed",
+      "affected_area": "/sayhi",
+      "code_locations": ["main.py:439"],
+      "pre_remediation": "The name parameter was interpolated into the Jinja template source before rendering, enabling template expression execution.",
+      "post_remediation": "The template source is static and user input is passed as a template variable.",
+      "verification_evidence": [
+        "Static scan found no render_template_string(template) pattern using a user-built template string.",
+        "Runtime check submitted '{{7*7}}' and observed the literal payload, not evaluated output '49'."
+      ],
+      "root_cause_addressed": true,
+      "original_attack_path_possible": false
+    },
+    {
+      "id": "TF-005",
+      "title": "SQL injection in service listing filter",
+      "classification": "Verified Fixed",
+      "affected_area": "/listservices",
+      "code_locations": ["main.py:462", "main.py:476", "main.py:587"],
+      "pre_remediation": "The category parameter was interpolated directly into the WHERE clause, allowing UNION-based extraction from secret_stuff.",
+      "post_remediation": "The WHERE clause uses a database-specific placeholder and cursor.execute receives user input as parameters.",
+      "verification_evidence": [
+        "Static review found cursor.execute(query_build('SELECT * from public_stuff{}'.format(where)), tuple(params)).",
+        "Runtime check confirmed a normal products filter still returns expected data.",
+        "Runtime check submitted a UNION payload and did not expose secret table rows."
+      ],
+      "root_cause_addressed": true,
+      "original_attack_path_possible": false,
+      "validation_note": "Runtime execution was verified with the sqlite path. Placeholder selection for oracle/sqlite/other DBs was statically reviewed."
+    },
+    {
+      "id": "TF-006",
+      "title": "JWT algorithm confusion and None algorithm acceptance",
+      "classification": "Verified Fixed",
+      "affected_area": "/user and /user/login",
+      "code_locations": ["main.py:34", "main.py:266", "main.py:502", "main.py:532"],
+      "pre_remediation": "Token verification accepted attacker-controlled algorithm choices including HS256 and None paths.",
+      "post_remediation": "ALLOWED_ALGORITHMS is RS256 only and the HS256/None helper paths are absent.",
+      "verification_evidence": [
+        "Static scan confirmed ALLOWED_ALGORITHMS = ['RS256'] and no verify_token_none, verify_token_hs256, or create_token_hs256 helpers remain.",
+        "Runtime check confirmed a valid RS256 guest login still works.",
+        "Runtime check submitted an alg None admin token and received generic token-read failure; admin access was not granted."
+      ],
+      "root_cause_addressed": true,
+      "original_attack_path_possible": false
+    },
+    {
+      "id": "TF-007",
+      "title": "XML external entity processing",
+      "classification": "Verified Fixed",
+      "affected_area": "/xml",
+      "code_locations": ["main.py:383", "main.py:388"],
+      "pre_remediation": "The XML parser allowed unsafe DTD/entity behavior that could resolve external entities.",
+      "post_remediation": "The parser is configured with no_network=True, load_dtd=False, dtd_validation=False, resolve_entities=False, and huge_tree=False.",
+      "verification_evidence": [
+        "Static review confirmed the hardened XMLParser options.",
+        "Runtime check submitted a file:// XXE payload and observed the unresolved escaped entity without local file disclosure."
+      ],
+      "root_cause_addressed": true,
+      "original_attack_path_possible": false
+    },
+    {
+      "id": "TF-008",
+      "title": "Config oracle / encrypted config selector abuse",
+      "classification": "Verified Fixed",
+      "affected_area": "/config",
+      "code_locations": ["main.py:410", "main.py:198", "main.py:202"],
+      "pre_remediation": "AES-CBC encrypted selector handling exposed distinguishable errors and allowed manipulation of config key selection.",
+      "post_remediation": "Config selectors are HMAC-signed JSON tokens and only app_* keys are viewable; tampering returns a generic invalid-key response.",
+      "verification_evidence": [
+        "Static review confirmed make_config_token/read_config_token signed selector helpers.",
+        "Runtime check confirmed config listing still renders and a signed approved selector resolves.",
+        "Runtime check submitted a tampered selector and received generic 'Invalid config key' without padding/error details."
+      ],
+      "root_cause_addressed": true,
+      "original_attack_path_possible": false
+    },
+    {
+      "id": "TF-009",
+      "title": "Reflected/stored HTML injection across rendered values",
+      "classification": "Verified Fixed",
+      "affected_area": "Rendered cookie, lookup, evaluation, service, and user values",
+      "code_locations": ["main.py:321", "main.py:336", "main.py:359", "main.py:462", "main.py:502"],
+      "pre_remediation": "Multiple routes concatenated unescaped user-controlled or data-store-controlled values into HTML responses.",
+      "post_remediation": "HTML-rendered dynamic values are escaped with html.escape or rendered through Jinja variable escaping; error messages are generic in sensitive paths.",
+      "verification_evidence": [
+        "Static review found html.escape applied in the remediated output paths.",
+        "Runtime cookie check submitted '<script>alert(1)</script>' and observed escaped output, not an executable script tag."
+      ],
+      "root_cause_addressed": true,
+      "original_attack_path_possible": false,
+      "validation_note": "Focused verification covered representative original XSS paths and reviewed related output paths; no broad XSS fuzzing was performed."
+    },
+    {
+      "id": "TF-010",
+      "title": "JWT private key material written to temporary predictable files",
+      "classification": "Verified Fixed",
+      "affected_area": "JWT signing key fallback initialization",
+      "code_locations": ["main.py:96"],
+      "pre_remediation": "When key environment variables were absent, generated key material was written to temporary private/public key files and file paths were printed.",
+      "post_remediation": "Fallback key material is generated in memory and assigned directly to SIGN_KEY and VERIFY_KEY; no private/public key file paths are created.",
+      "verification_evidence": [
+        "Static scan found no private.pem or public.pem references in main.py.",
+        "Import/startup message states in-memory temporary keys are generated when key files are not configured."
+      ],
+      "root_cause_addressed": true,
+      "original_attack_path_possible": false
+    },
+    {
+      "id": "TF-011",
+      "title": "Missing security attributes on sensitive cookies",
+      "classification": "Verified Fixed",
+      "affected_area": "/cookie and /user/login",
+      "code_locations": ["main.py:329", "main.py:542"],
+      "pre_remediation": "Application cookies were set without HttpOnly/SameSite and without conditional Secure attributes.",
+      "post_remediation": "Both cookie-setting paths set httponly=True, samesite='Lax', and secure=request.is_secure.",
+      "verification_evidence": [
+        "Static review confirmed both set_cookie calls include HttpOnly, SameSite=Lax, and request.is_secure-driven Secure behavior.",
+        "Runtime checks confirmed HttpOnly is present on the value cookie and authentication cookie."
+      ],
+      "root_cause_addressed": true,
+      "original_attack_path_possible": false,
+      "validation_note": "Secure is intentionally conditional on HTTPS request context; production deployment must terminate HTTPS correctly for Secure cookies."
+    }
+  ],
+  "verification_commands": [
+    "python -m py_compile main.py",
+    "rg -n \"eval\\(|popen|pickle|render_template_string\\(template\\)|XMLParser\\(|ALLOWED_ALGORITHMS|set_cookie\\(|cursor\\.execute\\(|return str\\(e\\)|private\\.pem|public\\.pem|load_dtd=True|no_network=False|HS256|verify_token_none|verify_token_hs256|create_token_hs256|None\" main.py",
+    "focused Flask test-client retest covering original abuse paths"
+  ]
+}

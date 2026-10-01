@@ -5,7 +5,6 @@ import {
   Database,
   GitPullRequestArrow,
   ListChecks,
-  Play,
   ScanSearch,
   ShieldCheck,
   Target,
@@ -360,42 +359,46 @@ function Hero({ nodes, overview, statusError }) {
   const activeId = selectedId || defaultId;
   const preview = nodes.find((node) => node.stage.id === previewId);
 
-  useEffect(() => () => {
-    clearTimeout(tourTimer.current);
-    clearInterval(tourInterval.current);
-  }, []);
+  useEffect(() => {
+    if (!nodes.length) return undefined;
 
-  const playFlow = () => {
-    if (touring || !nodes.length) return;
-    clearTimeout(tourTimer.current);
-    clearInterval(tourInterval.current);
-    setTouring(true);
-    setTourStep(0);
-    setPreviewId('');
-    tourInterval.current = setInterval(() => {
-      setTourStep((current) => {
-        if (current >= nodes.length - 1) return current;
-        return current + 1;
-      });
-    }, 900);
-    tourTimer.current = setTimeout(() => {
+    const runFlow = () => {
+      clearTimeout(tourTimer.current);
       clearInterval(tourInterval.current);
-      setTouring(false);
-      setTourStep(-1);
-    }, nodes.length * 900 + 450);
-  };
+      setTouring(true);
+      setTourStep(0);
+      setPreviewId('');
+      tourInterval.current = setInterval(() => {
+        setTourStep((current) => {
+          if (current >= nodes.length - 1) return current;
+          return current + 1;
+        });
+      }, 900);
+      tourTimer.current = setTimeout(() => {
+        clearInterval(tourInterval.current);
+        setTouring(false);
+        setTourStep(-1);
+      }, nodes.length * 900 + 450);
+    };
+
+    const firstRun = setTimeout(runFlow, 900);
+    const loop = setInterval(runFlow, nodes.length * 900 + 1000);
+
+    return () => {
+      clearTimeout(firstRun);
+      clearInterval(loop);
+      clearTimeout(tourTimer.current);
+      clearInterval(tourInterval.current);
+    };
+  }, [nodes.length]);
 
   return (
     <section className="home-workflow-hero" aria-labelledby="home-title">
       <div className="home-workflow-hero__head">
-        <h1 id="home-title">Find the flaw. Fix the code. Prove it's fixed.</h1>
+        <h1 id="home-title">AI-Led Cyber Risk Intelligence</h1>
         <p>
           Transform threat intelligence into governed security decisions, actionable fixes, and verified outcomes.
         </p>
-        <button type="button" className="btn btn--primary flow-play-btn" onClick={playFlow} disabled={touring}>
-          <Play size={15} aria-hidden="true" />
-          {touring ? 'Playing...' : 'Start flow'}
-        </button>
       </div>
 
       {statusError && (

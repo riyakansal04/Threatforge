@@ -1,0 +1,55 @@
+{
+  "report": "Scan Report-10",
+  "coverage_type": "post-remediation focused verification",
+  "target": "main.py",
+  "broad_scan_performed": false,
+  "source_code_modified": false,
+  "covered_findings": [
+    "TF-001",
+    "TF-002",
+    "TF-003",
+    "TF-004",
+    "TF-005",
+    "TF-006",
+    "TF-007",
+    "TF-008",
+    "TF-009",
+    "TF-010",
+    "TF-011"
+  ],
+  "covered_routes": [
+    "/evaluate",
+    "/lookup",
+    "/cookie",
+    "/sayhi",
+    "/listservices",
+    "/user",
+    "/user/login",
+    "/xml",
+    "/config"
+  ],
+  "covered_security_controls": [
+    "AST-restricted expression evaluator",
+    "Removal of shell execution from lookup path",
+    "HMAC-signed JSON cookie format",
+    "Static Jinja template with variable binding",
+    "Parameterized SQL filter",
+    "RS256-only JWT verification",
+    "Hardened XML parser flags",
+    "Signed config selector token",
+    "HTML output escaping",
+    "In-memory fallback JWT key generation",
+    "HttpOnly, SameSite=Lax, and conditional Secure cookie attributes"
+  ],
+  "runtime_environment": {
+    "framework": "Flask test client",
+    "database": "sqlite in-memory",
+    "network": "DNS resolution mocked to confirm rejected payloads do not call lookup"
+  },
+  "limitations": [
+    "No broad repository scan was performed by design.",
+    "Runtime DB verification used sqlite; non-sqlite placeholder behavior was statically reviewed.",
+    "Representative HTML-injection paths were retested; no exhaustive XSS fuzzing was performed.",
+    "Secure cookie flag depends on HTTPS request context through request.is_secure."
+  ]
+}

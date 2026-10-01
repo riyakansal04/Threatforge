@@ -1,0 +1,552 @@
+{
+  "version": "2.1.0",
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "Codex Security",
+          "informationUri": "https://openai.com",
+          "rules": [
+            {
+              "id": "python-eval-code-injection",
+              "name": "Unauthenticated expression evaluator executes Python code",
+              "shortDescription": {
+                "text": "Unauthenticated expression evaluator executes Python code"
+              },
+              "fullDescription": {
+                "text": "The /evaluate route reads request.form[\"expression\"] and passes it directly to eval(expression) inside the response construction without authentication, sandboxing, parsing, or allowlisting."
+              },
+              "properties": {
+                "tags": [
+                  "CWE-95",
+                  "CWE-94"
+                ],
+                "security_severity": "critical",
+                "confidence": "high",
+                "category": "Code injection"
+              }
+            },
+            {
+              "id": "os-command-injection",
+              "name": "DNS lookup route concatenates request input into os.popen",
+              "shortDescription": {
+                "text": "DNS lookup route concatenates request input into os.popen"
+              },
+              "fullDescription": {
+                "text": "The /lookup route concatenates request.form[\"address\"] into a shell command string and passes it to os.popen via rp()."
+              },
+              "properties": {
+                "tags": [
+                  "CWE-78"
+                ],
+                "security_severity": "critical",
+                "confidence": "high",
+                "category": "OS command injection"
+              }
+            },
+            {
+              "id": "pickle-cookie-deserialization",
+              "name": "Client-controlled cookie is deserialized with pickle",
+              "shortDescription": {
+                "text": "Client-controlled cookie is deserialized with pickle"
+              },
+              "fullDescription": {
+                "text": "The route base64-decodes the client-held value cookie and passes it directly to pickle.loads without a server-side integrity check."
+              },
+              "properties": {
+                "tags": [
+                  "CWE-502"
+                ],
+                "security_severity": "critical",
+                "confidence": "high",
+                "category": "Insecure deserialization"
+              }
+            },
+            {
+              "id": "jinja-template-injection",
+              "name": "Greeting route renders user input as Jinja template source",
+              "shortDescription": {
+                "text": "Greeting route renders user input as Jinja template source"
+              },
+              "fullDescription": {
+                "text": "The route formats request.form[\"name\"] into a template string before calling render_template_string, making user input part of the template source."
+              },
+              "properties": {
+                "tags": [
+                  "CWE-1336"
+                ],
+                "security_severity": "high",
+                "confidence": "high",
+                "category": "Server-side template injection"
+              }
+            },
+            {
+              "id": "sql-injection-listservices",
+              "name": "Product category filter is interpolated into SQL",
+              "shortDescription": {
+                "text": "Product category filter is interpolated into SQL"
+              },
+              "fullDescription": {
+                "text": "The category query parameter is formatted into a WHERE clause and executed by cursor.execute as SQL text."
+              },
+              "properties": {
+                "tags": [
+                  "CWE-89"
+                ],
+                "security_severity": "high",
+                "confidence": "high",
+                "category": "SQL injection"
+              }
+            },
+            {
+              "id": "jwt-algorithm-confusion",
+              "name": "JWT verification trusts attacker-selected algorithms including None and HS256",
+              "shortDescription": {
+                "text": "JWT verification trusts attacker-selected algorithms including None and HS256"
+              },
+              "fullDescription": {
+                "text": "verify_token reads the unverified JWT header and dispatches to RS256, HS256, or None verification while /user trusts the returned sub claim for admin state."
+              },
+              "properties": {
+                "tags": [
+                  "CWE-347",
+                  "CWE-287"
+                ],
+                "security_severity": "medium",
+                "confidence": "high",
+                "category": "Authentication bypass"
+              }
+            },
+            {
+              "id": "unsafe-xml-parser",
+              "name": "XML route parses untrusted XML with DTD and network-capable settings",
+              "shortDescription": {
+                "text": "XML route parses untrusted XML with DTD and network-capable settings"
+              },
+              "fullDescription": {
+                "text": "The XML parser is created with no_network=False, load_dtd=True, and huge_tree=True before parsing attacker-controlled XML."
+              },
+              "properties": {
+                "tags": [
+                  "CWE-611"
+                ],
+                "security_severity": "high",
+                "confidence": "medium",
+                "category": "XML external entity processing"
+              }
+            },
+            {
+              "id": "aes-cbc-padding-oracle",
+              "name": "Config selector exposes AES-CBC padding/decryption oracle",
+              "shortDescription": {
+                "text": "Config selector exposes AES-CBC padding/decryption oracle"
+              },
+              "fullDescription": {
+                "text": "The route decrypts attacker-supplied AES-CBC ciphertext and returns exception text from unpad/decode failures, while successful plaintext is checked against all CONFIG keys."
+              },
+              "properties": {
+                "tags": [
+                  "CWE-203",
+                  "CWE-327"
+                ],
+                "security_severity": "low",
+                "confidence": "medium",
+                "category": "Cryptographic oracle"
+              }
+            },
+            {
+              "id": "reflected-xss",
+              "name": "User-controlled values are reflected into HTML without escaping",
+              "shortDescription": {
+                "text": "User-controlled values are reflected into HTML without escaping"
+              },
+              "fullDescription": {
+                "text": "Route handlers concatenate user-controlled values and exception strings into HTML responses instead of rendering them as escaped template variables."
+              },
+              "properties": {
+                "tags": [
+                  "CWE-79"
+                ],
+                "security_severity": "medium",
+                "confidence": "high",
+                "category": "Cross-site scripting"
+              }
+            },
+            {
+              "id": "jwt-private-key-tempfile",
+              "name": "Generated JWT private key is written to predictable temporary path",
+              "shortDescription": {
+                "text": "Generated JWT private key is written to predictable temporary path"
+              },
+              "fullDescription": {
+                "text": "When key file environment variables are absent, startup writes generated private.pem and public.pem to tempfile.gettempdir() with predictable names and prints the paths."
+              },
+              "properties": {
+                "tags": [
+                  "CWE-522"
+                ],
+                "security_severity": "medium",
+                "confidence": "medium",
+                "category": "Sensitive key storage"
+              }
+            },
+            {
+              "id": "auth-cookie-missing-flags",
+              "name": "Authentication cookie is set without Secure, HttpOnly, or SameSite",
+              "shortDescription": {
+                "text": "Authentication cookie is set without Secure, HttpOnly, or SameSite"
+              },
+              "fullDescription": {
+                "text": "The login route sets the bearer JWT cookie with only a value and expiry; it omits Secure, HttpOnly, and SameSite attributes."
+              },
+              "properties": {
+                "tags": [
+                  "CWE-614",
+                  "CWE-1004"
+                ],
+                "security_severity": "low",
+                "confidence": "high",
+                "category": "Session cookie hardening"
+              }
+            }
+          ]
+        }
+      },
+      "invocations": [
+        {
+          "executionSuccessful": true,
+          "properties": {
+            "scan_id": "standard-security-scan-breakableflask-20260922",
+            "source_modified": false
+          }
+        }
+      ],
+      "results": [
+        {
+          "ruleId": "python-eval-code-injection",
+          "level": "error",
+          "message": {
+            "text": "Unauthenticated expression evaluator executes Python code: Arbitrary Python code execution in the Flask process context, including access to application globals, key material, database cursor, filesystem, and network resources available to the process."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "main.py"
+                },
+                "region": {
+                  "startLine": 372
+                }
+              }
+            }
+          ],
+          "properties": {
+            "finding_id": "BF-001",
+            "severity": "critical",
+            "confidence": "high",
+            "cwe": [
+              "CWE-95",
+              "CWE-94"
+            ],
+            "affected_area": "GET/POST /evaluate",
+            "remediation": "Remove eval. If expression support is required, implement a constrained parser/evaluator for a narrow grammar with explicit allowlists and no access to application globals or builtins."
+          }
+        },
+        {
+          "ruleId": "os-command-injection",
+          "level": "error",
+          "message": {
+            "text": "DNS lookup route concatenates request input into os.popen: Arbitrary operating-system command execution with the Flask process privileges."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "main.py"
+                },
+                "region": {
+                  "startLine": 171
+                }
+              }
+            }
+          ],
+          "properties": {
+            "finding_id": "BF-002",
+            "severity": "critical",
+            "confidence": "high",
+            "cwe": [
+              "CWE-78"
+            ],
+            "affected_area": "GET/POST /lookup",
+            "remediation": "Use a DNS library or subprocess.run with shell=False and an argument list. Validate the address as a hostname or IP address and encode output before rendering."
+          }
+        },
+        {
+          "ruleId": "pickle-cookie-deserialization",
+          "level": "error",
+          "message": {
+            "text": "Client-controlled cookie is deserialized with pickle: Arbitrary code execution or process-level side effects during deserialization."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "main.py"
+                },
+                "region": {
+                  "startLine": 320
+                }
+              }
+            }
+          ],
+          "properties": {
+            "finding_id": "BF-003",
+            "severity": "critical",
+            "confidence": "high",
+            "cwe": [
+              "CWE-502"
+            ],
+            "affected_area": "GET/POST /cookie",
+            "remediation": "Do not use pickle for client-controlled state. Use signed Flask sessions, JSON with authenticated signing, or server-side state keyed by opaque identifiers."
+          }
+        },
+        {
+          "ruleId": "jinja-template-injection",
+          "level": "error",
+          "message": {
+            "text": "Greeting route renders user input as Jinja template source: Server-side template expression execution in the Flask/Jinja context, potentially exposing application state and enabling code execution depending on runtime object reachability."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "main.py"
+                },
+                "region": {
+                  "startLine": 450
+                }
+              }
+            }
+          ],
+          "properties": {
+            "finding_id": "BF-004",
+            "severity": "high",
+            "confidence": "high",
+            "cwe": [
+              "CWE-1336"
+            ],
+            "affected_area": "GET/POST /sayhi",
+            "remediation": "Render a fixed template and pass name as a variable so Jinja treats it as data with autoescaping, not as template source."
+          }
+        },
+        {
+          "ruleId": "sql-injection-listservices",
+          "level": "error",
+          "message": {
+            "text": "Product category filter is interpolated into SQL: Unauthorized database reads or query manipulation, including potential access to seeded secret_stuff rows depending on backend behavior and DB privileges."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "main.py"
+                },
+                "region": {
+                  "startLine": 49
+                }
+              }
+            }
+          ],
+          "properties": {
+            "finding_id": "BF-005",
+            "severity": "high",
+            "confidence": "high",
+            "cwe": [
+              "CWE-89"
+            ],
+            "affected_area": "GET /listservices",
+            "remediation": "Use parameterized queries for category values with the active database driver. Keep SQL text static and return generic database errors."
+          }
+        },
+        {
+          "ruleId": "jwt-algorithm-confusion",
+          "level": "warning",
+          "message": {
+            "text": "JWT verification trusts attacker-selected algorithms including None and HS256: Unauthorized transition to the application admin response state. The repository does not contain additional admin-only operations beyond that response, limiting demonstrated impact."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "main.py"
+                },
+                "region": {
+                  "startLine": 29
+                }
+              }
+            }
+          ],
+          "properties": {
+            "finding_id": "BF-006",
+            "severity": "medium",
+            "confidence": "high",
+            "cwe": [
+              "CWE-347",
+              "CWE-287"
+            ],
+            "affected_area": "GET /user, GET /user/jwks, GET/POST /user/login",
+            "remediation": "Pin verification to a server-selected algorithm such as RS256. Remove None and HS256 from this RSA token flow, and do not make authorization decisions solely from a client-held subject string."
+          }
+        },
+        {
+          "ruleId": "unsafe-xml-parser",
+          "level": "error",
+          "message": {
+            "text": "XML route parses untrusted XML with DTD and network-capable settings: Potential local file disclosure, SSRF/external resource access, and resource exhaustion depending on runtime parser behavior and deployment access."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "main.py"
+                },
+                "region": {
+                  "startLine": 392
+                }
+              }
+            }
+          ],
+          "properties": {
+            "finding_id": "BF-007",
+            "severity": "high",
+            "confidence": "medium",
+            "cwe": [
+              "CWE-611"
+            ],
+            "affected_area": "GET/POST /xml",
+            "remediation": "Use defusedxml or configure lxml with no_network=True, load_dtd=False, resolve_entities=False, and huge_tree=False for untrusted XML. Enforce request size limits."
+          }
+        },
+        {
+          "ruleId": "aes-cbc-padding-oracle",
+          "level": "note",
+          "message": {
+            "text": "Config selector exposes AES-CBC padding/decryption oracle: Remote oracle over selector ciphertext validity and risk of selector forgery. Direct hidden-secret rendering is constrained by current byte/string behavior for hidden CONFIG values."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "main.py"
+                },
+                "region": {
+                  "startLine": 24
+                }
+              }
+            }
+          ],
+          "properties": {
+            "finding_id": "BF-008",
+            "severity": "low",
+            "confidence": "medium",
+            "cwe": [
+              "CWE-203",
+              "CWE-327"
+            ],
+            "affected_area": "GET /config",
+            "remediation": "Use authenticated encryption or signed tokens for selectors, return one generic error for invalid tokens, and restrict decrypted selectors to the same viewable allowlist."
+          }
+        },
+        {
+          "ruleId": "reflected-xss",
+          "level": "warning",
+          "message": {
+            "text": "User-controlled values are reflected into HTML without escaping: JavaScript execution in the application origin, enabling page tampering and possible bearer-cookie theft where cookies are script-accessible."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "main.py"
+                },
+                "region": {
+                  "startLine": 325
+                }
+              }
+            }
+          ],
+          "properties": {
+            "finding_id": "BF-009",
+            "severity": "medium",
+            "confidence": "high",
+            "cwe": [
+              "CWE-79"
+            ],
+            "affected_area": "GET/POST /cookie and GET /user",
+            "remediation": "Escape all response data derived from users or render fixed templates with autoescaped variables. Avoid reflecting raw exception messages."
+          }
+        },
+        {
+          "ruleId": "jwt-private-key-tempfile",
+          "level": "warning",
+          "message": {
+            "text": "Generated JWT private key is written to predictable temporary path: Local key disclosure can lead to JWT forgery for the running application. Exploitability depends on host filesystem permissions and log exposure."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "main.py"
+                },
+                "region": {
+                  "startLine": 107
+                }
+              }
+            }
+          ],
+          "properties": {
+            "finding_id": "BF-010",
+            "severity": "medium",
+            "confidence": "medium",
+            "cwe": [
+              "CWE-522"
+            ],
+            "affected_area": "Startup key initialization",
+            "remediation": "Require explicit key management for non-development use. If local generation remains, avoid writing private keys to shared temp paths; use a private directory with restrictive permissions and do not print sensitive paths."
+          }
+        },
+        {
+          "ruleId": "auth-cookie-missing-flags",
+          "level": "note",
+          "message": {
+            "text": "Authentication cookie is set without Secure, HttpOnly, or SameSite: Increases likelihood and impact of token theft/replay, especially when combined with XSS or non-localhost deployment."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "main.py"
+                },
+                "region": {
+                  "startLine": 540
+                }
+              }
+            }
+          ],
+          "properties": {
+            "finding_id": "BF-011",
+            "severity": "low",
+            "confidence": "high",
+            "cwe": [
+              "CWE-614",
+              "CWE-1004"
+            ],
+            "affected_area": "POST /user/login and GET /user",
+            "remediation": "Set httponly=True, secure=True when served over HTTPS, and an appropriate SameSite value. Keep localhost-only demo behavior separated from deployable configuration."
+          }
+        }
+      ]
+    }
+  ]
+}

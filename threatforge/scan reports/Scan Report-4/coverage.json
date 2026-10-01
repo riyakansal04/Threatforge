@@ -1,0 +1,54 @@
+{
+  "mode": "repository",
+  "inventoryStrategy": "directory",
+  "complete": true,
+  "reviewed_files": [
+    "main.py",
+    "README.md",
+    "requirements.txt",
+    "database-requirements.txt",
+    "docker_database_setup.md",
+    "vulnerability_index.md",
+    "COPYRIGHT.txt",
+    ".gitignore"
+  ],
+  "excluded_as_source": [
+    "Scan Report-* generated report folders"
+  ],
+  "assessed_surfaces": [
+    "/cookie",
+    "/lookup",
+    "/evaluate",
+    "/xml",
+    "/config",
+    "/sayhi",
+    "/listservices",
+    "/user",
+    "/user/jwks",
+    "/user/login",
+    "startup/database bootstrap",
+    "dependency/configuration files"
+  ],
+  "candidates_requiring_further_validation": [
+    {
+      "id": "CAND-001",
+      "title": "Live dependency CVE status",
+      "reason": "No network advisory lookup was performed; dependency files were reviewed offline only."
+    },
+    {
+      "id": "CAND-002",
+      "title": "Exact lxml external entity behavior on deployed runtime",
+      "reason": "Source establishes unsafe parser options, but file/network reachability and entity expansion behavior depend on lxml/libxml2 runtime and deployment policy."
+    },
+    {
+      "id": "CAND-003",
+      "title": "Generated temp key file read permissions on target host",
+      "reason": "Source writes predictable temp files, but local exploitability depends on OS account and temp directory permissions."
+    }
+  ],
+  "unresolved_questions": [
+    "Whether the application is ever bound beyond 127.0.0.1 in a real deployment.",
+    "Which optional database backend is used outside default SQLite memory mode.",
+    "Whether logs containing generated key paths are retained or exposed."
+  ]
+}

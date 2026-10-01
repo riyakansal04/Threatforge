@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "Codex Security remediation planning",
+          "informationUri": "https://chatgpt.com/codex",
+          "rules": [
+            {"id": "TF-001", "name": "Remediation plan for eval code execution", "defaultConfiguration": {"level": "error"}, "properties": {"implementationStatus": "not_applied", "priorityRank": 1}},
+            {"id": "TF-002", "name": "Remediation plan for OS command injection", "defaultConfiguration": {"level": "error"}, "properties": {"implementationStatus": "not_applied", "priorityRank": 2}},
+            {"id": "TF-003", "name": "Remediation plan for pickle deserialization", "defaultConfiguration": {"level": "error"}, "properties": {"implementationStatus": "not_applied", "priorityRank": 3}},
+            {"id": "TF-004", "name": "Remediation plan for SSTI", "defaultConfiguration": {"level": "error"}, "properties": {"implementationStatus": "not_applied", "priorityRank": 4}},
+            {"id": "TF-006", "name": "Remediation plan for JWT algorithm confusion", "defaultConfiguration": {"level": "error"}, "properties": {"implementationStatus": "not_applied", "priorityRank": 5}},
+            {"id": "TF-005", "name": "Remediation plan for SQL injection", "defaultConfiguration": {"level": "error"}, "properties": {"implementationStatus": "not_applied", "priorityRank": 6}},
+            {"id": "TF-007", "name": "Remediation plan for unsafe XML parser", "defaultConfiguration": {"level": "warning"}, "properties": {"implementationStatus": "not_applied", "priorityRank": 7}},
+            {"id": "TF-009", "name": "Remediation plan for raw HTML rendering", "defaultConfiguration": {"level": "warning"}, "properties": {"implementationStatus": "not_applied", "priorityRank": 8}},
+            {"id": "TF-010", "name": "Remediation plan for temp JWT key storage", "defaultConfiguration": {"level": "warning"}, "properties": {"implementationStatus": "not_applied", "priorityRank": 9}},
+            {"id": "TF-008", "name": "Remediation plan for config selector oracle", "defaultConfiguration": {"level": "note"}, "properties": {"implementationStatus": "not_applied", "priorityRank": 10}},
+            {"id": "TF-011", "name": "Remediation plan for auth cookie flags", "defaultConfiguration": {"level": "note"}, "properties": {"implementationStatus": "not_applied", "priorityRank": 11}}
+          ]
+        }
+      },
+      "results": [
+        {"ruleId": "TF-001", "level": "error", "message": {"text": "Suggestion only: replace eval with constrained arithmetic evaluator or remove expression execution."}, "locations": [{"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 379}}}]},
+        {"ruleId": "TF-002", "level": "error", "message": {"text": "Suggestion only: replace os.popen shell lookup with DNS/socket resolver or shell=False fixed arguments."}, "locations": [{"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 360}}}]},
+        {"ruleId": "TF-003", "level": "error", "message": {"text": "Suggestion only: replace pickle cookie state with signed JSON or Flask signed sessions."}, "locations": [{"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 329}}}]},
+        {"ruleId": "TF-004", "level": "error", "message": {"text": "Suggestion only: use fixed Jinja template and pass name as escaped variable."}, "locations": [{"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 468}}}]},
+        {"ruleId": "TF-006", "level": "error", "message": {"text": "Suggestion only: pin JWT verification to RS256 and remove None/HS256 verifier paths."}, "locations": [{"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 269}}}]},
+        {"ruleId": "TF-005", "level": "error", "message": {"text": "Suggestion only: parameterize /listservices SQL category filter."}, "locations": [{"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 484}}}]},
+        {"ruleId": "TF-007", "level": "warning", "message": {"text": "Suggestion only: disable DTD loading, entity resolution, network access, and huge_tree for untrusted XML."}, "locations": [{"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 397}}}]},
+        {"ruleId": "TF-009", "level": "warning", "message": {"text": "Suggestion only: render attacker-influenced values through autoescaped templates or html.escape."}, "locations": [{"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 334}}}]},
+        {"ruleId": "TF-010", "level": "warning", "message": {"text": "Suggestion only: avoid predictable temp private key files and private key path logging."}, "locations": [{"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 111}}}]},
+        {"ruleId": "TF-008", "level": "note", "message": {"text": "Suggestion only: replace unauthenticated AES-CBC selector decryption with signed/authenticated tokens and generic errors."}, "locations": [{"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 430}}}]},
+        {"ruleId": "TF-011", "level": "note", "message": {"text": "Suggestion only: set HttpOnly, Secure, and SameSite on authentication cookie."}, "locations": [{"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 550}}}]}
+      ],
+      "invocations": [
+        {
+          "executionSuccessful": true,
+          "workingDirectory": {"uri": "C:/Users/riyakansal/OneDrive - Nagarro/Desktop/breakableflask-master/"},
+          "properties": {
+            "implementationAuthorized": false,
+            "sourceModified": false,
+            "remediationApplied": false
+          }
+        }
+      ]
+    }
+  ]
+}

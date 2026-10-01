@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "scan": {
+    "id": "focused-main-py-security-scan-20260923",
+    "mode": "focused",
+    "target": "main.py",
+    "repository": "breakableflask-master",
+    "root": "C:\\Users\\riyakansal\\OneDrive - Nagarro\\Desktop\\breakableflask-master",
+    "outputDirectory": "Scan Report-5",
+    "startedAt": "2026-09-23T23:24:00+05:30",
+    "completedAt": "2026-09-23T23:25:00+05:30",
+    "sourceModified": false
+  },
+  "context": {
+    "usedRepositoryIntelligence": true,
+    "usedArchitectureThreatModel": true,
+    "usedSecurityBaseline": true,
+    "usedRelevantPriorFindings": true,
+    "priorReports": [
+      "Scan Report-1",
+      "Scan Report-2",
+      "Scan Report-3",
+      "Scan Report-4"
+    ],
+    "daybreakAccess": {
+      "status": "not_granted",
+      "programs": [],
+      "checkedAt": "2026-09-23T17:54:06.265Z",
+      "advisoryOnly": true
+    }
+  },
+  "artifacts": [
+    {
+      "path": "assessment.md",
+      "kind": "markdown_report"
+    },
+    {
+      "path": "assessment.json",
+      "kind": "json_assessment"
+    },
+    {
+      "path": "assessment.sarif",
+      "kind": "sarif"
+    },
+    {
+      "path": "coverage.json",
+      "kind": "coverage"
+    },
+    {
+      "path": "supporting_artifacts/evidence_index.md",
+      "kind": "evidence_index"
+    }
+  ]
+}

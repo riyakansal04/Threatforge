@@ -1,0 +1,25 @@
+{
+  "scan_id": "standard-security-scan-breakableflask-20260922",
+  "tool": "Codex Security prompt-only standard scan",
+  "repository": "breakableflask-master",
+  "root": "C:\\Users\\riyakansal\\OneDrive - Nagarro\\Desktop\\breakableflask-master",
+  "generated_at": "2026-09-22T18:09:35.3773631+05:30",
+  "daybreak_access": {
+    "status": "not_granted",
+    "programs": [],
+    "checked_at": "2026-09-22T12:32:08.294Z",
+    "advisory_only": true
+  },
+  "preflight": {
+    "status": "ready",
+    "delegation_available": true,
+    "multi_agent_mode": "v1"
+  },
+  "inputs": [
+    "Scan Report-1 repository intelligence",
+    "Scan Report-2 architecture threat model",
+    "Scan Report-3 pre-scan baseline",
+    "main.py and repository source files"
+  ],
+  "source_modified": false
+}

@@ -1,0 +1,42 @@
+{
+  "mode": "prioritization",
+  "complete_for_validated_deduplicated_findings": true,
+  "logical_findings_prioritized": 11,
+  "validation_candidates_prioritized": 3,
+  "input_reports": [
+    "Scan Report-1/repository_intelligence.md",
+    "Scan Report-2/threat_model.md",
+    "Scan Report-3/pre_scan_assessment.md",
+    "Scan Report-6/triage.json"
+  ],
+  "source_evidence_considered": [
+    "main.py",
+    "requirements.txt",
+    "vulnerability_index.md"
+  ],
+  "considerations_applied": [
+    "Severity",
+    "Confidence",
+    "Exploitability",
+    "Affected asset",
+    "Business criticality",
+    "Affected interface exposure",
+    "Threat-model relevance",
+    "Attack-path significance",
+    "Security boundary impact",
+    "Existing controls",
+    "Relationship to other findings",
+    "Estimated remediation complexity"
+  ],
+  "capacity": {
+    "provided_by_user": false,
+    "plan_type": "default ordered queue with immediate, near-term, planned, and validation tracks"
+  },
+  "not_performed": [
+    "Source code modification",
+    "Remediation",
+    "Runtime validation",
+    "Dependency advisory lookup"
+  ],
+  "source_modified": false
+}

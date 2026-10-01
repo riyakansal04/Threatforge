@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "Codex Security focused module scan",
+          "informationUri": "https://chatgpt.com/codex",
+          "rules": [
+            {"id": "python-eval-code-injection", "name": "Python eval code injection", "shortDescription": {"text": "Unauthenticated expression evaluator executes Python code"}, "defaultConfiguration": {"level": "error"}, "properties": {"security-severity": "9.8", "tags": ["CWE-95", "CWE-94"]}},
+            {"id": "os-command-injection", "name": "OS command injection", "shortDescription": {"text": "DNS lookup route concatenates request input into os.popen"}, "defaultConfiguration": {"level": "error"}, "properties": {"security-severity": "9.8", "tags": ["CWE-78"]}},
+            {"id": "pickle-cookie-deserialization", "name": "Insecure deserialization", "shortDescription": {"text": "Client-controlled cookie is deserialized with pickle"}, "defaultConfiguration": {"level": "error"}, "properties": {"security-severity": "9.8", "tags": ["CWE-502"]}},
+            {"id": "jinja-template-injection", "name": "Server-side template injection", "shortDescription": {"text": "Greeting route renders user input as Jinja template source"}, "defaultConfiguration": {"level": "error"}, "properties": {"security-severity": "8.1", "tags": ["CWE-1336"]}},
+            {"id": "sql-injection-listservices", "name": "SQL injection", "shortDescription": {"text": "Product category filter is interpolated into SQL"}, "defaultConfiguration": {"level": "error"}, "properties": {"security-severity": "8.1", "tags": ["CWE-89"]}},
+            {"id": "jwt-algorithm-confusion", "name": "JWT algorithm confusion", "shortDescription": {"text": "JWT verification trusts attacker-selected algorithms"}, "defaultConfiguration": {"level": "error"}, "properties": {"security-severity": "8.0", "tags": ["CWE-347", "CWE-287"]}},
+            {"id": "unsafe-xml-parser", "name": "Unsafe XML parser", "shortDescription": {"text": "XML route parses untrusted XML with DTD and network-capable settings"}, "defaultConfiguration": {"level": "error"}, "properties": {"security-severity": "7.5", "tags": ["CWE-611"]}},
+            {"id": "reflected-xss", "name": "Reflected XSS", "shortDescription": {"text": "User-controlled values are reflected into HTML without escaping"}, "defaultConfiguration": {"level": "warning"}, "properties": {"security-severity": "6.1", "tags": ["CWE-79"]}},
+            {"id": "jwt-private-key-tempfile", "name": "Sensitive key storage", "shortDescription": {"text": "Generated JWT private key is written to predictable temporary path"}, "defaultConfiguration": {"level": "warning"}, "properties": {"security-severity": "6.0", "tags": ["CWE-522"]}},
+            {"id": "aes-cbc-padding-oracle", "name": "AES-CBC padding oracle", "shortDescription": {"text": "Config selector exposes AES-CBC padding/decryption oracle"}, "defaultConfiguration": {"level": "note"}, "properties": {"security-severity": "3.7", "tags": ["CWE-203", "CWE-327"]}},
+            {"id": "auth-cookie-missing-flags", "name": "Authentication cookie missing flags", "shortDescription": {"text": "Authentication cookie is missing security attributes"}, "defaultConfiguration": {"level": "note"}, "properties": {"security-severity": "3.1", "tags": ["CWE-614", "CWE-1004"]}}
+          ]
+        }
+      },
+      "results": [
+        {"ruleId": "python-eval-code-injection", "level": "error", "message": {"text": "The /evaluate route passes request.form['expression'] directly to eval, enabling Python code execution in the Flask process."}, "locations": [{"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 379}}}]},
+        {"ruleId": "os-command-injection", "level": "error", "message": {"text": "The /lookup route concatenates user-controlled address input into a command executed by os.popen."}, "locations": [{"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 360}}}]},
+        {"ruleId": "pickle-cookie-deserialization", "level": "error", "message": {"text": "The /cookie route unpickles a client-controlled cookie without integrity protection."}, "locations": [{"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 329}}}]},
+        {"ruleId": "jinja-template-injection", "level": "error", "message": {"text": "The /sayhi route renders user input as Jinja template source through render_template_string."}, "locations": [{"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 468}}}]},
+        {"ruleId": "sql-injection-listservices", "level": "error", "message": {"text": "The /listservices category parameter is interpolated into SQL and executed by cursor.execute."}, "locations": [{"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 484}}}]},
+        {"ruleId": "jwt-algorithm-confusion", "level": "error", "message": {"text": "JWT verification dispatches based on an untrusted alg header and allows None and HS256 in the RSA auth flow."}, "locations": [{"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 269}}}]},
+        {"ruleId": "unsafe-xml-parser", "level": "error", "message": {"text": "The /xml route parses attacker-controlled XML using DTD-loading and network-capable lxml settings."}, "locations": [{"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 397}}}]},
+        {"ruleId": "reflected-xss", "level": "warning", "message": {"text": "main.py concatenates user-controlled values, token content, database values, and errors into HTML without escaping."}, "locations": [{"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 334}}}]},
+        {"ruleId": "jwt-private-key-tempfile", "level": "warning", "message": {"text": "Generated JWT private keys are written to predictable paths in the system temporary directory and paths are printed."}, "locations": [{"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 111}}}]},
+        {"ruleId": "aes-cbc-padding-oracle", "level": "note", "message": {"text": "The /config route decrypts attacker-supplied AES-CBC ciphertext and returns distinguishable errors."}, "locations": [{"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 430}}}]},
+        {"ruleId": "auth-cookie-missing-flags", "level": "note", "message": {"text": "The login route sets the bearer JWT cookie without Secure, HttpOnly, or SameSite attributes."}, "locations": [{"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 550}}}]}
+      ],
+      "invocations": [
+        {
+          "executionSuccessful": true,
+          "workingDirectory": {
+            "uri": "C:/Users/riyakansal/OneDrive - Nagarro/Desktop/breakableflask-master/"
+          },
+          "properties": {
+            "target": "main.py",
+            "sourceModified": false
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "Codex Security Closure Assessment",
+          "rules": [
+            { "id": "TF-001", "name": "Unauthenticated Python eval code execution", "properties": { "closure": "Closed - Fix Verified" } },
+            { "id": "TF-002", "name": "OS command injection in DNS lookup", "properties": { "closure": "Closed - Fix Verified" } },
+            { "id": "TF-003", "name": "Pickle deserialization of client cookie", "properties": { "closure": "Closed - Fix Verified" } },
+            { "id": "TF-004", "name": "Server-side template injection", "properties": { "closure": "Closed - Fix Verified" } },
+            { "id": "TF-005", "name": "SQL injection in listservices category filter", "properties": { "closure": "Closed - Fix Verified" } },
+            { "id": "TF-006", "name": "JWT algorithm confusion and None acceptance", "properties": { "closure": "Closed - Fix Verified" } },
+            { "id": "TF-007", "name": "Unsafe XML parser configuration", "properties": { "closure": "Closed - Fix Verified" } },
+            { "id": "TF-008", "name": "AES-CBC config selector padding/decryption oracle", "properties": { "closure": "Rework Required - Partially Resolved", "linkedRegression": "TF-008-R1" } },
+            { "id": "TF-009", "name": "Raw HTML rendering of attacker-influenced values", "properties": { "closure": "Closed - Fix Verified" } },
+            { "id": "TF-010", "name": "Predictable temporary JWT private key storage", "properties": { "closure": "Closed - Fix Verified" } },
+            { "id": "TF-011", "name": "Authentication cookie missing security attributes", "properties": { "closure": "Closed - Fix Verified" } }
+          ]
+        }
+      },
+      "results": [
+        { "ruleId": "TF-001", "level": "none", "message": { "text": "Closed - Fix Verified: eval attack path removed and related bypasses rejected." }, "locations": [{ "physicalLocation": { "artifactLocation": { "uri": "main.py" }, "region": { "startLine": 214 } } }] },
+        { "ruleId": "TF-002", "level": "none", "message": { "text": "Closed - Fix Verified: shell command injection path removed and related shell syntax rejected." }, "locations": [{ "physicalLocation": { "artifactLocation": { "uri": "main.py" }, "region": { "startLine": 164 } } }] },
+        { "ruleId": "TF-003", "level": "none", "message": { "text": "Closed - Fix Verified: pickle deserialization removed and signed JSON cookie control verified." }, "locations": [{ "physicalLocation": { "artifactLocation": { "uri": "main.py" }, "region": { "startLine": 198 } } }] },
+        { "ruleId": "TF-004", "level": "none", "message": { "text": "Closed - Fix Verified: template source injection removed." }, "locations": [{ "physicalLocation": { "artifactLocation": { "uri": "main.py" }, "region": { "startLine": 440 } } }] },
+        { "ruleId": "TF-005", "level": "none", "message": { "text": "Closed - Fix Verified: request-driven SQL filter is parameterized." }, "locations": [{ "physicalLocation": { "artifactLocation": { "uri": "main.py" }, "region": { "startLine": 476 } } }] },
+        { "ruleId": "TF-006", "level": "none", "message": { "text": "Closed - Fix Verified: JWT verification is RS256-only and weaker algorithm tokens are rejected." }, "locations": [{ "physicalLocation": { "artifactLocation": { "uri": "main.py" }, "region": { "startLine": 266 } } }] },
+        { "ruleId": "TF-007", "level": "none", "message": { "text": "Closed - Fix Verified: XML parser security controls are effective for related XXE payloads." }, "locations": [{ "physicalLocation": { "artifactLocation": { "uri": "main.py" }, "region": { "startLine": 388 } } }] },
+        { "ruleId": "TF-008", "level": "warning", "message": { "text": "Rework Required - Partially Resolved: original oracle is fixed, but signed unviewable config selector raises TypeError instead of generic invalid-key handling." }, "locations": [{ "physicalLocation": { "artifactLocation": { "uri": "main.py" }, "region": { "startLine": 433 } } }] },
+        { "ruleId": "TF-009", "level": "none", "message": { "text": "Closed - Fix Verified: output escaping controls verified across representative related paths." }, "locations": [{ "physicalLocation": { "artifactLocation": { "uri": "main.py" }, "region": { "startLine": 317 } } }] },
+        { "ruleId": "TF-010", "level": "none", "message": { "text": "Closed - Fix Verified: fallback JWT key material remains in memory and temp key references are absent." }, "locations": [{ "physicalLocation": { "artifactLocation": { "uri": "main.py" }, "region": { "startLine": 109 } } }] },
+        { "ruleId": "TF-011", "level": "none", "message": { "text": "Closed - Fix Verified: cookie security attributes verified for related cookie writers." }, "locations": [{ "physicalLocation": { "artifactLocation": { "uri": "main.py" }, "region": { "startLine": 329 } } }] }
+      ],
+      "invocations": [
+        {
+          "executionSuccessful": true,
+          "commandLine": "Lifecycle-based closure assessment using Scan Reports 1-11 and current main.py"
+        }
+      ]
+    }
+  ]
+}

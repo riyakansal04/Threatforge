@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "scan": {
+    "id": "triage-dedup-threatforge-20260923",
+    "mode": "triage_deduplication",
+    "repository": "breakableflask-master",
+    "root": "C:\\Users\\riyakansal\\OneDrive - Nagarro\\Desktop\\breakableflask-master",
+    "outputDirectory": "Scan Report-6",
+    "startedAt": "2026-09-23T23:42:00+05:30",
+    "completedAt": "2026-09-23T23:45:00+05:30",
+    "sourceModified": false
+  },
+  "inputs": [
+    "Scan Report-1",
+    "Scan Report-2",
+    "Scan Report-3",
+    "Scan Report-4",
+    "Scan Report-5",
+    "main.py",
+    "requirements.txt",
+    "vulnerability_index.md"
+  ],
+  "artifacts": [
+    {"path": "triage.md", "kind": "markdown_report"},
+    {"path": "triage.json", "kind": "json_triage"},
+    {"path": "triage.sarif", "kind": "sarif"},
+    {"path": "coverage.json", "kind": "coverage"},
+    {"path": "supporting_artifacts/deduplication_map.md", "kind": "deduplication_map"},
+    {"path": "supporting_artifacts/decision_record.md", "kind": "decision_record"}
+  ]
+}

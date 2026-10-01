@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "scan": {
+    "id": "prioritization-threatforge-20260923",
+    "mode": "prioritization",
+    "repository": "breakableflask-master",
+    "root": "C:\\Users\\riyakansal\\OneDrive - Nagarro\\Desktop\\breakableflask-master",
+    "outputDirectory": "Scan Report-7",
+    "startedAt": "2026-09-23T23:54:00+05:30",
+    "completedAt": "2026-09-23T23:58:00+05:30",
+    "sourceModified": false,
+    "remediationApplied": false
+  },
+  "inputs": [
+    "Scan Report-1",
+    "Scan Report-2",
+    "Scan Report-3",
+    "Scan Report-6",
+    "main.py",
+    "requirements.txt",
+    "vulnerability_index.md"
+  ],
+  "artifacts": [
+    {"path": "prioritization.md", "kind": "markdown_report"},
+    {"path": "prioritization.json", "kind": "json_prioritization"},
+    {"path": "prioritization.sarif", "kind": "sarif"},
+    {"path": "coverage.json", "kind": "coverage"},
+    {"path": "supporting_artifacts/remediation_queue.md", "kind": "remediation_queue"},
+    {"path": "supporting_artifacts/priority_rationale.md", "kind": "priority_rationale"}
+  ]
+}

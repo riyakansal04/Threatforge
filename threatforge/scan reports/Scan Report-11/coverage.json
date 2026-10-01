@@ -1,0 +1,66 @@
+{
+  "report": "Scan Report-11",
+  "coverage_type": "related-path remediation verification",
+  "broad_scan_performed": false,
+  "source_code_modified": false,
+  "target_file": "main.py",
+  "findings_covered": [
+    "TF-001",
+    "TF-002",
+    "TF-003",
+    "TF-004",
+    "TF-005",
+    "TF-006",
+    "TF-007",
+    "TF-008",
+    "TF-009",
+    "TF-010",
+    "TF-011"
+  ],
+  "routes_covered": [
+    "/evaluate",
+    "/lookup",
+    "/cookie",
+    "/sayhi",
+    "/listservices",
+    "/user",
+    "/user/login",
+    "/user/jwks",
+    "/xml",
+    "/config"
+  ],
+  "helpers_covered": [
+    "safe_eval_expression",
+    "dns_lookup",
+    "rp",
+    "make_cookie_value",
+    "read_cookie_value",
+    "sign_value",
+    "unsign_value",
+    "make_config_token",
+    "read_config_token",
+    "verify_token",
+    "verify_token_rsa",
+    "JWT fallback key initialization"
+  ],
+  "checks_addressed": [
+    "Related APIs, endpoints, and interfaces",
+    "Related callers and downstream components",
+    "Alternative paths to affected functionality",
+    "Similar implementations sharing the same root cause",
+    "Relevant authentication and authorization paths",
+    "Related data flows and security boundaries",
+    "Whether original attack paths can be reached through another route",
+    "Whether remediation introduced an obvious security regression"
+  ],
+  "runtime_checks": {
+    "passed": 37,
+    "failed": 0,
+    "regression_candidates": 1
+  },
+  "limitations": [
+    "No broad repository scan was performed.",
+    "Runtime SQL tests used sqlite only; request-driven SQL construction was statically reviewed for placeholder use.",
+    "Checks were focused on related paths for remediated weaknesses, not exhaustive fuzzing of every input."
+  ]
+}

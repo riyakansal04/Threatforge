@@ -1,0 +1,156 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "Codex Security Post-Remediation Verification",
+          "informationUri": "https://openai.com/",
+          "rules": [
+            {
+              "id": "TF-001",
+              "name": "Unsafe expression evaluation",
+              "shortDescription": { "text": "Verified fixed: unsafe eval attack path removed." },
+              "properties": { "verificationResult": "Verified Fixed", "security-severity": "0.0" }
+            },
+            {
+              "id": "TF-002",
+              "name": "OS command injection",
+              "shortDescription": { "text": "Verified fixed: shell command execution path removed." },
+              "properties": { "verificationResult": "Verified Fixed", "security-severity": "0.0" }
+            },
+            {
+              "id": "TF-003",
+              "name": "Pickle deserialization",
+              "shortDescription": { "text": "Verified fixed: cookie deserialization replaced with signed JSON." },
+              "properties": { "verificationResult": "Verified Fixed", "security-severity": "0.0" }
+            },
+            {
+              "id": "TF-004",
+              "name": "Server-side template injection",
+              "shortDescription": { "text": "Verified fixed: user input no longer becomes template source." },
+              "properties": { "verificationResult": "Verified Fixed", "security-severity": "0.0" }
+            },
+            {
+              "id": "TF-005",
+              "name": "SQL injection",
+              "shortDescription": { "text": "Verified fixed: service filter parameterized." },
+              "properties": { "verificationResult": "Verified Fixed", "security-severity": "0.0" }
+            },
+            {
+              "id": "TF-006",
+              "name": "JWT algorithm confusion",
+              "shortDescription": { "text": "Verified fixed: RS256-only verification." },
+              "properties": { "verificationResult": "Verified Fixed", "security-severity": "0.0" }
+            },
+            {
+              "id": "TF-007",
+              "name": "XML external entity processing",
+              "shortDescription": { "text": "Verified fixed: XML parser disables unsafe entity behavior." },
+              "properties": { "verificationResult": "Verified Fixed", "security-severity": "0.0" }
+            },
+            {
+              "id": "TF-008",
+              "name": "Config selector oracle",
+              "shortDescription": { "text": "Verified fixed: selectors are signed and errors are generic." },
+              "properties": { "verificationResult": "Verified Fixed", "security-severity": "0.0" }
+            },
+            {
+              "id": "TF-009",
+              "name": "HTML injection",
+              "shortDescription": { "text": "Verified fixed: representative output paths escape dynamic data." },
+              "properties": { "verificationResult": "Verified Fixed", "security-severity": "0.0" }
+            },
+            {
+              "id": "TF-010",
+              "name": "Temporary JWT key file exposure",
+              "shortDescription": { "text": "Verified fixed: fallback key material remains in memory." },
+              "properties": { "verificationResult": "Verified Fixed", "security-severity": "0.0" }
+            },
+            {
+              "id": "TF-011",
+              "name": "Missing cookie security attributes",
+              "shortDescription": { "text": "Verified fixed: sensitive cookies have security attributes." },
+              "properties": { "verificationResult": "Verified Fixed", "security-severity": "0.0" }
+            }
+          ]
+        }
+      },
+      "results": [
+        {
+          "ruleId": "TF-001",
+          "level": "none",
+          "message": { "text": "Verified Fixed: /evaluate no longer reaches eval; code-execution payload rejected." },
+          "locations": [{ "physicalLocation": { "artifactLocation": { "uri": "main.py" }, "region": { "startLine": 359 } } }]
+        },
+        {
+          "ruleId": "TF-002",
+          "level": "none",
+          "message": { "text": "Verified Fixed: /lookup uses validated DNS lookup and shell execution is disabled." },
+          "locations": [{ "physicalLocation": { "artifactLocation": { "uri": "main.py" }, "region": { "startLine": 336 } } }]
+        },
+        {
+          "ruleId": "TF-003",
+          "level": "none",
+          "message": { "text": "Verified Fixed: signed JSON cookie handling rejects legacy pickle payloads." },
+          "locations": [{ "physicalLocation": { "artifactLocation": { "uri": "main.py" }, "region": { "startLine": 321 } } }]
+        },
+        {
+          "ruleId": "TF-004",
+          "level": "none",
+          "message": { "text": "Verified Fixed: greeting template source is static and user value is rendered as data." },
+          "locations": [{ "physicalLocation": { "artifactLocation": { "uri": "main.py" }, "region": { "startLine": 439 } } }]
+        },
+        {
+          "ruleId": "TF-005",
+          "level": "none",
+          "message": { "text": "Verified Fixed: service category filtering is parameterized and UNION payload does not expose secrets." },
+          "locations": [{ "physicalLocation": { "artifactLocation": { "uri": "main.py" }, "region": { "startLine": 476 } } }]
+        },
+        {
+          "ruleId": "TF-006",
+          "level": "none",
+          "message": { "text": "Verified Fixed: JWT verification is RS256-only and alg None token is rejected." },
+          "locations": [{ "physicalLocation": { "artifactLocation": { "uri": "main.py" }, "region": { "startLine": 266 } } }]
+        },
+        {
+          "ruleId": "TF-007",
+          "level": "none",
+          "message": { "text": "Verified Fixed: XML parser does not resolve external entity payload." },
+          "locations": [{ "physicalLocation": { "artifactLocation": { "uri": "main.py" }, "region": { "startLine": 388 } } }]
+        },
+        {
+          "ruleId": "TF-008",
+          "level": "none",
+          "message": { "text": "Verified Fixed: config selector tampering fails generically and approved selectors still work." },
+          "locations": [{ "physicalLocation": { "artifactLocation": { "uri": "main.py" }, "region": { "startLine": 410 } } }]
+        },
+        {
+          "ruleId": "TF-009",
+          "level": "none",
+          "message": { "text": "Verified Fixed: representative script payload is escaped in output." },
+          "locations": [{ "physicalLocation": { "artifactLocation": { "uri": "main.py" }, "region": { "startLine": 321 } } }]
+        },
+        {
+          "ruleId": "TF-010",
+          "level": "none",
+          "message": { "text": "Verified Fixed: fallback JWT key generation no longer writes private/public key files." },
+          "locations": [{ "physicalLocation": { "artifactLocation": { "uri": "main.py" }, "region": { "startLine": 96 } } }]
+        },
+        {
+          "ruleId": "TF-011",
+          "level": "none",
+          "message": { "text": "Verified Fixed: cookie-setting paths include HttpOnly, SameSite=Lax, and conditional Secure." },
+          "locations": [{ "physicalLocation": { "artifactLocation": { "uri": "main.py" }, "region": { "startLine": 329 } } }]
+        }
+      ],
+      "invocations": [
+        {
+          "executionSuccessful": true,
+          "commandLine": "Focused post-remediation verification of all validated ThreatForge findings"
+        }
+      ]
+    }
+  ]
+}

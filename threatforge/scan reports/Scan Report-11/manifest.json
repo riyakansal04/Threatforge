@@ -1,0 +1,25 @@
+{
+  "report": "Scan Report-11",
+  "stage": "related-path remediation verification",
+  "created_at": "2026-09-24",
+  "workspace": "C:\\Users\\riyakansal\\OneDrive - Nagarro\\Desktop\\breakableflask-master",
+  "source_code_modified": false,
+  "inputs": [
+    "Scan Report-6/triage.json",
+    "Scan Report-9/remediation-result.json",
+    "Scan Report-10/verification-result.json",
+    "main.py"
+  ],
+  "outputs": [
+    "related-path-verification.json",
+    "related-path-verification.md",
+    "related-path-verification.sarif",
+    "coverage.json",
+    "manifest.json",
+    "supporting_artifacts/related-path-evidence.md"
+  ],
+  "commands_executed": [
+    "rg route/helper/sink evidence scan against main.py",
+    "focused Flask test-client related-path regression checks"
+  ]
+}

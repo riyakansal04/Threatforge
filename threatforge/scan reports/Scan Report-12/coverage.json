@@ -1,0 +1,49 @@
+{
+  "report": "Scan Report-12",
+  "coverage_type": "finding closure assessment",
+  "source_code_modified": false,
+  "findings_covered": [
+    "TF-001",
+    "TF-002",
+    "TF-003",
+    "TF-004",
+    "TF-005",
+    "TF-006",
+    "TF-007",
+    "TF-008",
+    "TF-009",
+    "TF-010",
+    "TF-011"
+  ],
+  "lifecycle_stages_covered": [
+    "original finding",
+    "triage decision",
+    "deduplication and correlation",
+    "priority",
+    "investigation",
+    "root cause",
+    "remediation",
+    "targeted fix verification",
+    "related-path verification",
+    "before-and-after evidence"
+  ],
+  "determinations_covered": [
+    "original weakness addressed",
+    "attack path broken",
+    "security control effective",
+    "related paths sufficiently checked",
+    "application behavior remains consistent",
+    "evidence sufficient to support closure"
+  ],
+  "classification_counts": {
+    "Closed - Fix Verified": 10,
+    "Open - Still Vulnerable": 0,
+    "Rework Required - Partially Resolved": 1,
+    "Pending Verification - Insufficient Evidence": 0
+  },
+  "limitations": [
+    "Closure assessment did not perform new broad scanning.",
+    "Runtime SQL evidence remains sqlite-focused, with non-sqlite placeholder paths statically reviewed.",
+    "TF-008 final closure is blocked by a related-path regression candidate rather than the original oracle remaining exploitable."
+  ]
+}

@@ -1,0 +1,167 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "Codex Security Related-Path Verification",
+          "rules": [
+            {
+              "id": "TF-001",
+              "name": "Unsafe expression evaluation related-path check",
+              "shortDescription": { "text": "Security weakness no longer observed." },
+              "properties": { "classification": "Security weakness no longer observed" }
+            },
+            {
+              "id": "TF-002",
+              "name": "Command injection related-path check",
+              "shortDescription": { "text": "Security weakness no longer observed." },
+              "properties": { "classification": "Security weakness no longer observed" }
+            },
+            {
+              "id": "TF-003",
+              "name": "Cookie deserialization related-path check",
+              "shortDescription": { "text": "Security weakness no longer observed." },
+              "properties": { "classification": "Security weakness no longer observed" }
+            },
+            {
+              "id": "TF-004",
+              "name": "SSTI related-path check",
+              "shortDescription": { "text": "Security weakness no longer observed." },
+              "properties": { "classification": "Security weakness no longer observed" }
+            },
+            {
+              "id": "TF-005",
+              "name": "SQL injection related-path check",
+              "shortDescription": { "text": "Security weakness no longer observed." },
+              "properties": { "classification": "Security weakness no longer observed" }
+            },
+            {
+              "id": "TF-006",
+              "name": "JWT algorithm confusion related-path check",
+              "shortDescription": { "text": "Security weakness no longer observed." },
+              "properties": { "classification": "Security weakness no longer observed" }
+            },
+            {
+              "id": "TF-007",
+              "name": "XXE related-path check",
+              "shortDescription": { "text": "Security weakness no longer observed." },
+              "properties": { "classification": "Security weakness no longer observed" }
+            },
+            {
+              "id": "TF-008",
+              "name": "Config selector related-path check",
+              "shortDescription": { "text": "Original weakness no longer observed; regression candidate identified." },
+              "properties": { "classification": "Security weakness no longer observed; new or regression issue introduced" }
+            },
+            {
+              "id": "TF-009",
+              "name": "HTML injection related-path check",
+              "shortDescription": { "text": "Security weakness no longer observed." },
+              "properties": { "classification": "Security weakness no longer observed" }
+            },
+            {
+              "id": "TF-010",
+              "name": "Temporary key file related-path check",
+              "shortDescription": { "text": "Security weakness no longer observed." },
+              "properties": { "classification": "Security weakness no longer observed" }
+            },
+            {
+              "id": "TF-011",
+              "name": "Cookie flags related-path check",
+              "shortDescription": { "text": "Security weakness no longer observed." },
+              "properties": { "classification": "Security weakness no longer observed" }
+            },
+            {
+              "id": "TF-008-R1",
+              "name": "Signed unviewable config selector raises server error",
+              "shortDescription": { "text": "New or regression issue introduced." },
+              "properties": { "classification": "New or regression issue introduced", "linkedFinding": "TF-008" }
+            }
+          ]
+        }
+      },
+      "results": [
+        {
+          "ruleId": "TF-001",
+          "level": "none",
+          "message": { "text": "Related eval/code-execution paths were not observed." },
+          "locations": [{ "physicalLocation": { "artifactLocation": { "uri": "main.py" }, "region": { "startLine": 214 } } }]
+        },
+        {
+          "ruleId": "TF-002",
+          "level": "none",
+          "message": { "text": "Related shell command injection paths were not observed." },
+          "locations": [{ "physicalLocation": { "artifactLocation": { "uri": "main.py" }, "region": { "startLine": 164 } } }]
+        },
+        {
+          "ruleId": "TF-003",
+          "level": "none",
+          "message": { "text": "Related unsafe cookie deserialization paths were not observed." },
+          "locations": [{ "physicalLocation": { "artifactLocation": { "uri": "main.py" }, "region": { "startLine": 198 } } }]
+        },
+        {
+          "ruleId": "TF-004",
+          "level": "none",
+          "message": { "text": "Related SSTI paths were not observed." },
+          "locations": [{ "physicalLocation": { "artifactLocation": { "uri": "main.py" }, "region": { "startLine": 440 } } }]
+        },
+        {
+          "ruleId": "TF-005",
+          "level": "none",
+          "message": { "text": "Related request-driven SQL injection paths were not observed." },
+          "locations": [{ "physicalLocation": { "artifactLocation": { "uri": "main.py" }, "region": { "startLine": 476 } } }]
+        },
+        {
+          "ruleId": "TF-006",
+          "level": "none",
+          "message": { "text": "Related JWT algorithm confusion paths were not observed." },
+          "locations": [{ "physicalLocation": { "artifactLocation": { "uri": "main.py" }, "region": { "startLine": 266 } } }]
+        },
+        {
+          "ruleId": "TF-007",
+          "level": "none",
+          "message": { "text": "Related XXE paths were not observed." },
+          "locations": [{ "physicalLocation": { "artifactLocation": { "uri": "main.py" }, "region": { "startLine": 388 } } }]
+        },
+        {
+          "ruleId": "TF-008",
+          "level": "note",
+          "message": { "text": "Original config oracle/secret exposure path was not observed; linked regression candidate TF-008-R1 was identified." },
+          "locations": [{ "physicalLocation": { "artifactLocation": { "uri": "main.py" }, "region": { "startLine": 408 } } }]
+        },
+        {
+          "ruleId": "TF-009",
+          "level": "none",
+          "message": { "text": "Related HTML injection paths were not observed in focused checks." },
+          "locations": [{ "physicalLocation": { "artifactLocation": { "uri": "main.py" }, "region": { "startLine": 317 } } }]
+        },
+        {
+          "ruleId": "TF-010",
+          "level": "none",
+          "message": { "text": "Related fallback key-file exposure path was not observed." },
+          "locations": [{ "physicalLocation": { "artifactLocation": { "uri": "main.py" }, "region": { "startLine": 109 } } }]
+        },
+        {
+          "ruleId": "TF-011",
+          "level": "none",
+          "message": { "text": "Related cookie flag omissions were not observed." },
+          "locations": [{ "physicalLocation": { "artifactLocation": { "uri": "main.py" }, "region": { "startLine": 329 } } }]
+        },
+        {
+          "ruleId": "TF-008-R1",
+          "level": "warning",
+          "message": { "text": "A valid signed selector for an unviewable config key raises TypeError instead of returning a generic invalid-key response. No secret disclosure observed; requires valid signature for an unviewable key." },
+          "locations": [{ "physicalLocation": { "artifactLocation": { "uri": "main.py" }, "region": { "startLine": 433 } } }]
+        }
+      ],
+      "invocations": [
+        {
+          "executionSuccessful": true,
+          "commandLine": "Focused related-path remediation verification"
+        }
+      ]
+    }
+  ]
+}

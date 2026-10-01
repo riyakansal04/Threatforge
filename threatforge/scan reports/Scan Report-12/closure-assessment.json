@@ -1,0 +1,292 @@
+{
+  "metadata": {
+    "report": "Scan Report-12",
+    "stage": "finding closure assessment",
+    "target": "All validated ThreatForge logical findings",
+    "source_module": "main.py",
+    "generated_at": "2026-09-24",
+    "source_code_modified": false,
+    "scope": "Closure decision using complete finding lifecycle evidence after remediation, targeted verification, and related-path verification."
+  },
+  "summary": {
+    "findings_assessed": 11,
+    "closed_fix_verified": 10,
+    "open_still_vulnerable": 0,
+    "rework_required_partially_resolved": 1,
+    "pending_verification_insufficient_evidence": 0,
+    "closure_decision": "10 findings are approved for closure. TF-008 is not approved for final closure until the related-path regression candidate TF-008-R1 is remediated or explicitly accepted."
+  },
+  "lifecycle_inputs_used": [
+    "Scan Report-1 repository intelligence and architecture context",
+    "Scan Report-2 threat model",
+    "Scan Report-3 security baseline",
+    "Scan Report-4 standard scan findings",
+    "Scan Report-5 focused main.py findings",
+    "Scan Report-6 triage and deduplication",
+    "Scan Report-7 prioritization",
+    "Scan Report-8 remediation plan",
+    "Scan Report-9 remediation implementation",
+    "Scan Report-10 targeted fix verification",
+    "Scan Report-11 related-path verification",
+    "main.py current implementation"
+  ],
+  "closure_results": [
+    {
+      "id": "TF-001",
+      "title": "Unauthenticated Python eval code execution",
+      "classification": "Closed - Fix Verified",
+      "original_condition": "Unauthenticated /evaluate input reached Python eval and could execute arbitrary code.",
+      "post_remediation_state": "The route uses safe_eval_expression and only permits arithmetic AST nodes.",
+      "determinations": {
+        "original_weakness_addressed": true,
+        "attack_path_broken": true,
+        "security_control_effective": true,
+        "related_paths_checked": true,
+        "intended_behavior_preserved": true,
+        "evidence_sufficient_for_closure": true
+      },
+      "closure_evidence": [
+        "Triage confirmed BF-001 and MAINPY-001 as duplicates of TF-001.",
+        "Priority ranked TF-001 as immediate attention.",
+        "Remediation replaced eval with constrained AST evaluation.",
+        "Targeted verification rejected __import__(\"os\").system(\"id\") and preserved arithmetic.",
+        "Related-path verification rejected calls, imports, attribute access, and comprehension bypasses."
+      ],
+      "security_improvement": "Untrusted expression input no longer crosses into Python code execution."
+    },
+    {
+      "id": "TF-002",
+      "title": "OS command injection in DNS lookup",
+      "classification": "Closed - Fix Verified",
+      "original_condition": "Unauthenticated /lookup input was concatenated into an os.popen shell command.",
+      "post_remediation_state": "Shell execution is disabled and lookup uses validated socket-based DNS resolution.",
+      "determinations": {
+        "original_weakness_addressed": true,
+        "attack_path_broken": true,
+        "security_control_effective": true,
+        "related_paths_checked": true,
+        "intended_behavior_preserved": true,
+        "evidence_sufficient_for_closure": true
+      },
+      "closure_evidence": [
+        "Triage confirmed BF-002 and MAINPY-002 as duplicates of TF-002.",
+        "Priority ranked TF-002 as immediate attention.",
+        "Remediation disabled rp shell execution and added dns_lookup validation.",
+        "Targeted verification found no popen and rejected shell metacharacter input.",
+        "Related-path verification rejected ;, &&, backticks, $(), and | variants before DNS resolution."
+      ],
+      "security_improvement": "User-controlled hostnames no longer reach a shell command boundary."
+    },
+    {
+      "id": "TF-003",
+      "title": "Pickle deserialization of client cookie",
+      "classification": "Closed - Fix Verified",
+      "original_condition": "The client-controlled value cookie was base64-decoded and passed to pickle.loads.",
+      "post_remediation_state": "Cookie state uses HMAC-signed JSON and invalid or legacy values are rejected.",
+      "determinations": {
+        "original_weakness_addressed": true,
+        "attack_path_broken": true,
+        "security_control_effective": true,
+        "related_paths_checked": true,
+        "intended_behavior_preserved": true,
+        "evidence_sufficient_for_closure": true
+      },
+      "closure_evidence": [
+        "Triage confirmed BF-003 and MAINPY-003 as duplicates of TF-003.",
+        "Priority ranked TF-003 as immediate attention.",
+        "Remediation replaced pickle cookie state with signed JSON.",
+        "Targeted verification rejected a base64 pickle cookie.",
+        "Related-path verification rejected unsigned JSON, tampered signed values, and legacy pickle-like cookies."
+      ],
+      "security_improvement": "Client cookies are authenticated data and no longer become Python objects."
+    },
+    {
+      "id": "TF-004",
+      "title": "Server-side template injection in greeting route",
+      "classification": "Closed - Fix Verified",
+      "original_condition": "The name parameter was interpolated into Jinja template source before rendering.",
+      "post_remediation_state": "The template source is fixed and name is passed as a template variable.",
+      "determinations": {
+        "original_weakness_addressed": true,
+        "attack_path_broken": true,
+        "security_control_effective": true,
+        "related_paths_checked": true,
+        "intended_behavior_preserved": true,
+        "evidence_sufficient_for_closure": true
+      },
+      "closure_evidence": [
+        "Triage confirmed BF-004 and MAINPY-004 as duplicates of TF-004.",
+        "Priority ranked TF-004 as immediate attention.",
+        "Remediation changed /sayhi to static template plus variable binding.",
+        "Targeted verification observed {{7*7}} rendered literally.",
+        "Related-path verification found {{config}}, control-block, and os.popen template payloads inert."
+      ],
+      "security_improvement": "User input is rendered as escaped data instead of compiled template code."
+    },
+    {
+      "id": "TF-005",
+      "title": "SQL injection in listservices category filter",
+      "classification": "Closed - Fix Verified",
+      "original_condition": "The category parameter was interpolated directly into the service-listing SQL WHERE clause.",
+      "post_remediation_state": "The request-driven service query uses DB-API parameters and backend-appropriate placeholders.",
+      "determinations": {
+        "original_weakness_addressed": true,
+        "attack_path_broken": true,
+        "security_control_effective": true,
+        "related_paths_checked": true,
+        "intended_behavior_preserved": true,
+        "evidence_sufficient_for_closure": true
+      },
+      "closure_evidence": [
+        "Triage confirmed BF-005 and MAINPY-005 as duplicates of TF-005.",
+        "Priority placed TF-005 in near-term remediation.",
+        "Remediation parameterized /listservices category filtering.",
+        "Targeted verification confirmed normal filtering and blocked UNION secret extraction.",
+        "Related-path verification blocked UNION, OR, and stacked-query variants; public_stuff remained intact."
+      ],
+      "security_improvement": "User category values are bound as data rather than SQL syntax.",
+      "residual_note": "Runtime verification used sqlite; non-sqlite placeholder behavior was statically reviewed."
+    },
+    {
+      "id": "TF-006",
+      "title": "JWT algorithm confusion and None acceptance",
+      "classification": "Closed - Fix Verified",
+      "original_condition": "Attacker-controlled JWT alg headers could select None or HS256 verification paths.",
+      "post_remediation_state": "JWT verification is pinned to RS256 and HS256/None helper paths are absent.",
+      "determinations": {
+        "original_weakness_addressed": true,
+        "attack_path_broken": true,
+        "security_control_effective": true,
+        "related_paths_checked": true,
+        "intended_behavior_preserved": true,
+        "evidence_sufficient_for_closure": true
+      },
+      "closure_evidence": [
+        "Triage confirmed BF-006 and MAINPY-006 as duplicates of TF-006.",
+        "Priority placed TF-006 in near-term remediation.",
+        "Remediation set ALLOWED_ALGORITHMS to RS256 and removed weaker verifier paths.",
+        "Targeted verification rejected an alg None admin token and accepted a valid RS256 guest login.",
+        "Related-path verification rejected HS256 and unsigned admin tokens; JWKS advertises RS256 only."
+      ],
+      "security_improvement": "JWT trust decisions no longer depend on attacker-selected algorithm headers."
+    },
+    {
+      "id": "TF-007",
+      "title": "Unsafe XML parser configuration",
+      "classification": "Closed - Fix Verified",
+      "original_condition": "Unauthenticated XML input was parsed with DTD loading, entity resolution, network access, and huge_tree behavior enabled.",
+      "post_remediation_state": "The XML parser disables DTD loading, network access, entity resolution, validation, and huge_tree.",
+      "determinations": {
+        "original_weakness_addressed": true,
+        "attack_path_broken": true,
+        "security_control_effective": true,
+        "related_paths_checked": true,
+        "intended_behavior_preserved": true,
+        "evidence_sufficient_for_closure": true
+      },
+      "closure_evidence": [
+        "Triage confirmed BF-007 and MAINPY-007 as duplicates of TF-007.",
+        "Priority placed TF-007 in near-term remediation.",
+        "Remediation hardened lxml XMLParser settings.",
+        "Targeted verification showed a file:// XXE payload was not resolved.",
+        "Related-path verification found file and external SYSTEM payloads did not disclose external content."
+      ],
+      "security_improvement": "Untrusted XML no longer crosses the parser resource/entity trust boundary."
+    },
+    {
+      "id": "TF-008",
+      "title": "AES-CBC config selector padding/decryption oracle",
+      "classification": "Rework Required - Partially Resolved",
+      "original_condition": "GET /config?key accepted attacker-supplied AES-CBC ciphertext and exposed distinguishable decrypt/unpad behavior.",
+      "post_remediation_state": "Config selectors are HMAC-signed JSON tokens and malformed selectors fail generically, but a signed token for an unviewable key raises a TypeError instead of generic invalid-key handling.",
+      "determinations": {
+        "original_weakness_addressed": true,
+        "attack_path_broken": true,
+        "security_control_effective": true,
+        "related_paths_checked": true,
+        "intended_behavior_preserved": false,
+        "evidence_sufficient_for_closure": false
+      },
+      "closure_evidence": [
+        "Triage confirmed BF-008 and MAINPY-010 as duplicates of TF-008.",
+        "Priority placed TF-008 in planned remediation.",
+        "Remediation replaced AES-CBC selector ciphertext with HMAC-signed selector tokens and generic malformed-token errors.",
+        "Targeted verification confirmed tampered selector generic failure and valid visible selector behavior.",
+        "Related-path verification identified TF-008-R1: signed secret_admin_value selector raises TypeError: can only concatenate str (not \"NoneType\") to str."
+      ],
+      "security_improvement": "The original padding/decryption oracle and unauthenticated chosen-ciphertext path are broken.",
+      "required_rework": "Before closure, /config should return a generic invalid-key response whenever read_config_token returns a key outside the viewable allowlist, before building the config-value HTML.",
+      "closure_blocker": "Related-path regression candidate TF-008-R1 prevents final closure even though no secret disclosure was observed and no external signing route was identified."
+    },
+    {
+      "id": "TF-009",
+      "title": "Raw HTML rendering of attacker-influenced values",
+      "classification": "Closed - Fix Verified",
+      "original_condition": "Multiple routes concatenated attacker-influenced values into HTML without consistent output encoding.",
+      "post_remediation_state": "Dynamic values are escaped or rendered through Jinja variable escaping, and sensitive errors are generic.",
+      "determinations": {
+        "original_weakness_addressed": true,
+        "attack_path_broken": true,
+        "security_control_effective": true,
+        "related_paths_checked": true,
+        "intended_behavior_preserved": true,
+        "evidence_sufficient_for_closure": true
+      },
+      "closure_evidence": [
+        "Triage consolidated BF-009 and MAINPY-008, preserving expanded /listservices evidence.",
+        "Priority placed TF-009 in planned remediation.",
+        "Remediation escaped cookie/user/database output and stopped reflecting raw exceptions.",
+        "Targeted verification confirmed script cookie output was escaped.",
+        "Related-path verification confirmed cookie, evaluate, user, and service output paths did not render executable markup."
+      ],
+      "security_improvement": "Attacker-controlled text is rendered as text rather than executable browser content."
+    },
+    {
+      "id": "TF-010",
+      "title": "Predictable temporary JWT private key storage",
+      "classification": "Closed - Fix Verified",
+      "original_condition": "Fallback JWT key generation wrote private/public keys to predictable temporary paths and printed paths.",
+      "post_remediation_state": "Fallback key material is generated and retained in memory only.",
+      "determinations": {
+        "original_weakness_addressed": true,
+        "attack_path_broken": true,
+        "security_control_effective": true,
+        "related_paths_checked": true,
+        "intended_behavior_preserved": true,
+        "evidence_sufficient_for_closure": true
+      },
+      "closure_evidence": [
+        "Triage confirmed BF-010 and MAINPY-009 as duplicates of TF-010.",
+        "Priority placed TF-010 in planned remediation.",
+        "Remediation removed predictable temp key file writes and path printing.",
+        "Targeted verification found no private.pem or public.pem references.",
+        "Related-path verification confirmed fallback SIGN_KEY and VERIFY_KEY are bytes in memory."
+      ],
+      "security_improvement": "Default startup no longer exposes generated JWT signing key material through temp files or logs."
+    },
+    {
+      "id": "TF-011",
+      "title": "Authentication cookie missing Secure, HttpOnly, and SameSite",
+      "classification": "Closed - Fix Verified",
+      "original_condition": "Authentication cookies were set without security attributes.",
+      "post_remediation_state": "Value and auth cookies set HttpOnly, SameSite=Lax, and Secure when request.is_secure is true.",
+      "determinations": {
+        "original_weakness_addressed": true,
+        "attack_path_broken": true,
+        "security_control_effective": true,
+        "related_paths_checked": true,
+        "intended_behavior_preserved": true,
+        "evidence_sufficient_for_closure": true
+      },
+      "closure_evidence": [
+        "Triage confirmed BF-011 and MAINPY-011 as duplicates of TF-011.",
+        "Priority placed TF-011 in planned remediation.",
+        "Remediation added HttpOnly, SameSite=Lax, and conditional Secure.",
+        "Targeted verification confirmed HttpOnly on value and auth cookies.",
+        "Related-path verification confirmed HTTP cookies include HttpOnly/SameSite and HTTPS-context cookies include Secure."
+      ],
+      "security_improvement": "Bearer token exposure through browser script access and cross-site contexts is reduced.",
+      "residual_note": "Secure depends on HTTPS request context; production must preserve request.is_secure correctly."
+    }
+  ]
+}

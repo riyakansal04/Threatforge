@@ -1,0 +1,23 @@
+{
+  "mode": "remediation_planning_only",
+  "complete_for_prioritized_findings": true,
+  "findings_planned": 11,
+  "validation_candidates_planned": 3,
+  "input_reports": [
+    "Scan Report-6/triage.json",
+    "Scan Report-7/prioritization.json"
+  ],
+  "source_evidence_considered": [
+    "main.py",
+    "requirements.txt",
+    "vulnerability_index.md"
+  ],
+  "not_performed": [
+    "Source code modification",
+    "Remediation implementation",
+    "Runtime validation",
+    "Dependency advisory lookup"
+  ],
+  "implementation_authorized": false,
+  "source_modified": false
+}

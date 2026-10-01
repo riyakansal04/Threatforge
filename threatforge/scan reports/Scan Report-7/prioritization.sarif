@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "Codex Security prioritization",
+          "informationUri": "https://chatgpt.com/codex",
+          "rules": [
+            {"id": "TF-001", "name": "Unauthenticated Python eval code execution", "defaultConfiguration": {"level": "error"}, "properties": {"priorityRank": 1, "actionLevel": "Immediate attention"}},
+            {"id": "TF-002", "name": "OS command injection in DNS lookup", "defaultConfiguration": {"level": "error"}, "properties": {"priorityRank": 2, "actionLevel": "Immediate attention"}},
+            {"id": "TF-003", "name": "Pickle deserialization of client cookie", "defaultConfiguration": {"level": "error"}, "properties": {"priorityRank": 3, "actionLevel": "Immediate attention"}},
+            {"id": "TF-004", "name": "Server-side template injection", "defaultConfiguration": {"level": "error"}, "properties": {"priorityRank": 4, "actionLevel": "Immediate attention"}},
+            {"id": "TF-006", "name": "JWT algorithm confusion and None acceptance", "defaultConfiguration": {"level": "error"}, "properties": {"priorityRank": 5, "actionLevel": "Near-term remediation"}},
+            {"id": "TF-005", "name": "SQL injection in listservices", "defaultConfiguration": {"level": "error"}, "properties": {"priorityRank": 6, "actionLevel": "Near-term remediation"}},
+            {"id": "TF-007", "name": "Unsafe XML parser configuration", "defaultConfiguration": {"level": "warning"}, "properties": {"priorityRank": 7, "actionLevel": "Near-term remediation"}},
+            {"id": "TF-009", "name": "Raw HTML rendering of attacker-influenced values", "defaultConfiguration": {"level": "warning"}, "properties": {"priorityRank": 8, "actionLevel": "Planned remediation"}},
+            {"id": "TF-010", "name": "Predictable temporary JWT private key storage", "defaultConfiguration": {"level": "warning"}, "properties": {"priorityRank": 9, "actionLevel": "Planned remediation"}},
+            {"id": "TF-008", "name": "AES-CBC config selector oracle", "defaultConfiguration": {"level": "note"}, "properties": {"priorityRank": 10, "actionLevel": "Planned remediation"}},
+            {"id": "TF-011", "name": "Authentication cookie missing security attributes", "defaultConfiguration": {"level": "note"}, "properties": {"priorityRank": 11, "actionLevel": "Planned remediation"}}
+          ]
+        }
+      },
+      "results": [
+        {"ruleId": "TF-001", "level": "error", "message": {"text": "Priority 1, Immediate attention: unauthenticated eval reaches Python execution in shared Flask process."}, "locations": [{"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 379}}}]},
+        {"ruleId": "TF-002", "level": "error", "message": {"text": "Priority 2, Immediate attention: unauthenticated address input reaches os.popen."}, "locations": [{"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 360}}}]},
+        {"ruleId": "TF-003", "level": "error", "message": {"text": "Priority 3, Immediate attention: client-controlled cookie reaches pickle.loads."}, "locations": [{"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 329}}}]},
+        {"ruleId": "TF-004", "level": "error", "message": {"text": "Priority 4, Immediate attention: user input becomes Jinja template source."}, "locations": [{"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 468}}}]},
+        {"ruleId": "TF-006", "level": "error", "message": {"text": "Priority 5, Near-term remediation: untrusted JWT alg controls verifier selection."}, "locations": [{"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 269}}}]},
+        {"ruleId": "TF-005", "level": "error", "message": {"text": "Priority 6, Near-term remediation: category parameter is interpolated into SQL."}, "locations": [{"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 484}}}]},
+        {"ruleId": "TF-007", "level": "warning", "message": {"text": "Priority 7, Near-term remediation: XML parser allows DTD/network-capable parsing of untrusted input."}, "locations": [{"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 397}}}]},
+        {"ruleId": "TF-009", "level": "warning", "message": {"text": "Priority 8, Planned remediation: attacker-influenced values are rendered as raw HTML."}, "locations": [{"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 334}}}]},
+        {"ruleId": "TF-010", "level": "warning", "message": {"text": "Priority 9, Planned remediation: generated JWT private key uses predictable temp path."}, "locations": [{"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 111}}}]},
+        {"ruleId": "TF-008", "level": "note", "message": {"text": "Priority 10, Planned remediation: /config exposes AES-CBC decrypt/unpad oracle behavior."}, "locations": [{"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 430}}}]},
+        {"ruleId": "TF-011", "level": "note", "message": {"text": "Priority 11, Planned remediation: bearer JWT cookie is missing Secure, HttpOnly, and SameSite."}, "locations": [{"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 550}}}]}
+      ],
+      "invocations": [
+        {
+          "executionSuccessful": true,
+          "workingDirectory": {"uri": "C:/Users/riyakansal/OneDrive - Nagarro/Desktop/breakableflask-master/"},
+          "properties": {
+            "logicalFindingsPrioritized": 11,
+            "validationCandidatesPrioritized": 3,
+            "sourceModified": false,
+            "remediationApplied": false
+          }
+        }
+      ]
+    }
+  ]
+}

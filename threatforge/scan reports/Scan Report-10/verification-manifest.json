@@ -1,0 +1,49 @@
+{
+  "report": "Scan Report-10",
+  "stage": "post-remediation verification",
+  "created_at": "2026-09-24",
+  "workspace": "C:\\Users\\riyakansal\\OneDrive - Nagarro\\Desktop\\breakableflask-master",
+  "target": "All findings",
+  "primary_source_file": "main.py",
+  "inputs": [
+    {
+      "path": "Scan Report-6/triage.json",
+      "purpose": "Validated and deduplicated finding baseline"
+    },
+    {
+      "path": "Scan Report-8/remediation-plan.md",
+      "purpose": "Proposed remediation baseline"
+    },
+    {
+      "path": "Scan Report-9/remediation-result.json",
+      "purpose": "Implemented remediation and validation baseline"
+    },
+    {
+      "path": "main.py",
+      "purpose": "Post-remediation implementation under verification"
+    }
+  ],
+  "outputs": [
+    "verification-result.json",
+    "verification-result.md",
+    "verification-result.sarif",
+    "coverage.json",
+    "verification-manifest.json",
+    "supporting_artifacts/evidence.md"
+  ],
+  "commands_executed": [
+    {
+      "command": "python -m py_compile main.py",
+      "result": "passed"
+    },
+    {
+      "command": "rg focused sink/control pattern scan against main.py",
+      "result": "reviewed; original dangerous sinks absent"
+    },
+    {
+      "command": "focused Flask test-client retest",
+      "result": "16/16 checks passed"
+    }
+  ],
+  "source_code_modified_during_verification": false
+}

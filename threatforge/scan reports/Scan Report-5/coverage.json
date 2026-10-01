@@ -1,0 +1,54 @@
+{
+  "mode": "scoped_path",
+  "inventoryStrategy": "explicit_file",
+  "target": "main.py",
+  "complete": true,
+  "reviewed_files": [
+    "main.py"
+  ],
+  "supporting_files_read": [
+    "requirements.txt",
+    "vulnerability_index.md",
+    "Scan Report-1/repository_intelligence.md",
+    "Scan Report-1/architecture.md",
+    "Scan Report-2/threat_model.md",
+    "Scan Report-3/pre_scan_assessment.md",
+    "Scan Report-4/assessment.json",
+    "Scan Report-4/coverage.json"
+  ],
+  "excluded_as_source": [
+    "Scan Report-* previous generated report folders, except as untrusted context"
+  ],
+  "assessed_surface_categories": [
+    "Authentication and authorization",
+    "APIs and interfaces",
+    "Sensitive data and data access",
+    "Business-critical and privileged operations",
+    "Security controls and trust boundaries",
+    "External integrations",
+    "Dependencies and configuration",
+    "Other target-specific risks"
+  ],
+  "assessed_surfaces": [
+    "/cookie",
+    "/lookup",
+    "/evaluate",
+    "/xml",
+    "/config",
+    "/sayhi",
+    "/listservices",
+    "/user",
+    "/user/jwks",
+    "/user/login",
+    "JWT helper functions",
+    "AES-CBC helper functions",
+    "startup key initialization",
+    "database connector selection and bootstrap"
+  ],
+  "deferred_or_runtime_dependent": [
+    "Live dependency CVE lookup",
+    "Exact lxml/libxml2 external resource behavior in deployment",
+    "Host ACL and log exposure for generated temporary JWT keys"
+  ],
+  "source_modified": false
+}

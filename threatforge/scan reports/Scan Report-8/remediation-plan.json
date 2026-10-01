@@ -1,0 +1,239 @@
+{
+  "metadata": {
+    "report_id": "remediation-plan-threatforge-20260924",
+    "stage": "remediation_planning_only",
+    "repository": "breakableflask-master",
+    "root": "C:\\Users\\riyakansal\\OneDrive - Nagarro\\Desktop\\breakableflask-master",
+    "generated_at": "2026-09-24T00:10:00+05:30",
+    "inputs_used": [
+      "Scan Report-6 triage and deduplication",
+      "Scan Report-7 prioritization",
+      "main.py source evidence",
+      "requirements.txt",
+      "vulnerability_index.md"
+    ],
+    "implementation_authorized": false,
+    "source_modified": false,
+    "remediation_applied": false
+  },
+  "summary": {
+    "mode": "suggestion_only",
+    "findings_with_plans": 11,
+    "validation_candidates_with_plans": 3,
+    "message": "This report proposes fixes priority-wise. It does not modify source code or apply remediation."
+  },
+  "remediation_plans": [
+    {
+      "priority_rank": 1,
+      "finding_id": "TF-001",
+      "title": "Unauthenticated Python eval code execution",
+      "affected_code": ["main.py:372-379"],
+      "root_cause": "User-controlled expression input is passed directly to Python eval in the Flask process.",
+      "proposed_remediation": "Remove eval from /evaluate. If arithmetic expression support must remain, replace it with a small AST-based evaluator that accepts only numeric constants and arithmetic operators. Reject names, attributes, calls, imports, comprehensions, indexing, lambdas, and any non-expression syntax. Return a generic validation error for unsupported input.",
+      "expected_security_improvement": "Untrusted input can no longer become Python code, closing the direct process-execution boundary while preserving simple calculator-style behavior.",
+      "behavior_to_preserve": "GET /evaluate still renders the form; POST can still evaluate intended simple arithmetic expressions.",
+      "related_paths_considered": ["/evaluate only; no other route should call eval or the replacement evaluator unless explicitly intended."],
+      "validation_plan": [
+        "Confirm POST /evaluate with 1+2 returns 3.",
+        "Confirm malicious expressions using imports, function calls, attributes, or builtins are rejected.",
+        "Run python -m py_compile main.py."
+      ],
+      "implementation_status": "not_applied"
+    },
+    {
+      "priority_rank": 2,
+      "finding_id": "TF-002",
+      "title": "OS command injection in DNS lookup",
+      "affected_code": ["main.py:171-172", "main.py:353-361"],
+      "root_cause": "User-controlled address input is concatenated into a shell command executed by os.popen.",
+      "proposed_remediation": "Remove os.popen from lookup behavior. Use a Python DNS/socket resolver or subprocess with shell=False and a fixed argument list. Validate the address as a hostname or IP before lookup and HTML-escape displayed output.",
+      "expected_security_improvement": "User input remains data for DNS lookup and cannot inject shell metacharacters or extra commands.",
+      "behavior_to_preserve": "POST /lookup still returns DNS lookup information for normal hostnames/IPs.",
+      "related_paths_considered": ["rp() helper should be removed or left unused/disabled so future routes cannot call shell commands accidentally."],
+      "validation_plan": [
+        "Confirm lookup for a benign hostname still returns a result or safe lookup failure.",
+        "Confirm shell metacharacter payloads are not executed and are treated as invalid lookup input.",
+        "Run python -m py_compile main.py."
+      ],
+      "implementation_status": "not_applied"
+    },
+    {
+      "priority_rank": 3,
+      "finding_id": "TF-003",
+      "title": "Pickle deserialization of client cookie",
+      "affected_code": ["main.py:320-350"],
+      "root_cause": "The client-held cookie is base64-decoded and deserialized with pickle.loads without integrity verification.",
+      "proposed_remediation": "Replace pickle-based cookie storage with signed JSON or Flask's signed session mechanism. Store only simple scalar values, verify integrity before reading, and treat invalid signatures as absent/invalid cookie state. Set cookie flags appropriate for client-side state.",
+      "expected_security_improvement": "Client cookie contents can no longer trigger Python object deserialization or code execution.",
+      "behavior_to_preserve": "Users can still submit a value and see that value reflected by the cookie workflow.",
+      "related_paths_considered": ["Any future client-side state should use the same signed JSON/session pattern, not pickle."],
+      "validation_plan": [
+        "Confirm POST /cookie sets a signed non-pickle cookie and displays the submitted value.",
+        "Confirm tampered cookie values are rejected without exception leakage.",
+        "Confirm a raw pickle payload in the value cookie is not deserialized.",
+        "Run python -m py_compile main.py."
+      ],
+      "implementation_status": "not_applied"
+    },
+    {
+      "priority_rank": 4,
+      "finding_id": "TF-004",
+      "title": "Server-side template injection in greeting route",
+      "affected_code": ["main.py:450-468"],
+      "root_cause": "User-controlled name input is interpolated into the Jinja template source before render_template_string.",
+      "proposed_remediation": "Use a fixed template string and pass name as a template variable. Let Jinja autoescaping treat user input as data. Do not format user input into template source.",
+      "expected_security_improvement": "Template syntax submitted by users is rendered as text rather than compiled and executed by Jinja.",
+      "behavior_to_preserve": "POST /sayhi still renders a personalized greeting.",
+      "related_paths_considered": ["Other render_template_string usages should avoid user-controlled template source."],
+      "validation_plan": [
+        "Confirm normal name renders in greeting.",
+        "Confirm Jinja syntax such as {{7*7}} is displayed or escaped, not evaluated.",
+        "Run python -m py_compile main.py."
+      ],
+      "implementation_status": "not_applied"
+    },
+    {
+      "priority_rank": 5,
+      "finding_id": "TF-006",
+      "title": "JWT algorithm confusion and None acceptance",
+      "affected_code": ["main.py:29-36", "main.py:211-279", "main.py:510-537"],
+      "root_cause": "JWT verification trusts the token's unverified alg header and permits RS256, HS256, and None paths.",
+      "proposed_remediation": "Pin verification to the server-selected RS256 algorithm. Remove None and HS256 from ALLOWED_ALGORITHMS and from the /user verification dispatch. Keep issuer, audience, nbf, iat, exp, and sub checks. Treat invalid tokens with generic errors.",
+      "expected_security_improvement": "Clients can no longer choose a weaker JWT verifier or bypass signatures with None/HS256 confusion.",
+      "behavior_to_preserve": "Login still issues RS256 guest tokens and /user still accepts valid RS256 tokens.",
+      "related_paths_considered": ["/user/login token issuance", "/user verification", "/user/jwks public key publication"],
+      "validation_plan": [
+        "Confirm guest login token is accepted by /user.",
+        "Confirm alg=None token is rejected.",
+        "Confirm HS256 token using public key material is rejected.",
+        "Run python -m py_compile main.py."
+      ],
+      "implementation_status": "not_applied"
+    },
+    {
+      "priority_rank": 6,
+      "finding_id": "TF-005",
+      "title": "SQL injection in listservices category filter",
+      "affected_code": ["main.py:472-505", "main.py:647-656"],
+      "root_cause": "The category query parameter is formatted directly into SQL text.",
+      "proposed_remediation": "Use DB-API parameter binding for category values. Choose a placeholder style compatible with the selected database driver, or centralize placeholder generation alongside query_build. Keep SQL structure static and pass category as data. Return generic errors instead of raw database exceptions.",
+      "expected_security_improvement": "Category values can no longer change SQL syntax or query semantics.",
+      "behavior_to_preserve": "GET /listservices lists all services, and category links still filter by category.",
+      "related_paths_considered": ["Startup seed SQL remains trusted static data; route query must be parameterized across supported backends."],
+      "validation_plan": [
+        "Confirm /listservices returns all rows.",
+        "Confirm /listservices?category=products filters correctly.",
+        "Confirm quote/comment/UNION payloads do not alter query semantics.",
+        "Run python -m py_compile main.py."
+      ],
+      "implementation_status": "not_applied"
+    },
+    {
+      "priority_rank": 7,
+      "finding_id": "TF-007",
+      "title": "Unsafe XML parser configuration",
+      "affected_code": ["main.py:392-411"],
+      "root_cause": "Untrusted XML is parsed with DTD loading, network access, and huge_tree enabled.",
+      "proposed_remediation": "Configure lxml for untrusted XML: no_network=True, load_dtd=False, resolve_entities=False, huge_tree=False. Add request size limits where practical. Catch parse errors and return a generic invalid XML message.",
+      "expected_security_improvement": "XML input cannot trigger external DTD/entity/resource resolution through the parser and is less exposed to resource-exhaustion behavior.",
+      "behavior_to_preserve": "Simple XML submissions still parse and render escaped serialized XML.",
+      "related_paths_considered": ["Output escaping should remain after parsing but is not a substitute for parser hardening."],
+      "validation_plan": [
+        "Confirm simple XML parses successfully.",
+        "Confirm external entity/DOCTYPE payloads are rejected or not resolved.",
+        "Confirm malformed XML returns a safe generic error.",
+        "Run python -m py_compile main.py."
+      ],
+      "implementation_status": "not_applied"
+    },
+    {
+      "priority_rank": 8,
+      "finding_id": "TF-009",
+      "title": "Raw HTML rendering of attacker-influenced values",
+      "affected_code": ["main.py:325-334", "main.py:484-500", "main.py:519-526"],
+      "root_cause": "Handlers concatenate user-controlled values, database values, token claims, and exception strings into HTML.",
+      "proposed_remediation": "Render fixed templates with autoescaped variables or explicitly html.escape every user/token/database/error value before concatenation. Avoid reflecting raw exception messages. URL-encode query parameters in generated links.",
+      "expected_security_improvement": "Attacker-controlled text is rendered as text rather than executable HTML/JavaScript.",
+      "behavior_to_preserve": "Cookie values, user status, and services table remain visible to users.",
+      "related_paths_considered": ["/cookie", "/user", "/listservices", "database error handling"],
+      "validation_plan": [
+        "Confirm normal pages still render expected values.",
+        "Confirm <script> payloads are escaped in cookie/user/listservices outputs.",
+        "Confirm database errors are generic and do not reflect attacker payloads.",
+        "Run python -m py_compile main.py."
+      ],
+      "implementation_status": "not_applied"
+    },
+    {
+      "priority_rank": 9,
+      "finding_id": "TF-010",
+      "title": "Predictable temporary JWT private key storage",
+      "affected_code": ["main.py:107-123"],
+      "root_cause": "Fallback key generation writes private.pem/public.pem to predictable temp paths and prints those paths.",
+      "proposed_remediation": "For non-development use, require PRIVATE_KEY_FILE and PUBLIC_KEY_FILE. If temporary generation remains for local demo behavior, keep generated key material in memory or write to a private process-owned directory with restrictive permissions and never print private key paths.",
+      "expected_security_improvement": "Same-host users and logs are less likely to disclose JWT signing material.",
+      "behavior_to_preserve": "The app can still start in a local/demo mode when key env vars are absent, if that behavior is required.",
+      "related_paths_considered": ["JWT signing in create_token_rsa", "JWT verification in /user", "/user/jwks public key output"],
+      "validation_plan": [
+        "Confirm app starts with explicit key files.",
+        "Confirm demo fallback does not create predictable private.pem in shared temp.",
+        "Confirm logs do not print private key paths.",
+        "Run python -m py_compile main.py."
+      ],
+      "implementation_status": "not_applied"
+    },
+    {
+      "priority_rank": 10,
+      "finding_id": "TF-008",
+      "title": "AES-CBC config selector padding/decryption oracle",
+      "affected_code": ["main.py:140-168", "main.py:417-446"],
+      "root_cause": "The config route decrypts attacker-supplied AES-CBC ciphertext and returns distinguishable errors; successful plaintext is checked against all CONFIG keys.",
+      "proposed_remediation": "Replace encrypted selectors with signed opaque tokens or authenticated encryption. Return one generic invalid-token error for all failures. After verification, allow only the same viewable app_ keys that the page lists.",
+      "expected_security_improvement": "Attackers cannot use /config as a padding/decryption oracle or select hidden config keys with forged plaintext.",
+      "behavior_to_preserve": "Users can still click links to view app_name, app_version, and app_philosophy.",
+      "related_paths_considered": ["AES helpers may remain for other uses, but /config should not expose unauthenticated CBC decryption."],
+      "validation_plan": [
+        "Confirm listed app_ config links still work.",
+        "Confirm tampered selector tokens return the same generic error.",
+        "Confirm hidden keys such as encrypto_key and secret_admin_value cannot be selected.",
+        "Run python -m py_compile main.py."
+      ],
+      "implementation_status": "not_applied"
+    },
+    {
+      "priority_rank": 11,
+      "finding_id": "TF-011",
+      "title": "Authentication cookie missing Secure, HttpOnly, and SameSite",
+      "affected_code": ["main.py:540-551", "main.py:510-516"],
+      "root_cause": "The JWT bearer cookie is set with value and expiry only.",
+      "proposed_remediation": "Set httponly=True, samesite='Lax' or stricter, and secure=True when served over HTTPS. Keep local HTTP demo behavior configurable if needed, but avoid deploying bearer cookies without these attributes.",
+      "expected_security_improvement": "Reduces token theft via JavaScript and cross-site request contexts, and protects cookies on HTTPS deployments.",
+      "behavior_to_preserve": "Successful guest login still sets an authentication cookie that /user can read.",
+      "related_paths_considered": ["Any other bearer/session cookie should use the same flags."],
+      "validation_plan": [
+        "Confirm login still succeeds and /user reads the cookie.",
+        "Confirm Set-Cookie contains HttpOnly and SameSite.",
+        "Confirm Secure is present when request.is_secure or production config requires HTTPS.",
+        "Run python -m py_compile main.py."
+      ],
+      "implementation_status": "not_applied"
+    }
+  ],
+  "validation_candidate_plans": [
+    {
+      "candidate_id": "TC-002",
+      "title": "Exact lxml external resource behavior",
+      "plan": "Validate lxml/libxml2 behavior in the supported runtime with harmless external entity and DTD test cases, or skip runtime proof and harden parser settings immediately because the source configuration is unsafe."
+    },
+    {
+      "candidate_id": "TC-003",
+      "title": "Predictable temp key exposure on host",
+      "plan": "Review filesystem ACLs, process user separation, and log exposure for temp key paths. Raise TF-010 priority if private key material or paths are accessible beyond the app process owner."
+    },
+    {
+      "candidate_id": "TC-001",
+      "title": "Live dependency vulnerability status",
+      "plan": "Run an authorized dependency advisory/SCA check for requirements.txt and record package/version-specific CVEs separately from source-code findings."
+    }
+  ]
+}

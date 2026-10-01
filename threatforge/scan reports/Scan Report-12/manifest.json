@@ -1,0 +1,29 @@
+{
+  "report": "Scan Report-12",
+  "stage": "finding closure assessment",
+  "created_at": "2026-09-24",
+  "workspace": "C:\\Users\\riyakansal\\OneDrive - Nagarro\\Desktop\\breakableflask-master",
+  "source_code_modified": false,
+  "inputs": [
+    "Scan Report-1",
+    "Scan Report-2",
+    "Scan Report-3",
+    "Scan Report-4",
+    "Scan Report-5",
+    "Scan Report-6/triage.json",
+    "Scan Report-7/prioritization.json",
+    "Scan Report-8",
+    "Scan Report-9/remediation-result.json",
+    "Scan Report-10/verification-result.json",
+    "Scan Report-11/related-path-verification.json",
+    "main.py"
+  ],
+  "outputs": [
+    "closure-assessment.json",
+    "closure-assessment.md",
+    "closure-assessment.sarif",
+    "coverage.json",
+    "manifest.json",
+    "supporting_artifacts/closure-evidence.md"
+  ]
+}

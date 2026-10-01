@@ -1,0 +1,22 @@
+{
+  "validation_mode": "planned_not_executed",
+  "reason_not_executed": "Implementation was not authorized for this report; validation steps describe what to run after fixes are applied.",
+  "global_checks": [
+    "python -m py_compile main.py",
+    "Run focused Flask test-client checks for each remediated route.",
+    "Confirm source code diff is limited to the selected finding or approved remediation batch."
+  ],
+  "security_checks_by_finding": {
+    "TF-001": ["Malicious Python expressions rejected", "Simple arithmetic still works"],
+    "TF-002": ["Shell metacharacters do not execute", "Normal DNS lookup behavior preserved"],
+    "TF-003": ["Pickle payload cookie not deserialized", "Signed JSON/session value still displays"],
+    "TF-004": ["Jinja payload not evaluated", "Normal greeting works"],
+    "TF-006": ["None and HS256 tokens rejected", "Valid RS256 login token accepted"],
+    "TF-005": ["SQL injection payload does not alter query", "Category filter still works"],
+    "TF-007": ["External entity payload not resolved", "Simple XML still parses"],
+    "TF-009": ["HTML/script payloads escaped", "Normal output still renders"],
+    "TF-010": ["No predictable private key file created", "JWT login still signs/verifies"],
+    "TF-008": ["Tampered config token gives generic error", "Viewable config links still work"],
+    "TF-011": ["Set-Cookie has HttpOnly/SameSite and Secure when appropriate", "Login still works"]
+  }
+}

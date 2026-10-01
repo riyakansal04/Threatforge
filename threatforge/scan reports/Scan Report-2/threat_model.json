@@ -1,0 +1,643 @@
+{
+  "assessment_type": "architecture_level_threat_model",
+  "repository": {
+    "name": "breakableflask-master",
+    "root": "C:\\Users\\riyakansal\\OneDrive - Nagarro\\Desktop\\breakableflask-master",
+    "based_on": [
+      "Scan Report-1/repository_intelligence.md",
+      "Scan Report-1/repository_intelligence.json",
+      "main.py"
+    ],
+    "security_policy": {
+      "security_md_found": false,
+      "notes": "No SECURITY.md or security.md file was found by repository file search."
+    }
+  },
+  "constraints_observed": {
+    "remediation_generated": false,
+    "source_code_modified": false,
+    "runtime_execution_performed": false,
+    "threats_are_hypotheses_not_validated_findings": true
+  },
+  "summary": {
+    "architecture": "Single-process Flask application with route handlers, cryptographic/JWT helpers, parser/evaluation helpers and database bootstrap in main.py.",
+    "normal_deployment": "Direct execution of main.py starts Flask on configured address and port, defaulting to 127.0.0.1:4000 with SQLite :memory: unless database CLI options select an external backend.",
+    "primary_data_flows": [
+      "HTTP form/query/cookie input to Flask route handlers",
+      "Route handlers to OS command execution, Python eval, pickle deserialization, XML parser, Jinja template renderer, AES decryptor, JWT verifier and database cursor",
+      "Startup CLI/environment inputs to key initialization and database bootstrap"
+    ],
+    "source_refs": [
+      "main.py:296-573",
+      "main.py:577-661",
+      "README.md:40-54"
+    ]
+  },
+  "assets": [
+    {
+      "name": "Python process authority",
+      "description": "Application memory, route globals, database cursor, crypto/JWT keys and host permissions of the Flask process.",
+      "source_refs": [
+        "main.py:24-82",
+        "main.py:296",
+        "main.py:647-661"
+      ]
+    },
+    {
+      "name": "JWT signing and verification keys",
+      "description": "SIGN_KEY creates tokens; VERIFY_KEY verifies tokens and is used to emit JWK material.",
+      "source_refs": [
+        "main.py:107-123",
+        "main.py:179-190",
+        "main.py:267-279",
+        "main.py:531-537"
+      ]
+    },
+    {
+      "name": "Authentication cookie and admin authorization state",
+      "description": "authentication cookie controls /user; sub == admin controls admin response state.",
+      "source_refs": [
+        "main.py:29-36",
+        "main.py:510-528",
+        "main.py:547-550"
+      ]
+    },
+    {
+      "name": "CONFIG hidden entries",
+      "description": "CONFIG contains base64-encoded references to KEY and ADMIN_SECRET plus public app metadata.",
+      "source_refs": [
+        "main.py:24-45",
+        "main.py:417-446"
+      ]
+    },
+    {
+      "name": "Relational database contents",
+      "description": "public_stuff and secret_stuff tables are created and seeded; public_stuff is queried by /listservices.",
+      "source_refs": [
+        "main.py:49-82",
+        "main.py:472-505",
+        "main.py:647-656"
+      ]
+    },
+    {
+      "name": "Local filesystem and network-reachable resources",
+      "description": "Resources reachable by process permissions, XML parser behavior or OS command execution.",
+      "source_refs": [
+        "main.py:171-172",
+        "main.py:397-400"
+      ]
+    }
+  ],
+  "trust_boundaries": [
+    {
+      "name": "HTTP client to Flask route",
+      "transferred_data_or_authority": "Query parameters, form fields and cookies enter route handlers.",
+      "expected_control": "Each route must preserve separation between untrusted client data and privileged local consumers.",
+      "source_refs": [
+        "main.py:299-573"
+      ]
+    },
+    {
+      "name": "Flask route to Python interpreter",
+      "transferred_data_or_authority": "Expression string reaches eval.",
+      "source_refs": [
+        "main.py:372-386"
+      ]
+    },
+    {
+      "name": "Flask route to OS process boundary",
+      "transferred_data_or_authority": "Address string becomes part of command executed by popen.",
+      "source_refs": [
+        "main.py:171-172",
+        "main.py:353-367"
+      ]
+    },
+    {
+      "name": "Client cookie to Python deserialization",
+      "transferred_data_or_authority": "Cookie bytes are base64-decoded and passed to pickle.loads.",
+      "source_refs": [
+        "main.py:328-329"
+      ]
+    },
+    {
+      "name": "Flask route to Jinja template engine",
+      "transferred_data_or_authority": "Form input is interpolated into template source rendered by render_template_string.",
+      "source_refs": [
+        "main.py:450-468"
+      ]
+    },
+    {
+      "name": "Flask route to XML parser/resource resolver",
+      "transferred_data_or_authority": "XML form body is parsed with DTD loading and network-enabled options.",
+      "source_refs": [
+        "main.py:392-411"
+      ]
+    },
+    {
+      "name": "Flask route to database engine",
+      "transferred_data_or_authority": "Query parameter is interpolated into SQL executed by global cursor.",
+      "source_refs": [
+        "main.py:472-505"
+      ]
+    },
+    {
+      "name": "Client-held JWT to authorization decision",
+      "transferred_data_or_authority": "Cookie token header selects verification algorithm and claims determine admin state.",
+      "source_refs": [
+        "main.py:267-279",
+        "main.py:510-528"
+      ]
+    },
+    {
+      "name": "Environment/CLI to runtime configuration",
+      "transferred_data_or_authority": "Key file paths and database credentials/host/port configure sensitive resources.",
+      "source_refs": [
+        "main.py:107-123",
+        "main.py:577-589",
+        "main.py:622-642"
+      ]
+    }
+  ],
+  "attacker_capabilities": [
+    {
+      "actor": "Unauthenticated web client",
+      "starting_capabilities": [
+        "Send GET and POST requests to reachable routes",
+        "Set query parameters, form fields and cookies"
+      ],
+      "absent_privileges": [
+        "Does not initially control Flask process",
+        "Does not initially control database server",
+        "Does not initially possess signing key or admin authorization"
+      ]
+    },
+    {
+      "actor": "Authenticated guest",
+      "starting_capabilities": [
+        "Can obtain a normal guest JWT using guest:guest",
+        "Can read /user/jwks"
+      ],
+      "absent_privileges": [
+        "Does not initially have admin subject claim"
+      ],
+      "source_refs": [
+        "main.py:543-550",
+        "main.py:558-573",
+        "main.py:531-537"
+      ]
+    },
+    {
+      "actor": "Network-positioned caller",
+      "starting_capabilities": [
+        "Can reach app if operator binds it beyond default loopback"
+      ],
+      "absent_privileges": [
+        "No operator authority assumed"
+      ],
+      "source_refs": [
+        "main.py:578",
+        "README.md:42"
+      ]
+    }
+  ],
+  "security_objectives": [
+    {
+      "objective": "Untrusted HTTP inputs should not gain process, OS, parser, template, database or cryptographic authority beyond the intended workflow."
+    },
+    {
+      "objective": "JWT verification should preserve claim integrity before /user accepts sub == admin as admin state."
+    },
+    {
+      "objective": "Database query input should not cross from filter data into database command structure."
+    },
+    {
+      "objective": "Hidden configuration values and key material should not be disclosed through config selector processing or downstream process authority."
+    }
+  ],
+  "threats": [
+    {
+      "id": "T1",
+      "title": "Python evaluation grants process-level authority",
+      "threat_scenario": "An unauthenticated client submits expression content that is evaluated by the server-side Python interpreter.",
+      "threat_actor": "Unauthenticated web client able to reach /evaluate.",
+      "entry_point": "GET/POST /evaluate",
+      "affected_component": "evaluate() route and Python interpreter",
+      "affected_asset": "Flask process authority, in-memory secrets, database cursor, filesystem/network permissions available to the process.",
+      "trust_boundaries_crossed": [
+        "External HTTP client to Flask route",
+        "Flask route to Python interpreter execution context"
+      ],
+      "attack_path": [
+        "Client sends POST form field expression",
+        "Route assigns request.form['expression']",
+        "Route calls eval(expression)",
+        "Result is stringified and rendered"
+      ],
+      "preconditions": [
+        "Attacker can send POST requests to the app",
+        "/evaluate route is reachable",
+        "Expression evaluation has access to Python runtime context"
+      ],
+      "potential_impact": "Process-level code execution or inspection of in-memory state and accessible resources, depending on runtime permissions.",
+      "existing_controls": [
+        "Expression is processed only when POST body supplies it",
+        "No route-level authentication is checked"
+      ],
+      "security_gaps": [
+        "No boundary between user input and interpreter evaluation",
+        "Interpreter context shares process authority with keys, config and database cursor"
+      ],
+      "supporting_source_evidence": [
+        "main.py:372-386",
+        "main.py:2-21",
+        "main.py:24-82",
+        "main.py:647-656"
+      ],
+      "assumptions_or_unknowns": [
+        "Exposed network scope depends on --address",
+        "Process OS permissions are deployment-specific"
+      ]
+    },
+    {
+      "id": "T2",
+      "title": "DNS lookup crosses into OS command execution",
+      "threat_scenario": "An unauthenticated client controls part of a command string executed through the operating system command interface.",
+      "threat_actor": "Unauthenticated web client able to reach /lookup.",
+      "entry_point": "GET/POST /lookup",
+      "affected_component": "lookup() route and rp() helper",
+      "affected_asset": "OS process boundary, Flask process host environment, filesystem/network resources available to the process.",
+      "trust_boundaries_crossed": [
+        "External HTTP client to Flask route",
+        "Flask route to OS command/process boundary"
+      ],
+      "attack_path": [
+        "Client submits POST form field address",
+        "Route builds nslookup command by concatenating address",
+        "Route calls rp(command)",
+        "rp executes popen(command).read()",
+        "Output is rendered"
+      ],
+      "preconditions": [
+        "Attacker can send POST requests",
+        "App host has a shell/command environment compatible with popen",
+        "Command execution inherits process permissions"
+      ],
+      "potential_impact": "Execution of unintended OS-level commands or access to host resources reachable by the app process.",
+      "existing_controls": [
+        "Command string is prefixed with nslookup"
+      ],
+      "security_gaps": [
+        "HTTP input is concatenated into a shell command",
+        "No authentication or argument boundary before popen"
+      ],
+      "supporting_source_evidence": [
+        "main.py:11",
+        "main.py:171-172",
+        "main.py:353-367"
+      ],
+      "assumptions_or_unknowns": [
+        "Shell parsing behavior and available commands depend on OS and deployment",
+        "README default binds to loopback unless configured otherwise"
+      ]
+    },
+    {
+      "id": "T3",
+      "title": "Cookie deserialization transfers client state into Python object loading",
+      "threat_scenario": "A client-controlled cookie is decoded and passed to Python deserialization during a GET request.",
+      "threat_actor": "Web client able to set its own value cookie and request /cookie.",
+      "entry_point": "GET/POST /cookie",
+      "affected_component": "cookie() route and Python pickle deserializer",
+      "affected_asset": "Python process authority and application memory.",
+      "trust_boundaries_crossed": [
+        "Client-controlled cookie store to Flask request",
+        "Request cookie bytes to Python deserialization"
+      ],
+      "attack_path": [
+        "Client sends cookie named value",
+        "Route base64-decodes request.cookies['value']",
+        "Route calls pickle.loads",
+        "Resulting object is converted to string and rendered"
+      ],
+      "preconditions": [
+        "Attacker can control the value cookie",
+        "Route receives a GET request with the cookie present",
+        "Pickle payload is accepted by the runtime"
+      ],
+      "potential_impact": "Process-level effects during deserialization or unexpected object creation, depending on payload and runtime environment.",
+      "existing_controls": [
+        "POST-created cookie values are generated with pickle.dumps and base64"
+      ],
+      "security_gaps": [
+        "No server-side signing or verification of cookie provenance",
+        "Client-held cookie contents are trusted as serialized Python data"
+      ],
+      "supporting_source_evidence": [
+        "main.py:8",
+        "main.py:320-350"
+      ],
+      "assumptions_or_unknowns": [
+        "Custom HTTP clients can set cookie contents",
+        "Runtime impact depends on available Python modules and process permissions"
+      ]
+    },
+    {
+      "id": "T4",
+      "title": "Server-side template rendering evaluates constructed user-influenced template source",
+      "threat_scenario": "A client-controlled name is interpolated into a template string before Jinja rendering.",
+      "threat_actor": "Unauthenticated web client able to submit /sayhi.",
+      "entry_point": "GET/POST /sayhi",
+      "affected_component": "sayhi() route and Flask/Jinja render_template_string",
+      "affected_asset": "Template execution context, Flask process state and reachable runtime objects.",
+      "trust_boundaries_crossed": [
+        "External HTTP form input to Flask route",
+        "Constructed server-side string to Jinja template engine"
+      ],
+      "attack_path": [
+        "Client submits name",
+        "Route formats name into greeting HTML",
+        "Route formats greeting into template string",
+        "Route calls render_template_string(template)"
+      ],
+      "preconditions": [
+        "Attacker can submit POST requests",
+        "Jinja evaluates template syntax present in constructed template"
+      ],
+      "potential_impact": "Server-side template expression evaluation and access to template/runtime context, depending on available objects.",
+      "existing_controls": [
+        "No authentication is required",
+        "No explicit route control observed before rendering"
+      ],
+      "security_gaps": [
+        "User input becomes part of template source",
+        "No explicit escaping or sandbox boundary before rendering"
+      ],
+      "supporting_source_evidence": [
+        "main.py:21",
+        "main.py:450-468"
+      ],
+      "assumptions_or_unknowns": [
+        "Accessible template globals depend on Flask/Jinja runtime version and context"
+      ]
+    },
+    {
+      "id": "T5",
+      "title": "SQL query construction crosses from public filter input into database authority",
+      "threat_scenario": "A client-controlled category filter is interpolated into SQL executed through the application database cursor.",
+      "threat_actor": "Unauthenticated web client able to request /listservices with a category parameter.",
+      "entry_point": "GET /listservices",
+      "affected_component": "listservices() route, global DB cursor and selected database backend.",
+      "affected_asset": "public_stuff, secret_stuff, database metadata and database connection authority.",
+      "trust_boundaries_crossed": [
+        "External query parameter to Flask route",
+        "Route string construction to SQL parser/database engine"
+      ],
+      "attack_path": [
+        "Client supplies category",
+        "Route builds WHERE category = '<category>'",
+        "Route executes cursor.execute(query_build(...))",
+        "Results are rendered"
+      ],
+      "preconditions": [
+        "Attacker can reach /listservices",
+        "Database setup completed and global cursor exists",
+        "Backend SQL dialect accepts the resulting query shape"
+      ],
+      "potential_impact": "Unauthorized database reads or manipulation of query semantics, including potential access to seeded secret_stuff, depending on backend behavior and DB privileges.",
+      "existing_controls": [
+        "Route starts with SELECT * from public_stuff",
+        "Execution exceptions are caught and returned as response text"
+      ],
+      "security_gaps": [
+        "User input is embedded into SQL text rather than bound as data",
+        "Route uses same database connection authority established at startup"
+      ],
+      "supporting_source_evidence": [
+        "main.py:49-82",
+        "main.py:472-505",
+        "main.py:597-617",
+        "main.py:647-656"
+      ],
+      "assumptions_or_unknowns": [
+        "Multi-statement support and SQL grammar vary by backend",
+        "Database user privileges depend on CLI-supplied credentials and external DB configuration"
+      ]
+    },
+    {
+      "id": "T6",
+      "title": "JWT algorithm trust boundary can permit admin-state bypass",
+      "threat_scenario": "A client-held JWT controls /user authorization while verification dispatch trusts the token header algorithm across RS256, HS256 and None paths.",
+      "threat_actor": "Unauthenticated client or authenticated guest able to submit an authentication cookie.",
+      "entry_point": "GET /user, GET /user/jwks, GET/POST /user/login",
+      "affected_component": "JWT creation/verification helpers and jwtmain() admin check.",
+      "affected_asset": "Admin authorization state and integrity of authentication claims.",
+      "trust_boundaries_crossed": [
+        "Client-controlled cookie to token parser",
+        "Unverified JWT header to verification algorithm dispatch",
+        "Verified claims to authorization decision"
+      ],
+      "attack_path": [
+        "Client places token in authentication cookie",
+        "/user calls verify_token(token, VERIFY_KEY)",
+        "verify_token uses jwt.get_unverified_header and dispatches by alg",
+        "/user grants admin response when sub == admin",
+        "/user/jwks exposes RSA public key parameters"
+      ],
+      "preconditions": [
+        "Attacker can set the authentication cookie",
+        "Target accepts one enabled algorithm path",
+        "Claims satisfy issuer, audience and time checks in chosen verifier"
+      ],
+      "potential_impact": "Unauthorized transition from guest or unauthenticated state to the app's admin response state.",
+      "existing_controls": [
+        "RS256 verification uses PyJWT audience and issuer checks",
+        "Manual HS256/None paths check audience, issuer, time and signature or empty signature conditions",
+        "/user requires a sub claim"
+      ],
+      "security_gaps": [
+        "Allowed algorithms include None",
+        "Algorithm choice comes from untrusted token headers",
+        "Authorization relies only on token subject after verification dispatch"
+      ],
+      "supporting_source_evidence": [
+        "main.py:29-36",
+        "main.py:107-123",
+        "main.py:179-279",
+        "main.py:510-573",
+        "vulnerability_index.md:16-18"
+      ],
+      "assumptions_or_unknowns": [
+        "Exact exploitability depends on PyJWT behavior, token construction and runtime clock",
+        "No broader admin backend exists beyond the response state in this repository"
+      ]
+    },
+    {
+      "id": "T7",
+      "title": "Config selector decryption exposes cryptographic oracle toward hidden config values",
+      "threat_scenario": "Client-controlled key bytes are decrypted by the server and decryption/padding errors are returned.",
+      "threat_actor": "Unauthenticated web client able to request /config.",
+      "entry_point": "GET /config",
+      "affected_component": "AES-CBC decrypt/unpad helpers and config() route.",
+      "affected_asset": "CONFIG hidden entries, including KEY and ADMIN_SECRET references; crypto key material in process memory.",
+      "trust_boundaries_crossed": [
+        "External query parameter to hex decoder",
+        "Decoded bytes to AES-CBC decrypt/unpad",
+        "Decrypted selector to config lookup"
+      ],
+      "attack_path": [
+        "Route creates encrypted links for viewable app_ keys",
+        "Client supplies key",
+        "Route calls unhexlify and decrypt(kv, KEY)",
+        "Exceptions are returned as response text",
+        "If decrypted text names any CONFIG key, route displays that value"
+      ],
+      "preconditions": [
+        "Attacker can query /config",
+        "Attacker can observe response differences or errors",
+        "Runtime KEY remains stable for process lifetime"
+      ],
+      "potential_impact": "Disclosure of hidden config values or oracle-assisted inference about encrypted selector validity, depending on cryptographic interaction and request volume.",
+      "existing_controls": [
+        "Page only links keys starting with app_",
+        "Unknown decrypted keys are not displayed unless they match CONFIG.keys()"
+      ],
+      "security_gaps": [
+        "Decrypt/unpad operation is exposed to unauthenticated callers",
+        "Exception strings are returned",
+        "Successful decrypted selectors are checked against all CONFIG keys rather than only viewable keys"
+      ],
+      "supporting_source_evidence": [
+        "main.py:24-45",
+        "main.py:140-168",
+        "main.py:417-446",
+        "vulnerability_index.md:12-13"
+      ],
+      "assumptions_or_unknowns": [
+        "Practical disclosure depends on request observability and oracle properties",
+        "No rate limiting or monitoring code was found"
+      ]
+    },
+    {
+      "id": "T8",
+      "title": "XML parser boundary can reach local or network resources",
+      "threat_scenario": "Untrusted XML is parsed with DTD loading and network-enabled parser options.",
+      "threat_actor": "Unauthenticated web client able to submit XML to /xml.",
+      "entry_point": "GET/POST /xml",
+      "affected_component": "xml() route and lxml.etree parser.",
+      "affected_asset": "Local files and network destinations reachable by XML parser/runtime; response confidentiality of parsed/serialized XML output.",
+      "trust_boundaries_crossed": [
+        "External HTTP form input to Flask route",
+        "XML bytes to parser entity/DTD processing",
+        "Parser output to HTTP response"
+      ],
+      "attack_path": [
+        "Client submits xml",
+        "Route constructs etree.XMLParser with no_network=False and load_dtd=True",
+        "Route parses with etree.fromstring",
+        "Serialized result is escaped and returned"
+      ],
+      "preconditions": [
+        "Attacker can send POST XML",
+        "Parser/runtime supports relevant external resource resolution",
+        "Target resources are reachable by process permissions or network"
+      ],
+      "potential_impact": "Disclosure or interaction with local/network resources through XML parsing behavior, plus resource-consumption risk from large or complex XML.",
+      "existing_controls": [
+        "Serialized XML is passed through html.escape before response rendering",
+        "No active try/except around parser execution"
+      ],
+      "security_gaps": [
+        "Parser is configured to load DTDs with network access",
+        "Untrusted input is parsed directly",
+        "Route has no authentication or resource policy"
+      ],
+      "supporting_source_evidence": [
+        "main.py:12",
+        "main.py:392-411",
+        "vulnerability_index.md:10-11"
+      ],
+      "assumptions_or_unknowns": [
+        "Actual file/network access depends on libxml2/lxml behavior, deployment network policy and process filesystem permissions"
+      ]
+    }
+  ],
+  "threat_relationships": [
+    {
+      "relationship": "Process-authority convergence",
+      "threats": [
+        "T1",
+        "T2",
+        "T3",
+        "T4"
+      ],
+      "description": "These paths all move unauthenticated HTTP-controlled data toward process or execution authority and can expose overlapping downstream assets."
+    },
+    {
+      "relationship": "Database exposure linkage",
+      "threats": [
+        "T1",
+        "T2",
+        "T3",
+        "T4",
+        "T5"
+      ],
+      "description": "T5 targets the DB directly through SQL construction; process-authority paths may reach database state indirectly through globals and modules."
+    },
+    {
+      "relationship": "Authentication and key-material linkage",
+      "threats": [
+        "T1",
+        "T2",
+        "T3",
+        "T4",
+        "T6",
+        "T7"
+      ],
+      "description": "JWT bypass depends on token verification trust; key/config exposure or process authority can undermine the same authorization boundary through separate paths."
+    },
+    {
+      "relationship": "Local and network resource access linkage",
+      "threats": [
+        "T2",
+        "T8"
+      ],
+      "description": "OS command execution and XML parser resource resolution can both cross from HTTP input toward host or network resources through different components."
+    }
+  ],
+  "assumptions_unknowns_architectural_weaknesses": [
+    {
+      "item": "Default listen address is loopback, but CLI can bind elsewhere.",
+      "source_refs": [
+        "main.py:578",
+        "README.md:42"
+      ]
+    },
+    {
+      "item": "No centralized authentication middleware protects sensitive routes; only /user performs token-based authorization.",
+      "source_refs": [
+        "main.py:299-573"
+      ]
+    },
+    {
+      "item": "Sensitive consumers are embedded directly in route handlers in a single process.",
+      "source_refs": [
+        "main.py:24-82",
+        "main.py:296-573"
+      ]
+    },
+    {
+      "item": "No SECURITY.md policy, automated tests, CI policy, deployment manifest or production WSGI config was found in the repository intelligence pass."
+    },
+    {
+      "item": "The application is intentionally vulnerable by stated project purpose; this model treats boundaries as threat scenarios, not remediation instructions.",
+      "source_refs": [
+        "README.md:1-17",
+        "vulnerability_index.md:1-18"
+      ]
+    }
+  ],
+  "deliverables": [
+    "Scan Report-2/threat_model.md",
+    "Scan Report-2/threat_model.json",
+    "Scan Report-2/attack_path_diagram.md"
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "remediation": {
+    "id": "remediation-plan-threatforge-20260924",
+    "mode": "suggestion_only",
+    "repository": "breakableflask-master",
+    "root": "C:\\Users\\riyakansal\\OneDrive - Nagarro\\Desktop\\breakableflask-master",
+    "outputDirectory": "Scan Report-8",
+    "startedAt": "2026-09-24T00:08:00+05:30",
+    "completedAt": "2026-09-24T00:10:00+05:30",
+    "implementationAuthorized": false,
+    "sourceModified": false,
+    "remediationApplied": false
+  },
+  "inputs": [
+    "Scan Report-6",
+    "Scan Report-7",
+    "main.py",
+    "requirements.txt",
+    "vulnerability_index.md"
+  ],
+  "artifacts": [
+    {"path": "remediation-plan.md", "kind": "markdown_report"},
+    {"path": "remediation-plan.json", "kind": "json_plan"},
+    {"path": "remediation-plan.sarif", "kind": "sarif"},
+    {"path": "coverage.json", "kind": "coverage"},
+    {"path": "validation-plan.json", "kind": "validation_plan"},
+    {"path": "supporting_artifacts/implementation_notes.md", "kind": "implementation_notes"}
+  ]
+}

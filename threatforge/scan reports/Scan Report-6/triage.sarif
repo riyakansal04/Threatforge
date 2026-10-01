@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "Codex Security triage and deduplication",
+          "informationUri": "https://chatgpt.com/codex",
+          "rules": [
+            {"id": "TF-001", "name": "Unauthenticated Python eval code execution", "defaultConfiguration": {"level": "error"}, "properties": {"classification": "Confirmed", "sourceFindings": ["BF-001", "MAINPY-001"]}},
+            {"id": "TF-002", "name": "OS command injection in DNS lookup", "defaultConfiguration": {"level": "error"}, "properties": {"classification": "Confirmed", "sourceFindings": ["BF-002", "MAINPY-002"]}},
+            {"id": "TF-003", "name": "Pickle deserialization of client cookie", "defaultConfiguration": {"level": "error"}, "properties": {"classification": "Confirmed", "sourceFindings": ["BF-003", "MAINPY-003"]}},
+            {"id": "TF-004", "name": "Server-side template injection", "defaultConfiguration": {"level": "error"}, "properties": {"classification": "Confirmed", "sourceFindings": ["BF-004", "MAINPY-004"]}},
+            {"id": "TF-005", "name": "SQL injection in listservices", "defaultConfiguration": {"level": "error"}, "properties": {"classification": "Confirmed", "sourceFindings": ["BF-005", "MAINPY-005"]}},
+            {"id": "TF-006", "name": "JWT algorithm confusion and None acceptance", "defaultConfiguration": {"level": "error"}, "properties": {"classification": "Confirmed", "sourceFindings": ["BF-006", "MAINPY-006"]}},
+            {"id": "TF-007", "name": "Unsafe XML parser configuration", "defaultConfiguration": {"level": "error"}, "properties": {"classification": "Confirmed", "sourceFindings": ["BF-007", "MAINPY-007"]}},
+            {"id": "TF-008", "name": "AES-CBC config selector oracle", "defaultConfiguration": {"level": "note"}, "properties": {"classification": "Confirmed", "sourceFindings": ["BF-008", "MAINPY-010"]}},
+            {"id": "TF-009", "name": "Raw HTML rendering of attacker-influenced values", "defaultConfiguration": {"level": "warning"}, "properties": {"classification": "Confirmed", "sourceFindings": ["BF-009", "MAINPY-008"]}},
+            {"id": "TF-010", "name": "Predictable temporary JWT private key storage", "defaultConfiguration": {"level": "warning"}, "properties": {"classification": "Confirmed", "sourceFindings": ["BF-010", "MAINPY-009"]}},
+            {"id": "TF-011", "name": "Authentication cookie missing security attributes", "defaultConfiguration": {"level": "note"}, "properties": {"classification": "Confirmed", "sourceFindings": ["BF-011", "MAINPY-011"]}}
+          ]
+        }
+      },
+      "results": [
+        {"ruleId": "TF-001", "level": "error", "message": {"text": "Confirmed duplicate pair BF-001 and MAINPY-001: request.form['expression'] reaches eval without controls."}, "locations": [{"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 379}}}]},
+        {"ruleId": "TF-002", "level": "error", "message": {"text": "Confirmed duplicate pair BF-002 and MAINPY-002: address reaches os.popen command string."}, "locations": [{"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 360}}}]},
+        {"ruleId": "TF-003", "level": "error", "message": {"text": "Confirmed duplicate pair BF-003 and MAINPY-003: client cookie reaches pickle.loads."}, "locations": [{"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 329}}}]},
+        {"ruleId": "TF-004", "level": "error", "message": {"text": "Confirmed duplicate pair BF-004 and MAINPY-004: name input becomes Jinja template source."}, "locations": [{"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 468}}}]},
+        {"ruleId": "TF-005", "level": "error", "message": {"text": "Confirmed duplicate pair BF-005 and MAINPY-005: category is interpolated into SQL."}, "locations": [{"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 484}}}]},
+        {"ruleId": "TF-006", "level": "error", "message": {"text": "Confirmed duplicate pair BF-006 and MAINPY-006: untrusted JWT alg controls verifier selection."}, "locations": [{"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 269}}}]},
+        {"ruleId": "TF-007", "level": "error", "message": {"text": "Confirmed duplicate pair BF-007 and MAINPY-007: untrusted XML is parsed with DTD and network-capable settings."}, "locations": [{"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 397}}}]},
+        {"ruleId": "TF-008", "level": "note", "message": {"text": "Confirmed duplicate pair BF-008 and MAINPY-010: /config exposes AES-CBC decrypt/unpad oracle behavior."}, "locations": [{"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 430}}}]},
+        {"ruleId": "TF-009", "level": "warning", "message": {"text": "Confirmed duplicate pair BF-009 and MAINPY-008 with scope expansion: raw HTML concatenation reflects attacker-influenced values."}, "locations": [{"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 334}}}]},
+        {"ruleId": "TF-010", "level": "warning", "message": {"text": "Confirmed duplicate pair BF-010 and MAINPY-009: generated JWT private key is written to predictable temporary path."}, "locations": [{"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 111}}}]},
+        {"ruleId": "TF-011", "level": "note", "message": {"text": "Confirmed duplicate pair BF-011 and MAINPY-011: bearer JWT cookie is missing Secure, HttpOnly, and SameSite."}, "locations": [{"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 550}}}]}
+      ],
+      "invocations": [
+        {
+          "executionSuccessful": true,
+          "workingDirectory": {"uri": "C:/Users/riyakansal/OneDrive - Nagarro/Desktop/breakableflask-master/"},
+          "properties": {
+            "inputFindingsAssessed": 22,
+            "logicalFindingsAfterDeduplication": 11,
+            "sourceModified": false
+          }
+        }
+      ]
+    }
+  ]
+}

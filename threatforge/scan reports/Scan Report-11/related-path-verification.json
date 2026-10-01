@@ -1,0 +1,177 @@
+{
+  "metadata": {
+    "report": "Scan Report-11",
+    "stage": "related-path remediation verification",
+    "target": "All validated ThreatForge findings",
+    "source_module": "main.py",
+    "generated_at": "2026-09-24",
+    "scope": "Focused related-path regression check of remediated weaknesses; no broad repository scan performed.",
+    "source_code_modified": false,
+    "baseline_inputs": [
+      "Scan Report-6/triage.json",
+      "Scan Report-9/remediation-result.json",
+      "Scan Report-10/verification-result.json",
+      "main.py"
+    ]
+  },
+  "summary": {
+    "findings_checked": 11,
+    "security_weakness_no_longer_observed": 11,
+    "same_weakness_still_present_in_related_path": 0,
+    "new_or_regression_issue_introduced": 1,
+    "related_path_could_not_be_sufficiently_verified": 0,
+    "runtime_related_path_checks": {
+      "passed": 37,
+      "failed": 0
+    }
+  },
+  "results": [
+    {
+      "id": "TF-001",
+      "title": "Unsafe expression evaluation enables code execution",
+      "classification": "Security weakness no longer observed",
+      "related_paths_checked": ["/evaluate", "safe_eval_expression"],
+      "determination": "Alternate expression payloads using function calls, imports, attribute access, and comprehensions were rejected, while arithmetic continued to work.",
+      "evidence": [
+        "No eval sink remains in main.py.",
+        "Runtime probes rejected open(\"main.py\").read(), __import__(\"os\"), (1).__class__, and list comprehension payloads."
+      ],
+      "regression_observed": false
+    },
+    {
+      "id": "TF-002",
+      "title": "OS command injection in DNS lookup",
+      "classification": "Security weakness no longer observed",
+      "related_paths_checked": ["/lookup", "dns_lookup", "rp"],
+      "determination": "Shell metacharacter variants are blocked before DNS lookup and the old shell helper remains disabled.",
+      "evidence": [
+        "No popen or subprocess shell execution path remains.",
+        "Payloads using ;, &&, backticks, $(), and | returned lookup failure and did not reach the mocked DNS resolver.",
+        "rp('whoami') raises RuntimeError."
+      ],
+      "regression_observed": false
+    },
+    {
+      "id": "TF-003",
+      "title": "Insecure pickle deserialization from cookie",
+      "classification": "Security weakness no longer observed",
+      "related_paths_checked": ["/cookie", "make_cookie_value", "read_cookie_value", "sign_value", "unsign_value"],
+      "determination": "Unsigned JSON, tampered signed values, and legacy pickle-like cookie formats are rejected in the only cookie reader route.",
+      "evidence": [
+        "No pickle import or pickle.loads path remains.",
+        "Runtime probes for unsigned JSON, tampered signed cookie, and base64 pickle cookie produced invalid-cookie handling."
+      ],
+      "regression_observed": false
+    },
+    {
+      "id": "TF-004",
+      "title": "Server-side template injection in greeting",
+      "classification": "Security weakness no longer observed",
+      "related_paths_checked": ["/sayhi", "render_template_string"],
+      "determination": "The remaining render_template_string call uses a static template and attacker input is passed as data; template syntax payloads render inertly.",
+      "evidence": [
+        "Static review found render_template_string(template, name=name) with a fixed template source.",
+        "Runtime probes for {{config}}, Jinja control blocks, and a cycler/os.popen chain did not execute server-side code."
+      ],
+      "regression_observed": false
+    },
+    {
+      "id": "TF-005",
+      "title": "SQL injection in service listing filter",
+      "classification": "Security weakness no longer observed",
+      "related_paths_checked": ["/listservices", "cursor.execute service query", "query_build placeholder flow"],
+      "determination": "The only request-driven SQL query remains parameterized and UNION, OR, and stacked-query variants did not expose or modify data.",
+      "evidence": [
+        "Static review found request-derived category passed via tuple(params), not string interpolation into SQL literal context.",
+        "Runtime probes did not expose secret_stuff and the public_stuff table remained intact."
+      ],
+      "regression_observed": false,
+      "note": "Startup schema/database creation statements are trusted initialization paths, not request-controlled related attack paths."
+    },
+    {
+      "id": "TF-006",
+      "title": "JWT algorithm confusion and None algorithm acceptance",
+      "classification": "Security weakness no longer observed",
+      "related_paths_checked": ["/user", "/user/login", "/user/jwks", "verify_token", "verify_token_rsa"],
+      "determination": "Related auth paths remain RS256-only; HS256 and unsigned admin tokens are rejected, and JWKS advertises RS256 only.",
+      "evidence": [
+        "ALLOWED_ALGORITHMS is ['RS256']; verify_token_rsa calls jwt.decode with algorithms=['RS256'].",
+        "Runtime HS256 and alg None admin tokens did not reach admin access.",
+        "/user/jwks returns alg RS256 and no HS256."
+      ],
+      "regression_observed": false
+    },
+    {
+      "id": "TF-007",
+      "title": "XML external entity processing",
+      "classification": "Security weakness no longer observed",
+      "related_paths_checked": ["/xml", "etree.XMLParser"],
+      "determination": "Related DTD and external-entity payloads do not disclose local or network content.",
+      "evidence": [
+        "XMLParser is configured with no_network=True, load_dtd=False, dtd_validation=False, resolve_entities=False, huge_tree=False.",
+        "Runtime file:// and external SYSTEM identifier payloads did not disclose external content."
+      ],
+      "regression_observed": false
+    },
+    {
+      "id": "TF-008",
+      "title": "Config oracle / encrypted config selector abuse",
+      "classification": "Security weakness no longer observed; new or regression issue introduced",
+      "related_paths_checked": ["/config", "make_config_token", "read_config_token", "viewable config allowlist"],
+      "determination": "The original oracle/secret exposure weakness was not observed through related config paths. Tampered selectors fail generically and visible signed selectors work. A signed selector for an unviewable key does not expose the secret but raises a TypeError because config_out remains None while decrypted_key is truthy.",
+      "evidence": [
+        "Malformed selector returned exactly 'Invalid config key'.",
+        "Signed app_name selector returned the expected visible value.",
+        "Signed secret_admin_value selector raised TypeError: can only concatenate str (not \"NoneType\") to str.",
+        "The regression requires a valid signature for an unviewable key; no external signing route was identified."
+      ],
+      "regression_observed": true,
+      "linked_regression": {
+        "id": "TF-008-R1",
+        "classification": "New or regression issue introduced",
+        "security_impact": "No secret disclosure observed. Potential server error if a valid signed token for an unviewable config key is presented.",
+        "recommended_follow_up": "In /config, return a generic invalid-key response whenever the decoded key is not in the viewable allowlist before building the Config value HTML."
+      }
+    },
+    {
+      "id": "TF-009",
+      "title": "Reflected/stored HTML injection across rendered values",
+      "classification": "Security weakness no longer observed",
+      "related_paths_checked": ["/cookie", "/evaluate", "/lookup", "/listservices", "/user", "/sayhi"],
+      "determination": "Representative related output paths either escape dynamic values or return generic errors without reflecting executable HTML.",
+      "evidence": [
+        "Cookie output escaped an image/onerror payload.",
+        "Evaluation error did not reflect a script payload.",
+        "JWT subject output escaped a signed subject containing script markup.",
+        "Service listing uses html.escape for table cells and quote_plus for filter links."
+      ],
+      "regression_observed": false
+    },
+    {
+      "id": "TF-010",
+      "title": "JWT private key material written to temporary predictable files",
+      "classification": "Security weakness no longer observed",
+      "related_paths_checked": ["JWT fallback key initialization", "SIGN_KEY", "VERIFY_KEY"],
+      "determination": "Fallback key material remains in memory and no temporary private/public key filenames are present.",
+      "evidence": [
+        "Static review found no private.pem/public.pem references.",
+        "Runtime check confirmed SIGN_KEY and VERIFY_KEY are bytes in memory under fallback initialization."
+      ],
+      "regression_observed": false
+    },
+    {
+      "id": "TF-011",
+      "title": "Missing security attributes on sensitive cookies",
+      "classification": "Security weakness no longer observed",
+      "related_paths_checked": ["/cookie set_cookie", "/user/login set_cookie", "HTTP and HTTPS request contexts"],
+      "determination": "Both cookie writers set HttpOnly and SameSite=Lax over HTTP, and include Secure when request.is_secure is true.",
+      "evidence": [
+        "Static review found both set_cookie calls include httponly=True, samesite='Lax', secure=request.is_secure.",
+        "Runtime HTTP headers included HttpOnly and SameSite=Lax for value and authentication cookies.",
+        "Runtime HTTPS-context headers included Secure for value and authentication cookies."
+      ],
+      "regression_observed": false
+    }
+  ],
+  "overall_determination": "The remediations effectively address the underlying security weaknesses within the relevant application scope. No related path was found where the same original weakness remains exploitable. One related regression candidate was identified for TF-008: a valid signed token for an unviewable config key causes a TypeError rather than a generic invalid-key response, without observed secret disclosure."
+}

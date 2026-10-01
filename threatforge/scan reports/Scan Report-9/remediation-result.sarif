@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "Codex Security remediation result",
+          "informationUri": "https://chatgpt.com/codex",
+          "rules": [
+            {"id": "TF-001", "name": "Eval code execution remediated", "defaultConfiguration": {"level": "none"}, "properties": {"remediationStatus": "fixed"}},
+            {"id": "TF-002", "name": "OS command injection remediated", "defaultConfiguration": {"level": "none"}, "properties": {"remediationStatus": "fixed"}},
+            {"id": "TF-003", "name": "Pickle deserialization remediated", "defaultConfiguration": {"level": "none"}, "properties": {"remediationStatus": "fixed"}},
+            {"id": "TF-004", "name": "SSTI remediated", "defaultConfiguration": {"level": "none"}, "properties": {"remediationStatus": "fixed"}},
+            {"id": "TF-006", "name": "JWT algorithm confusion remediated", "defaultConfiguration": {"level": "none"}, "properties": {"remediationStatus": "fixed"}},
+            {"id": "TF-005", "name": "SQL injection remediated", "defaultConfiguration": {"level": "none"}, "properties": {"remediationStatus": "fixed"}},
+            {"id": "TF-007", "name": "Unsafe XML parser remediated", "defaultConfiguration": {"level": "none"}, "properties": {"remediationStatus": "fixed"}},
+            {"id": "TF-009", "name": "Raw HTML rendering remediated", "defaultConfiguration": {"level": "none"}, "properties": {"remediationStatus": "fixed"}},
+            {"id": "TF-010", "name": "Temp JWT private key storage remediated", "defaultConfiguration": {"level": "none"}, "properties": {"remediationStatus": "fixed"}},
+            {"id": "TF-008", "name": "Config selector oracle remediated", "defaultConfiguration": {"level": "none"}, "properties": {"remediationStatus": "fixed"}},
+            {"id": "TF-011", "name": "Auth cookie flags remediated", "defaultConfiguration": {"level": "none"}, "properties": {"remediationStatus": "fixed"}}
+          ]
+        }
+      },
+      "results": [
+        {"ruleId": "TF-001", "level": "none", "message": {"text": "Fixed: eval replaced with constrained AST arithmetic evaluator."}, "locations": [{"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 361}}}]},
+        {"ruleId": "TF-002", "level": "none", "message": {"text": "Fixed: shell command lookup replaced with validated socket DNS lookup."}, "locations": [{"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 338}}}]},
+        {"ruleId": "TF-003", "level": "none", "message": {"text": "Fixed: pickle cookie state replaced with HMAC-signed JSON."}, "locations": [{"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 306}}}]},
+        {"ruleId": "TF-004", "level": "none", "message": {"text": "Fixed: name is passed as Jinja variable into fixed template."}, "locations": [{"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 434}}}]},
+        {"ruleId": "TF-006", "level": "none", "message": {"text": "Fixed: JWT verification pinned to RS256; HS256/None dispatch removed."}, "locations": [{"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 266}}}]},
+        {"ruleId": "TF-005", "level": "none", "message": {"text": "Fixed: category filter is parameterized."}, "locations": [{"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 476}}}]},
+        {"ruleId": "TF-007", "level": "none", "message": {"text": "Fixed: XML parser disables DTD loading, network access, entity resolution, and huge_tree."}, "locations": [{"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 388}}}]},
+        {"ruleId": "TF-009", "level": "none", "message": {"text": "Fixed: affected outputs are escaped and raw exception reflection reduced."}, "locations": [{"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 315}}}]},
+        {"ruleId": "TF-010", "level": "none", "message": {"text": "Fixed: generated fallback JWT keys remain in memory and private paths are not printed."}, "locations": [{"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 109}}}]},
+        {"ruleId": "TF-008", "level": "none", "message": {"text": "Fixed: config selector uses signed token and generic invalid-token error."}, "locations": [{"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 418}}}]},
+        {"ruleId": "TF-011", "level": "none", "message": {"text": "Fixed: auth cookie sets HttpOnly and SameSite, with Secure on HTTPS."}, "locations": [{"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 542}}}]}
+      ],
+      "invocations": [
+        {
+          "executionSuccessful": true,
+          "workingDirectory": {"uri": "C:/Users/riyakansal/OneDrive - Nagarro/Desktop/breakableflask-master/"},
+          "properties": {
+            "sourceModified": true,
+            "remediationApplied": true,
+            "focusedValidationPassed": true
+          }
+        }
+      ]
+    }
+  ]
+}

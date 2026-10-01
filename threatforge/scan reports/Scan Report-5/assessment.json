@@ -1,0 +1,297 @@
+{
+  "metadata": {
+    "scan_id": "focused-main-py-security-scan-20260923",
+    "tool": "Codex Security focused module scan",
+    "repository": "breakableflask-master",
+    "target": "main.py",
+    "root": "C:\\Users\\riyakansal\\OneDrive - Nagarro\\Desktop\\breakableflask-master",
+    "generated_at": "2026-09-23T23:25:00+05:30",
+    "daybreak_access": {
+      "status": "not_granted",
+      "programs": [],
+      "checked_at": "2026-09-23T17:54:06.265Z",
+      "advisory_only": true
+    },
+    "inputs_used": [
+      "Scan Report-1 repository intelligence and architecture",
+      "Scan Report-2 architecture threat model",
+      "Scan Report-3 security baseline",
+      "Scan Report-4 standard scan findings",
+      "main.py",
+      "requirements.txt",
+      "vulnerability_index.md"
+    ],
+    "scope_note": "Focused on main.py; supporting files were read only where they explain dependencies, intended vulnerable route mapping, or runtime context.",
+    "source_modified": false
+  },
+  "summary": {
+    "confirmed_findings": 11,
+    "severity_counts": {
+      "critical": 3,
+      "high": 4,
+      "medium": 2,
+      "low": 2
+    },
+    "candidates_requiring_validation": 3
+  },
+  "confirmed_findings": [
+    {
+      "id": "MAINPY-001",
+      "severity": "critical",
+      "category": "Code injection",
+      "confidence": "high",
+      "cwe": ["CWE-95", "CWE-94"],
+      "affected_area": "GET/POST /evaluate",
+      "code_location": "main.py:372-379",
+      "root_cause": "The route copies request.form['expression'] into expression and evaluates it with Python eval inside the Flask process. No authentication, sandbox, parser, allowlist, or restricted global context is applied before the interpreter boundary.",
+      "attack_path": "An unauthenticated HTTP client sends POST /evaluate with an expression. main.py reads the form value at lines 375-376, passes it to eval at line 379, stringifies the result, and embeds it in the response.",
+      "impact": "Arbitrary Python execution with access to module globals such as SIGN_KEY, VERIFY_KEY, CONFIG, cursor/query_build after startup, imported modules, filesystem and network permissions of the Flask process.",
+      "evidence": [
+        "main.py:372 registers /evaluate for GET and POST.",
+        "main.py:375-376 reads expression from request.form.",
+        "main.py:379 calls eval(expression) directly during response construction.",
+        "Scan Report-2 modeled this path as T1 process-authority escalation."
+      ],
+      "recommended_remediation": "Remove eval. If expression evaluation is required, implement a narrow grammar with ast parsing or a purpose-built evaluator, deny builtins/imports/globals, and enforce authentication only if the operation is truly privileged."
+    },
+    {
+      "id": "MAINPY-002",
+      "severity": "critical",
+      "category": "OS command injection",
+      "confidence": "high",
+      "cwe": ["CWE-78"],
+      "affected_area": "GET/POST /lookup",
+      "code_location": "main.py:171-172, main.py:353-361",
+      "root_cause": "User-controlled address text is concatenated into a shell command string and passed to os.popen through rp(). The code never separates command arguments from shell syntax.",
+      "attack_path": "An unauthenticated client posts address to /lookup. The route builds 'nslookup ' + address at line 360; rp() passes the resulting string to popen at line 172; the shell interprets attacker-controlled metacharacters.",
+      "impact": "Operating-system command execution as the Flask process user, enabling host file, process, environment, and network access subject to deployment permissions.",
+      "evidence": [
+        "main.py:11 imports popen from os.",
+        "main.py:171-172 defines rp(command) as popen(command).read().",
+        "main.py:356-360 reads address and calls rp('nslookup ' + address)."
+      ],
+      "recommended_remediation": "Use a DNS resolver library or subprocess.run with shell=False and a fixed argument list. Validate input as a hostname/IP address and return escaped output."
+    },
+    {
+      "id": "MAINPY-003",
+      "severity": "critical",
+      "category": "Insecure deserialization",
+      "confidence": "high",
+      "cwe": ["CWE-502"],
+      "affected_area": "GET/POST /cookie",
+      "code_location": "main.py:320-350",
+      "root_cause": "The route treats a client-held cookie as trusted serialized Python object data. It base64-decodes request.cookies['value'] and passes the bytes to pickle.loads without signing or provenance checks.",
+      "attack_path": "A client sends a crafted value cookie, then requests /cookie. main.py:328-329 decodes and unpickles it before rendering the object. Pickle payload execution occurs during deserialization.",
+      "impact": "Arbitrary code execution or process-level side effects during unpickling, with the same authority as the Flask process.",
+      "evidence": [
+        "main.py:328-329 calls pickle.loads(b64decode(request.cookies['value'])).",
+        "main.py:345-346 stores pickle.dumps(value) in a cookie without MAC/signature.",
+        "The cookie route has no authentication guard."
+      ],
+      "recommended_remediation": "Do not use pickle for client state. Use Flask signed sessions, JSON with authenticated signing, or server-side storage keyed by an opaque identifier."
+    },
+    {
+      "id": "MAINPY-004",
+      "severity": "high",
+      "category": "Server-side template injection",
+      "confidence": "high",
+      "cwe": ["CWE-1336"],
+      "affected_area": "GET/POST /sayhi",
+      "code_location": "main.py:450-468",
+      "root_cause": "The route interpolates request.form['name'] into the template source string before calling render_template_string. User input crosses from data into Jinja template code.",
+      "attack_path": "An unauthenticated client posts name to /sayhi. main.py:454 formats the value into an HTML fragment; main.py:456-467 inserts that fragment into a template; main.py:468 asks Jinja to render it as template source.",
+      "impact": "Server-side template expression execution in Flask/Jinja context, potentially exposing process state and reaching code execution through available runtime objects.",
+      "evidence": [
+        "main.py:454 formats request.form['name'] into name.",
+        "main.py:456-467 constructs template using that value.",
+        "main.py:468 calls render_template_string(template)."
+      ],
+      "recommended_remediation": "Render a fixed template and pass name as a variable. Let Jinja autoescape data rather than compiling user input as template source."
+    },
+    {
+      "id": "MAINPY-005",
+      "severity": "high",
+      "category": "SQL injection",
+      "confidence": "high",
+      "cwe": ["CWE-89"],
+      "affected_area": "GET /listservices",
+      "code_location": "main.py:472-505, main.py:647-656",
+      "root_cause": "The category query parameter is inserted directly into a SQL WHERE clause. The resulting string is executed by the global cursor initialized during startup.",
+      "attack_path": "A client requests /listservices?category=...; main.py:476 reads category; main.py:480-481 builds WHERE category = '<category>'; main.py:484 executes SELECT * from public_stuff plus that clause.",
+      "impact": "Query manipulation and unauthorized database reads or writes depending on backend behavior and privileges. The same app initializes both public_stuff and secret_stuff, so injected SQL can target seeded secret data where dialect and permissions allow.",
+      "evidence": [
+        "main.py:476 reads request.args.get('category').",
+        "main.py:480-481 formats category into SQL text.",
+        "main.py:484 executes the formatted SQL.",
+        "main.py:60-65 defines secret_stuff; main.py:77-80 seeds secret rows."
+      ],
+      "recommended_remediation": "Use parameterized queries for category with the selected DB-API driver. Keep SQL text static and return generic errors instead of database exception text."
+    },
+    {
+      "id": "MAINPY-006",
+      "severity": "high",
+      "category": "Authentication bypass",
+      "confidence": "high",
+      "cwe": ["CWE-347", "CWE-287"],
+      "affected_area": "GET /user, GET /user/jwks, GET/POST /user/login",
+      "code_location": "main.py:29-36, main.py:211-279, main.py:510-573",
+      "root_cause": "JWT verification lets an untrusted token header select RS256, HS256, or None. The /user route then grants admin state solely from the returned sub claim.",
+      "attack_path": "A client supplies an authentication cookie. verify_token reads jwt.get_unverified_header at line 269, dispatches to a verifier based on alg at lines 271-277, and /user treats claims['sub'] == 'admin' as admin at lines 516-522. The None path accepts empty signatures after claim checks; HS256 reuses VERIFY_KEY as the HMAC key.",
+      "impact": "Unauthorized transition to the app's admin response state. In this repository the admin state is a response only, but it breaks the authentication and authorization trust boundary.",
+      "evidence": [
+        "main.py:32 defines ALLOWED_ALGORITHMS = ['RS256', 'HS256', 'None'].",
+        "main.py:242-263 implements the None algorithm path.",
+        "main.py:216-239 implements HS256 with the supplied verification key.",
+        "main.py:269-279 dispatches from unverified JWT headers.",
+        "main.py:531-537 exposes public key parameters through /user/jwks.",
+        "main.py:516-522 grants admin when sub equals ADMIN_USER."
+      ],
+      "recommended_remediation": "Pin verification to a server-selected algorithm, remove None and HS256 from this RSA flow, and bind authorization to server-side roles or a trusted issuer policy rather than a client-selected token algorithm."
+    },
+    {
+      "id": "MAINPY-007",
+      "severity": "high",
+      "category": "XML external entity and resource processing",
+      "confidence": "medium",
+      "cwe": ["CWE-611"],
+      "affected_area": "GET/POST /xml",
+      "code_location": "main.py:392-411",
+      "root_cause": "The XML route parses attacker-controlled XML with load_dtd=True, no_network=False, and huge_tree=True. Output escaping happens only after parsing, so it does not constrain parser-side resource access.",
+      "attack_path": "An unauthenticated client posts XML. main.py:396 reads the XML, main.py:397 creates a permissive lxml parser, and main.py:399 parses the submitted bytes. The parser may resolve external resources and process large trees depending on runtime behavior.",
+      "impact": "Potential local file disclosure, SSRF or network access, and parser resource exhaustion depending on lxml/libxml2 behavior and deployment filesystem/network policy.",
+      "evidence": [
+        "main.py:397 creates etree.XMLParser(no_network=False, dtd_validation=False, load_dtd=True, huge_tree=True).",
+        "main.py:399 passes user XML to etree.fromstring.",
+        "requirements.txt includes lxml>=6.0.2.",
+        "main.py:403 escapes serialized output, but only after parsing has completed."
+      ],
+      "recommended_remediation": "Use defusedxml or configure lxml with no_network=True, load_dtd=False, resolve_entities=False, and huge_tree=False. Enforce request size limits."
+    },
+    {
+      "id": "MAINPY-008",
+      "severity": "medium",
+      "category": "Cross-site scripting",
+      "confidence": "high",
+      "cwe": ["CWE-79"],
+      "affected_area": "GET/POST /cookie, GET /user, GET /listservices error and data rendering",
+      "code_location": "main.py:325-334, main.py:484-500, main.py:519-526",
+      "root_cause": "Several handlers concatenate user-controlled values, JWT claim values, database values, or exception text into HTML strings rather than rendering fixed templates with escaped variables.",
+      "attack_path": "A client stores HTML/JavaScript in /cookie value, supplies a token whose sub or error text is reflected by /user, or influences rendered database/error output through /listservices. The response embeds those strings as raw HTML.",
+      "impact": "Script execution in the application origin, which can tamper with pages and steal bearer cookies because the auth cookie is not HttpOnly.",
+      "evidence": [
+        "main.py:326 reads request.form['value']; main.py:334 concatenates str(cookieValue) into HTML.",
+        "main.py:519-523 interpolates JWT sub into HTML.",
+        "main.py:525-526 reflects token exception text.",
+        "main.py:486 returns database exception text and main.py:491-500 renders DB values as HTML."
+      ],
+      "recommended_remediation": "Use templates with autoescaping for all user, token, database, and error output. Do not reflect raw exception messages."
+    },
+    {
+      "id": "MAINPY-009",
+      "severity": "medium",
+      "category": "Sensitive key storage",
+      "confidence": "medium",
+      "cwe": ["CWE-522"],
+      "affected_area": "Startup JWT key initialization",
+      "code_location": "main.py:107-123",
+      "root_cause": "When key-file environment variables are absent, startup writes generated private.pem and public.pem to tempfile.gettempdir() using predictable names and prints their paths.",
+      "attack_path": "A same-host actor or process reads the predictable temp private key or logs containing its path. With SIGN_KEY material, the actor can sign an RS256 token with sub=admin that /user accepts.",
+      "impact": "Local key disclosure can lead to JWT forgery for the app. Exploitability depends on OS temp directory permissions and log exposure.",
+      "evidence": [
+        "main.py:107-109 reads configured key files only if both env vars exist.",
+        "main.py:111-114 sets temp private.pem and public.pem paths.",
+        "main.py:116-121 writes private and public keys.",
+        "main.py:122-124 prints the key paths.",
+        "main.py:179-190 signs JWTs with SIGN_KEY."
+      ],
+      "recommended_remediation": "Require explicit private key configuration for non-development use. If generation remains, store keys in a private directory with restrictive permissions and avoid printing sensitive paths."
+    },
+    {
+      "id": "MAINPY-010",
+      "severity": "low",
+      "category": "Cryptographic oracle",
+      "confidence": "medium",
+      "cwe": ["CWE-203", "CWE-327"],
+      "affected_area": "GET /config",
+      "code_location": "main.py:24-45, main.py:140-168, main.py:417-446",
+      "root_cause": "The config route decrypts attacker-supplied AES-CBC ciphertext and returns distinct exception text. Successful plaintext is checked against all CONFIG keys rather than only the listed app_ keys.",
+      "attack_path": "A client supplies key=... to /config. main.py:430-431 hex-decodes and decrypts it with KEY; unpad raises distinguishable errors at main.py:140-148; main.py:433 returns str(e); main.py:435 permits any CONFIG key if decrypted successfully.",
+      "impact": "Remote oracle over selector ciphertext validity and possible selector forgery. Direct disclosure of hidden byte-valued config entries is constrained by current string/bytes concatenation behavior, which lowers severity.",
+      "evidence": [
+        "main.py:140-148 raises Bad padding for padding failures.",
+        "main.py:163-168 performs AES-CBC decrypt and unpad.",
+        "main.py:424-427 lists only app_ keys.",
+        "main.py:430-435 decrypts attacker input, returns errors, then checks all CONFIG keys."
+      ],
+      "recommended_remediation": "Use authenticated encryption or signed opaque tokens for selectors, return one generic invalid-token error, and enforce the same allowlist after decryption."
+    },
+    {
+      "id": "MAINPY-011",
+      "severity": "low",
+      "category": "Session cookie hardening",
+      "confidence": "high",
+      "cwe": ["CWE-614", "CWE-1004"],
+      "affected_area": "POST /user/login and GET /user",
+      "code_location": "main.py:540-551, main.py:510-516",
+      "root_cause": "The bearer JWT cookie is set with value and expiry only. Secure, HttpOnly, and SameSite attributes are omitted.",
+      "attack_path": "A user logs in through /user/login. main.py:550 stores the token in a browser cookie without script or cross-site restrictions. /user later trusts that bearer cookie at main.py:513-516.",
+      "impact": "Increases token theft and replay risk, especially when combined with the reflected XSS findings or any non-localhost deployment.",
+      "evidence": [
+        "main.py:550 calls resp.set_cookie(AUTH_COOKIE, token, expires=exp).",
+        "main.py:513-516 reads the cookie as the authentication bearer token.",
+        "main.py:578 allows the app to bind beyond localhost via --address."
+      ],
+      "recommended_remediation": "Set httponly=True, secure=True under HTTPS, and an appropriate SameSite value. Treat demo-only localhost behavior separately from deployable settings."
+    }
+  ],
+  "candidates_requiring_validation": [
+    {
+      "id": "CAND-MAINPY-001",
+      "title": "Live dependency vulnerability status",
+      "reason": "requirements.txt was reviewed offline. Network advisory lookup was not performed, so current CVE status for Flask, Jinja2, lxml, PyCryptodome, and Werkzeug remains unvalidated."
+    },
+    {
+      "id": "CAND-MAINPY-002",
+      "title": "Exact lxml external resource behavior",
+      "reason": "Source establishes unsafe parser options, but actual entity resolution and network/file reachability depend on lxml/libxml2 runtime behavior and deployment policy."
+    },
+    {
+      "id": "CAND-MAINPY-003",
+      "title": "Predictable temp key exposure on host",
+      "reason": "main.py writes predictable temp key paths, but exploitability depends on host temp directory ACLs, process user separation, and log exposure."
+    }
+  ],
+  "coverage": {
+    "mode": "scoped_path",
+    "target": "main.py",
+    "complete": true,
+    "reviewed_files": ["main.py"],
+    "supporting_files_read": [
+      "requirements.txt",
+      "vulnerability_index.md",
+      "Scan Report-1/repository_intelligence.md",
+      "Scan Report-1/architecture.md",
+      "Scan Report-2/threat_model.md",
+      "Scan Report-3/pre_scan_assessment.md",
+      "Scan Report-4/assessment.json",
+      "Scan Report-4/coverage.json"
+    ],
+    "excluded_as_source": ["Scan Report-* prior generated report folders except as untrusted context"],
+    "assessed_surfaces": [
+      "/cookie",
+      "/lookup",
+      "/evaluate",
+      "/xml",
+      "/config",
+      "/sayhi",
+      "/listservices",
+      "/user",
+      "/user/jwks",
+      "/user/login",
+      "JWT helpers",
+      "AES config helpers",
+      "startup key initialization",
+      "database bootstrap and cursor interactions"
+    ]
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "mode": "finding_triage_and_deduplication",
+  "complete_for_supplied_findings": true,
+  "input_reports": [
+    "Scan Report-4/assessment.json",
+    "Scan Report-5/assessment.json"
+  ],
+  "input_findings_assessed": 22,
+  "input_candidates_assessed": 6,
+  "logical_findings_after_deduplication": 11,
+  "logical_candidates_after_deduplication": 3,
+  "source_files_read": [
+    "main.py",
+    "requirements.txt",
+    "vulnerability_index.md"
+  ],
+  "context_files_read": [
+    "Scan Report-1/repository_intelligence.md",
+    "Scan Report-1/architecture.md",
+    "Scan Report-2/threat_model.md",
+    "Scan Report-3/pre_scan_assessment.md",
+    "Scan Report-4/assessment.json",
+    "Scan Report-5/assessment.json"
+  ],
+  "security_policy": {
+    "security_md_present": false,
+    "proof_gap": "No repository SECURITY.md defines supported boundaries; README and previous threat model were used for product-surface context."
+  },
+  "not_performed": [
+    "Runtime validation",
+    "Exploit testing",
+    "Dependency CVE lookup",
+    "Repository-wide discovery beyond supplied finding evidence",
+    "Source code modification"
+  ],
+  "source_modified": false
+}

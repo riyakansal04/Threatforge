@@ -1,0 +1,420 @@
+{
+  "metadata": {
+    "scan_id": "triage-dedup-threatforge-20260923",
+    "stage": "security_findings_triage_and_deduplication",
+    "repository": "breakableflask-master",
+    "root": "C:\\Users\\riyakansal\\OneDrive - Nagarro\\Desktop\\breakableflask-master",
+    "generated_at": "2026-09-23T23:45:00+05:30",
+    "inputs_used": [
+      "Scan Report-1 repository intelligence",
+      "Scan Report-2 architecture threat model",
+      "Scan Report-3 security baseline",
+      "Scan Report-4 standard scan findings",
+      "Scan Report-5 focused main.py scan findings",
+      "main.py source evidence",
+      "requirements.txt",
+      "vulnerability_index.md"
+    ],
+    "security_policy": {
+      "security_md_present": false,
+      "policy_basis": "No SECURITY.md was found. Boundary assessment used README/repository purpose, previous architecture threat model, and Flask route evidence in main.py."
+    },
+    "source_modified": false
+  },
+  "summary": {
+    "input_findings_assessed": 22,
+    "input_candidates_assessed": 6,
+    "logical_findings_after_deduplication": 11,
+    "logical_candidates_after_deduplication": 3,
+    "classification_counts": {
+      "Confirmed": 22,
+      "Likely valid": 0,
+      "Requires validation": 6,
+      "False positive": 0,
+      "Already addressed": 0
+    },
+    "deduplication_result": "Scan Report-4 and Scan Report-5 findings are duplicate reports of the same 11 implementation-backed issues, with one scope expansion for reflected XSS in Scan Report-5."
+  },
+  "triage_method": {
+    "decision_basis": "Each finding was checked against source location, route reachability, attacker-controlled input, security controls, sink semantics, impact, counterevidence, and whether source code had changed since the scan reports.",
+    "dedup_basis": "Findings were consolidated only when they had the same vulnerable operation or broken control, same source-to-sink path, and overlapping code locations. Similar severity or category alone was not used for merging.",
+    "runtime_validation": false
+  },
+  "input_finding_assessments": [
+    {
+      "input_id": "BF-001",
+      "source_report": "Scan Report-4",
+      "duplicates_logical_finding": "TF-001",
+      "classification": "Confirmed",
+      "supported_by_implementation": true,
+      "reachability": "Reachable through unauthenticated POST /evaluate.",
+      "controls_and_mitigations": "No authentication, sandbox, parser, allowlist, or restricted globals before eval.",
+      "conditions_required": "Flask app running and /evaluate reachable.",
+      "already_addressed": false,
+      "requires_further_validation": false,
+      "dedup_reasoning": "Same eval sink, route, root cause, and evidence as MAINPY-001.",
+      "evidence": ["main.py:372-379"]
+    },
+    {
+      "input_id": "MAINPY-001",
+      "source_report": "Scan Report-5",
+      "duplicates_logical_finding": "TF-001",
+      "classification": "Confirmed",
+      "supported_by_implementation": true,
+      "reachability": "Reachable through unauthenticated POST /evaluate.",
+      "controls_and_mitigations": "No effective control before Python interpreter execution.",
+      "conditions_required": "Flask app running and route reachable.",
+      "already_addressed": false,
+      "requires_further_validation": false,
+      "dedup_reasoning": "Duplicate of BF-001; both describe request.form['expression'] reaching eval at main.py:379.",
+      "evidence": ["main.py:375-379"]
+    },
+    {
+      "input_id": "BF-002",
+      "source_report": "Scan Report-4",
+      "duplicates_logical_finding": "TF-002",
+      "classification": "Confirmed",
+      "supported_by_implementation": true,
+      "reachability": "Reachable through unauthenticated POST /lookup.",
+      "controls_and_mitigations": "No command argument separation or hostname validation before os.popen.",
+      "conditions_required": "Flask app running, shell command environment available.",
+      "already_addressed": false,
+      "requires_further_validation": false,
+      "dedup_reasoning": "Same command string construction and popen sink as MAINPY-002.",
+      "evidence": ["main.py:171-172", "main.py:356-360"]
+    },
+    {
+      "input_id": "MAINPY-002",
+      "source_report": "Scan Report-5",
+      "duplicates_logical_finding": "TF-002",
+      "classification": "Confirmed",
+      "supported_by_implementation": true,
+      "reachability": "Reachable through unauthenticated POST /lookup.",
+      "controls_and_mitigations": "No shell=False equivalent, argument list, or input validation.",
+      "conditions_required": "Flask app running, /lookup reachable.",
+      "already_addressed": false,
+      "requires_further_validation": false,
+      "dedup_reasoning": "Duplicate of BF-002; both identify address concatenation into os.popen.",
+      "evidence": ["main.py:171-172", "main.py:360"]
+    },
+    {
+      "input_id": "BF-003",
+      "source_report": "Scan Report-4",
+      "duplicates_logical_finding": "TF-003",
+      "classification": "Confirmed",
+      "supported_by_implementation": true,
+      "reachability": "Reachable through GET /cookie when the client supplies a value cookie.",
+      "controls_and_mitigations": "Base64 is only encoding; there is no signature, MAC, or safe serializer.",
+      "conditions_required": "Attacker can set their own cookie and request /cookie.",
+      "already_addressed": false,
+      "requires_further_validation": false,
+      "dedup_reasoning": "Same pickle.loads on client cookie as MAINPY-003.",
+      "evidence": ["main.py:328-329", "main.py:345-346"]
+    },
+    {
+      "input_id": "MAINPY-003",
+      "source_report": "Scan Report-5",
+      "duplicates_logical_finding": "TF-003",
+      "classification": "Confirmed",
+      "supported_by_implementation": true,
+      "reachability": "Reachable through GET /cookie with a client-controlled value cookie.",
+      "controls_and_mitigations": "No integrity protection around cookie pickle payload.",
+      "conditions_required": "Attacker-controlled cookie accepted by route.",
+      "already_addressed": false,
+      "requires_further_validation": false,
+      "dedup_reasoning": "Duplicate of BF-003; identical deserialization trust boundary.",
+      "evidence": ["main.py:328-329"]
+    },
+    {
+      "input_id": "BF-004",
+      "source_report": "Scan Report-4",
+      "duplicates_logical_finding": "TF-004",
+      "classification": "Confirmed",
+      "supported_by_implementation": true,
+      "reachability": "Reachable through unauthenticated POST /sayhi.",
+      "controls_and_mitigations": "Jinja autoescaping does not help because user input is compiled as template source.",
+      "conditions_required": "Flask/Jinja route reachable.",
+      "already_addressed": false,
+      "requires_further_validation": false,
+      "dedup_reasoning": "Same render_template_string source construction as MAINPY-004.",
+      "evidence": ["main.py:453-468"]
+    },
+    {
+      "input_id": "MAINPY-004",
+      "source_report": "Scan Report-5",
+      "duplicates_logical_finding": "TF-004",
+      "classification": "Confirmed",
+      "supported_by_implementation": true,
+      "reachability": "Reachable through unauthenticated POST /sayhi.",
+      "controls_and_mitigations": "No fixed template or variable binding is used.",
+      "conditions_required": "Attacker can submit name field.",
+      "already_addressed": false,
+      "requires_further_validation": false,
+      "dedup_reasoning": "Duplicate of BF-004; identical Jinja template-source injection.",
+      "evidence": ["main.py:454", "main.py:468"]
+    },
+    {
+      "input_id": "BF-005",
+      "source_report": "Scan Report-4",
+      "duplicates_logical_finding": "TF-005",
+      "classification": "Confirmed",
+      "supported_by_implementation": true,
+      "reachability": "Reachable through GET /listservices?category=...",
+      "controls_and_mitigations": "No parameter binding. try/except returns errors but does not prevent injection.",
+      "conditions_required": "Database initialized and route reachable.",
+      "already_addressed": false,
+      "requires_further_validation": false,
+      "dedup_reasoning": "Same WHERE clause interpolation and cursor.execute sink as MAINPY-005.",
+      "evidence": ["main.py:476", "main.py:480-484"]
+    },
+    {
+      "input_id": "MAINPY-005",
+      "source_report": "Scan Report-5",
+      "duplicates_logical_finding": "TF-005",
+      "classification": "Confirmed",
+      "supported_by_implementation": true,
+      "reachability": "Reachable through GET /listservices?category=...",
+      "controls_and_mitigations": "No prepared statements or escaping before SQL execution.",
+      "conditions_required": "Global cursor and query_build initialized by startup.",
+      "already_addressed": false,
+      "requires_further_validation": false,
+      "dedup_reasoning": "Duplicate of BF-005; same source, sink, and affected route.",
+      "evidence": ["main.py:480-484", "main.py:647-656"]
+    },
+    {
+      "input_id": "BF-006",
+      "source_report": "Scan Report-4",
+      "duplicates_logical_finding": "TF-006",
+      "classification": "Confirmed",
+      "supported_by_implementation": true,
+      "reachability": "Reachable through GET /user with attacker-supplied authentication cookie.",
+      "controls_and_mitigations": "Audience, issuer, and time checks exist, but algorithm selection is attacker-controlled and includes None/HS256.",
+      "conditions_required": "Attacker can craft token satisfying accepted verifier path and claims.",
+      "already_addressed": false,
+      "requires_further_validation": false,
+      "dedup_reasoning": "Same JWT algorithm dispatch flaw as MAINPY-006. Severity differs between reports, but implementation evidence is the same.",
+      "evidence": ["main.py:32", "main.py:242-279", "main.py:516-522"]
+    },
+    {
+      "input_id": "MAINPY-006",
+      "source_report": "Scan Report-5",
+      "duplicates_logical_finding": "TF-006",
+      "classification": "Confirmed",
+      "supported_by_implementation": true,
+      "reachability": "Reachable through GET /user with authentication cookie.",
+      "controls_and_mitigations": "Manual verifier performs claim checks but accepts untrusted alg-driven None/HS256 paths.",
+      "conditions_required": "Token claims must satisfy audience, issuer, time, and sub requirements.",
+      "already_addressed": false,
+      "requires_further_validation": false,
+      "dedup_reasoning": "Duplicate of BF-006; both trace token cookie to alg dispatch to admin-state check.",
+      "evidence": ["main.py:269-279", "main.py:516-522", "main.py:531-537"]
+    },
+    {
+      "input_id": "BF-007",
+      "source_report": "Scan Report-4",
+      "duplicates_logical_finding": "TF-007",
+      "classification": "Confirmed",
+      "supported_by_implementation": true,
+      "reachability": "Reachable through unauthenticated POST /xml.",
+      "controls_and_mitigations": "html.escape occurs after parsing and does not constrain DTD/network/resource resolution.",
+      "conditions_required": "lxml/libxml2 behavior and deployment resources determine exact disclosure/SSRF effect.",
+      "already_addressed": false,
+      "requires_further_validation": true,
+      "dedup_reasoning": "Same unsafe parser settings as MAINPY-007. Static route-level weakness is confirmed; exact runtime effect remains a candidate.",
+      "evidence": ["main.py:396-399", "requirements.txt"]
+    },
+    {
+      "input_id": "MAINPY-007",
+      "source_report": "Scan Report-5",
+      "duplicates_logical_finding": "TF-007",
+      "classification": "Confirmed",
+      "supported_by_implementation": true,
+      "reachability": "Reachable through unauthenticated POST /xml.",
+      "controls_and_mitigations": "Parser configured with no_network=False, load_dtd=True, huge_tree=True.",
+      "conditions_required": "Exact file/network impact depends on runtime and deployment.",
+      "already_addressed": false,
+      "requires_further_validation": true,
+      "dedup_reasoning": "Duplicate of BF-007; both identify the same XML parser configuration path.",
+      "evidence": ["main.py:397", "main.py:399"]
+    },
+    {
+      "input_id": "BF-008",
+      "source_report": "Scan Report-4",
+      "duplicates_logical_finding": "TF-008",
+      "classification": "Confirmed",
+      "supported_by_implementation": true,
+      "reachability": "Reachable through GET /config?key=...",
+      "controls_and_mitigations": "Only app_ keys are linked, but decrypted selectors are checked against all CONFIG keys; errors are returned.",
+      "conditions_required": "Attacker can send chosen ciphertext and observe response differences.",
+      "already_addressed": false,
+      "requires_further_validation": false,
+      "dedup_reasoning": "Same AES-CBC decrypt/unpad oracle as MAINPY-010.",
+      "evidence": ["main.py:140-168", "main.py:422-435"]
+    },
+    {
+      "input_id": "MAINPY-010",
+      "source_report": "Scan Report-5",
+      "duplicates_logical_finding": "TF-008",
+      "classification": "Confirmed",
+      "supported_by_implementation": true,
+      "reachability": "Reachable through GET /config?key=...",
+      "controls_and_mitigations": "No authenticated encryption or generic error handling.",
+      "conditions_required": "Attacker can repeatedly query /config.",
+      "already_addressed": false,
+      "requires_further_validation": false,
+      "dedup_reasoning": "Duplicate of BF-008; identical crypto selector path.",
+      "evidence": ["main.py:430-435"]
+    },
+    {
+      "input_id": "BF-009",
+      "source_report": "Scan Report-4",
+      "duplicates_logical_finding": "TF-009",
+      "classification": "Confirmed",
+      "supported_by_implementation": true,
+      "reachability": "Reachable through /cookie and /user output paths.",
+      "controls_and_mitigations": "HTML is built by string concatenation; no template autoescaping for these outputs.",
+      "conditions_required": "Victim renders attacker-influenced response in browser.",
+      "already_addressed": false,
+      "requires_further_validation": false,
+      "dedup_reasoning": "Same raw HTML reflection as MAINPY-008, but MAINPY-008 adds /listservices as another affected path. Consolidated finding preserves expanded evidence.",
+      "evidence": ["main.py:326", "main.py:334", "main.py:519-526"]
+    },
+    {
+      "input_id": "MAINPY-008",
+      "source_report": "Scan Report-5",
+      "duplicates_logical_finding": "TF-009",
+      "classification": "Confirmed",
+      "supported_by_implementation": true,
+      "reachability": "Reachable through /cookie, /user, and /listservices rendering/error paths.",
+      "controls_and_mitigations": "No consistent escaping of user, token, DB, or exception text.",
+      "conditions_required": "Attacker controls reflected value or causes reflected error/data content.",
+      "already_addressed": false,
+      "requires_further_validation": false,
+      "dedup_reasoning": "Duplicate class and same root control failure as BF-009, with additional route evidence in /listservices. Consolidated as one raw HTML output-encoding issue with multiple paths.",
+      "evidence": ["main.py:334", "main.py:486", "main.py:491-500", "main.py:519-526"]
+    },
+    {
+      "input_id": "BF-010",
+      "source_report": "Scan Report-4",
+      "duplicates_logical_finding": "TF-010",
+      "classification": "Confirmed",
+      "supported_by_implementation": true,
+      "reachability": "Startup path runs when PRIVATE_KEY_FILE and PUBLIC_KEY_FILE are absent.",
+      "controls_and_mitigations": "Environment-supplied key files avoid generation, but default fallback writes predictable temp paths and logs them.",
+      "conditions_required": "Same-host or log-reading actor; temp ACLs/log exposure determine practical exploitability.",
+      "already_addressed": false,
+      "requires_further_validation": true,
+      "dedup_reasoning": "Same startup key storage issue as MAINPY-009.",
+      "evidence": ["main.py:107-124", "main.py:179-190"]
+    },
+    {
+      "input_id": "MAINPY-009",
+      "source_report": "Scan Report-5",
+      "duplicates_logical_finding": "TF-010",
+      "classification": "Confirmed",
+      "supported_by_implementation": true,
+      "reachability": "Startup fallback reachable when key env vars are not set.",
+      "controls_and_mitigations": "Explicit env key files are a mitigating configuration; fallback remains present.",
+      "conditions_required": "Host filesystem/log access determines exploitability.",
+      "already_addressed": false,
+      "requires_further_validation": true,
+      "dedup_reasoning": "Duplicate of BF-010; same predictable temp key material path.",
+      "evidence": ["main.py:111-124"]
+    },
+    {
+      "input_id": "BF-011",
+      "source_report": "Scan Report-4",
+      "duplicates_logical_finding": "TF-011",
+      "classification": "Confirmed",
+      "supported_by_implementation": true,
+      "reachability": "Reachable through successful POST /user/login.",
+      "controls_and_mitigations": "Cookie expiry is set, but Secure, HttpOnly, and SameSite are omitted.",
+      "conditions_required": "User logs in and browser stores authentication cookie.",
+      "already_addressed": false,
+      "requires_further_validation": false,
+      "dedup_reasoning": "Same auth cookie flag issue as MAINPY-011.",
+      "evidence": ["main.py:550", "main.py:513-516"]
+    },
+    {
+      "input_id": "MAINPY-011",
+      "source_report": "Scan Report-5",
+      "duplicates_logical_finding": "TF-011",
+      "classification": "Confirmed",
+      "supported_by_implementation": true,
+      "reachability": "Reachable through successful POST /user/login.",
+      "controls_and_mitigations": "Bearer cookie is trusted later by /user, but security attributes are absent.",
+      "conditions_required": "Browser-based authentication flow.",
+      "already_addressed": false,
+      "requires_further_validation": false,
+      "dedup_reasoning": "Duplicate of BF-011; same set_cookie call and auth cookie trust.",
+      "evidence": ["main.py:550"]
+    }
+  ],
+  "candidate_assessments": [
+    {
+      "input_ids": ["CAND-001", "CAND-MAINPY-001"],
+      "classification": "Requires validation",
+      "logical_candidate": "TC-001",
+      "reason": "Dependency CVE status cannot be determined from offline source evidence alone.",
+      "next_step": "Perform an authorized dependency advisory lookup or SCA run for requirements.txt."
+    },
+    {
+      "input_ids": ["CAND-002", "CAND-MAINPY-002"],
+      "classification": "Requires validation",
+      "logical_candidate": "TC-002",
+      "reason": "Unsafe parser options are source-confirmed, but exact external entity/file/network behavior depends on lxml/libxml2 and deployment controls.",
+      "next_step": "Validate parser behavior in the supported runtime or document deployment-level parser/file/network constraints."
+    },
+    {
+      "input_ids": ["CAND-003", "CAND-MAINPY-003"],
+      "classification": "Requires validation",
+      "logical_candidate": "TC-003",
+      "reason": "Predictable temp key write is source-confirmed, but exploitability depends on host ACLs, process isolation, and log exposure.",
+      "next_step": "Review deployment filesystem permissions and log exposure for generated key paths."
+    }
+  ],
+  "deduplicated_logical_findings": [
+    {"id": "TF-001", "classification": "Confirmed", "title": "Unauthenticated Python eval code execution", "severity": "critical", "source_findings": ["BF-001", "MAINPY-001"], "common_root_cause": "request.form['expression'] reaches eval without controls", "primary_locations": ["main.py:372-379"]},
+    {"id": "TF-002", "classification": "Confirmed", "title": "OS command injection in DNS lookup", "severity": "critical", "source_findings": ["BF-002", "MAINPY-002"], "common_root_cause": "address is concatenated into os.popen command", "primary_locations": ["main.py:171-172", "main.py:353-361"]},
+    {"id": "TF-003", "classification": "Confirmed", "title": "Pickle deserialization of client cookie", "severity": "critical", "source_findings": ["BF-003", "MAINPY-003"], "common_root_cause": "client cookie is decoded and passed to pickle.loads", "primary_locations": ["main.py:320-350"]},
+    {"id": "TF-004", "classification": "Confirmed", "title": "Server-side template injection in greeting route", "severity": "high", "source_findings": ["BF-004", "MAINPY-004"], "common_root_cause": "user input becomes Jinja template source", "primary_locations": ["main.py:450-468"]},
+    {"id": "TF-005", "classification": "Confirmed", "title": "SQL injection in listservices category filter", "severity": "high", "source_findings": ["BF-005", "MAINPY-005"], "common_root_cause": "category parameter is interpolated into SQL", "primary_locations": ["main.py:472-505"]},
+    {"id": "TF-006", "classification": "Confirmed", "title": "JWT algorithm confusion and None acceptance", "severity": "high", "source_findings": ["BF-006", "MAINPY-006"], "common_root_cause": "untrusted JWT alg header controls verifier and admin claim is trusted", "primary_locations": ["main.py:29-36", "main.py:211-279", "main.py:510-537"]},
+    {"id": "TF-007", "classification": "Confirmed", "title": "Unsafe XML parser configuration", "severity": "high", "source_findings": ["BF-007", "MAINPY-007"], "common_root_cause": "untrusted XML parsed with DTD loading, network enabled, and huge_tree", "primary_locations": ["main.py:392-411"]},
+    {"id": "TF-008", "classification": "Confirmed", "title": "AES-CBC config selector padding/decryption oracle", "severity": "low", "source_findings": ["BF-008", "MAINPY-010"], "common_root_cause": "chosen ciphertext is decrypted and distinct errors are returned", "primary_locations": ["main.py:140-168", "main.py:417-446"]},
+    {"id": "TF-009", "classification": "Confirmed", "title": "Raw HTML rendering of attacker-influenced values", "severity": "medium", "source_findings": ["BF-009", "MAINPY-008"], "common_root_cause": "response HTML is assembled by concatenating unescaped values", "primary_locations": ["main.py:325-334", "main.py:484-500", "main.py:519-526"], "dedup_note": "MAINPY-008 expands the affected paths to include /listservices; this is related and consolidated because the same missing output-encoding control is reused."},
+    {"id": "TF-010", "classification": "Confirmed", "title": "Predictable temporary JWT private key storage", "severity": "medium", "source_findings": ["BF-010", "MAINPY-009"], "common_root_cause": "startup fallback writes private.pem to predictable temp path and prints it", "primary_locations": ["main.py:107-123"]},
+    {"id": "TF-011", "classification": "Confirmed", "title": "Authentication cookie missing Secure, HttpOnly, and SameSite", "severity": "low", "source_findings": ["BF-011", "MAINPY-011"], "common_root_cause": "set_cookie omits security attributes for bearer JWT cookie", "primary_locations": ["main.py:540-551"]}
+  ],
+  "related_but_separate": [
+    {
+      "finding_ids": ["TF-001", "TF-002", "TF-003", "TF-004"],
+      "relationship": "All can lead to process authority but use different vulnerable operations, sources, and controls; they should remain separate."
+    },
+    {
+      "finding_ids": ["TF-006", "TF-010", "TF-011", "TF-009"],
+      "relationship": "All affect authentication or token exposure. JWT algorithm confusion, private key storage, cookie hardening, and XSS are distinct controls but can combine in larger token-forgery or token-theft paths."
+    },
+    {
+      "finding_ids": ["TF-005", "TF-009"],
+      "relationship": "/listservices has both SQL injection and raw HTML rendering/error reflection. The same route is involved, but the database query integrity control and output-encoding control are separate."
+    },
+    {
+      "finding_ids": ["TF-007", "TC-002"],
+      "relationship": "Unsafe XML parser settings are confirmed statically; exact XXE/SSRF/file-disclosure behavior is a runtime-dependent validation candidate."
+    }
+  ],
+  "coverage": {
+    "complete_for_supplied_findings": true,
+    "reviewed_source_files": ["main.py", "requirements.txt", "vulnerability_index.md"],
+    "context_artifacts": [
+      "Scan Report-1/repository_intelligence.md",
+      "Scan Report-1/architecture.md",
+      "Scan Report-2/threat_model.md",
+      "Scan Report-3/pre_scan_assessment.md",
+      "Scan Report-4/assessment.json",
+      "Scan Report-5/assessment.json"
+    ],
+    "not_performed": ["dynamic validation", "dependency advisory lookup", "source modification", "new vulnerability discovery outside supplied findings"]
+  }
+}
