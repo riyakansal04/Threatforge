@@ -1,0 +1,31 @@
+export const STAGE_LABELS = {
+  'repository-intelligence': 'Repository intelligence',
+  'threat-modeling': 'Threat model',
+  'security-baseline': 'Security assessment',
+  triage: 'Triage',
+  prioritization: 'Priority queue',
+  investigation: 'Remediation',
+  remediation: 'Remediation',
+  'fix-verification': 'Fix verification',
+  regression: 'Regression checks',
+  closure: 'Closure',
+};
+
+export const STAGE_PAGES = {
+  'repository-intelligence': '/pre-scan/repository-intelligence',
+  'threat-modeling': '/pre-scan/threat-model',
+  'security-baseline': '/pre-scan/security-review-plan',
+  'standard-scan': '/scanning/overview',
+  'deep-scan': '/scanning/overview',
+  'module-scan': '/scanning/overview',
+  'exploitable-scan': '/scanning/overview',
+  'dependency-scan': '/scanning/overview',
+  'runtime-validation': '/scanning/overview',
+  triage: '/findings-cases/triage',
+  prioritization: '/findings-cases/priority',
+  investigation: '/findings-cases/remediation',
+  remediation: '/findings-cases/remediation',
+  'fix-verification': '/post-scan/verification',
+  regression: '/post-scan/regression',
+  closure: '/post-scan/closure',
+};

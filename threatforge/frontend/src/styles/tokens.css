@@ -1,0 +1,68 @@
+:root {
+  --bg: #050812;
+  --bg-elev: #090d1b;
+  --panel: #0d1424;
+  --panel-2: #121b2d;
+  --panel-3: #17243a;
+  --line: #22324a;
+  --line-strong: #314963;
+
+  --text: #f7f7ff;
+  --text-2: #d4daea;
+  --text-3: #a2acc0;
+
+  --accent: #37e4b2;
+  --accent-hover: #24c99b;
+  --accent-soft: rgba(55, 228, 178, 0.13);
+  --accent-line: rgba(55, 228, 178, 0.46);
+  --accent-2: #38bdf8;
+  --accent-2-soft: rgba(56, 189, 248, 0.14);
+  --accent-3: #7dd3fc;
+  --accent-3-soft: rgba(125, 211, 252, 0.12);
+  --accent-4: #ff7568;
+  --accent-4-soft: rgba(255, 117, 104, 0.13);
+
+  --info: #7dd3fc;
+  --warn: #f2b84b;
+  --danger: #ff7568;
+  --ok: #37e4b2;
+
+  --radius: 8px;
+  --sidebar-w: 290px;
+  --shadow: 0 24px 78px rgba(0, 0, 0, 0.38);
+  --shadow-soft: 0 14px 38px rgba(0, 0, 0, 0.28);
+  --font-sans: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, Consolas, monospace;
+}
+
+:root[data-theme='light'] {
+  --bg: #f5f7fa;
+  --bg-elev: #ffffff;
+  --panel: #ffffff;
+  --panel-2: #eef3f7;
+  --panel-3: #e6edf3;
+  --line: #d7e0e9;
+  --line-strong: #bdc9d5;
+
+  --text: #111a22;
+  --text-2: #425466;
+  --text-3: #6d7c8a;
+
+  --accent: #087d67;
+  --accent-hover: #066b57;
+  --accent-soft: rgba(8, 125, 103, 0.1);
+  --accent-line: rgba(8, 125, 103, 0.36);
+  --accent-2: #1f6feb;
+  --accent-2-soft: rgba(31, 111, 235, 0.1);
+  --accent-3: #a66300;
+  --accent-3-soft: rgba(166, 99, 0, 0.1);
+  --accent-4: #bf3f3b;
+  --accent-4-soft: rgba(191, 63, 59, 0.1);
+
+  --info: #1f6feb;
+  --warn: #a66300;
+  --danger: #bf3f3b;
+  --ok: #087d67;
+  --shadow: 0 22px 70px rgba(39, 55, 77, 0.13);
+  --shadow-soft: 0 10px 28px rgba(39, 55, 77, 0.1);
+}
