@@ -14,13 +14,13 @@ export const PRESCAN_PAGES = [
     description: 'Components, relationships, execution flows and data flows.',
   },
   {
-    path: '/pre-scan/threat-model',
+    path: '/threat-modeling/threat-model',
     label: 'Threat model',
     stage: 'Find what can go wrong',
     description: 'Assets, trust boundaries, actors, threats and attack paths.',
   },
   {
-    path: '/pre-scan/security-review-plan',
+    path: '/threat-modeling/security-assessment',
     label: 'Security assessment',
     stage: 'Plan the review',
     description: 'Review priorities, unresolved areas, threat convergence and scan targets.',
@@ -41,15 +41,15 @@ export const TRACEABILITY_PAGES = [
 ];
 
 export const SCANNING_PAGES = [
-  { path: '/scanning/overview', label: 'Analysis dashboard' },
+  { path: '/scanning', label: 'Analysis dashboard' },
   { path: '/scanning/findings', label: 'Findings' },
   { path: '/scanning/coverage', label: 'Scan scope' },
 ];
 
 export const FINDING_PAGES = [
-  { path: '/findings-cases/triage', label: 'Triage', stage: 'triage' },
+  { path: '/findings-cases', label: 'Triage', stage: 'triage' },
   { path: '/findings-cases/priority', label: 'Priority queue', stage: 'prioritization' },
-  { path: '/findings-cases/remediation', label: 'Remediation', stage: 'investigation' },
+  { path: '/findings-cases/remediation', label: 'Remediation', stage: 'remediation' },
 ];
 
 export const POSTSCAN_PAGES = [
@@ -83,7 +83,7 @@ export const PRESCAN_STAGES = [
       'Threat scenarios with a full trace',
       'Attack paths and threat relationships',
     ],
-    to: '/pre-scan/threat-model',
+    to: '/threat-modeling/threat-model',
   },
   {
     id: 'security-baseline',
@@ -96,7 +96,7 @@ export const PRESCAN_STAGES = [
       'Limited-visibility and unresolved areas',
       'Recommended scan type and target',
     ],
-    to: '/pre-scan/security-review-plan',
+    to: '/threat-modeling/security-assessment',
   },
 ];
 

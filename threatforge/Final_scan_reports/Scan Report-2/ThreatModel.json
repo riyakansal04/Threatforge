@@ -1,0 +1,379 @@
+{
+  "metadata": {
+    "scanName": "Scan Report-2",
+    "generatedDate": "2026-10-05",
+    "sourceRoot": "C:\\Users\\riyakansal\\OneDrive - Nagarro\\Desktop\\Codebase",
+    "outputFolder": "C:\\Users\\riyakansal\\OneDrive - Nagarro\\Desktop\\Codebase\\Scan Report-2",
+    "primaryInput": "Scan Report-1\\ApplicationIntelligence.json",
+    "analysisType": "threat model",
+    "constraintsApplied": [
+      "Reused existing ApplicationIntelligence as primary architecture source",
+      "Did not perform a security scan",
+      "Did not assign final vulnerability severities",
+      "Did not recommend code fixes",
+      "Did not modify application source code"
+    ],
+    "importantDistinction": "Threat scenarios are plausible architecture-backed attack paths, not independently confirmed runtime exploit findings."
+  },
+  "threatModel": {
+    "summary": {
+      "application": "Breakable Flask",
+      "purpose": "A deliberately vulnerable single-file Flask web application used for learning and checking exploitation of common web application vulnerability classes.",
+      "architecture": "A Flask development server exposes route handlers in main.py. Route handlers directly read form fields, query parameters, and cookies, then invoke sensitive operations including pickle deserialization, host command execution, Python eval, XML parsing, template rendering, SQL execution, AES-CBC decryption, and JWT verification.",
+      "normalDeployment": "Direct execution of main.py, defaulting to 127.0.0.1:4000 with an in-memory SQLite database, with optional external database backends selected by CLI arguments.",
+      "evidence": [
+        "Scan Report-1\\ApplicationIntelligence.json identifies the application as a single-file Flask web application and records direct-script execution as the confirmed deployment style.",
+        "README.md:4-18 states the application is intentionally vulnerable and lists the supported vulnerability categories.",
+        "main.py:296 creates the Flask app, main.py:299-540 defines route handlers, and main.py:661 starts the server."
+      ]
+    },
+    "assets": [
+      {
+        "id": "asset_host_execution_context",
+        "name": "Application host execution context",
+        "description": "The Python process, interpreter authority, environment, current working directory, and host operating-system command context used by the Flask application.",
+        "securityObjectives": [
+          "Prevent untrusted HTTP clients from gaining arbitrary code or command execution in the application process or host shell.",
+          "Preserve application process integrity and availability."
+        ],
+        "whyItMatters": "Several routes bridge directly from HTTP input to sensitive execution facilities. Compromise of the process or host command context would affect every application workflow and may affect local files, environment variables, database connectivity, and generated key material.",
+        "evidence": [
+          "main.py:171-172 defines os.popen command execution.",
+          "main.py:379 evaluates request input with eval.",
+          "main.py:397 parses request-provided XML with lxml.",
+          "main.py:454-468 renders request-derived template content."
+        ]
+      },
+      {
+        "id": "asset_auth_tokens",
+        "name": "JWT authentication cookies and authorization claims",
+        "description": "The authentication cookie, JWT signatures, and sub claim used by /user to distinguish guest from admin display state.",
+        "securityObjectives": [
+          "Preserve token integrity.",
+          "Ensure authenticated identity claims cannot be altered by unauthenticated clients.",
+          "Ensure admin state is reachable only through trusted token issuance or validation."
+        ],
+        "whyItMatters": "/user uses the token sub claim as the authorization decision for admin display state.",
+        "evidence": [
+          "main.py:35 defines AUTH_COOKIE.",
+          "main.py:510-528 reads and verifies the authentication cookie.",
+          "main.py:519-523 checks whether sub equals ADMIN_USER.",
+          "main.py:540-550 issues the authentication cookie after guest login."
+        ]
+      },
+      {
+        "id": "asset_config_and_crypto_secrets",
+        "name": "In-memory configuration and cryptographic material",
+        "description": "Random AES key, admin secret, app metadata, RSA signing/verification keys, generated temp key files, and CONFIG dictionary values.",
+        "securityObjectives": [
+          "Prevent unintended disclosure of secret-bearing config values and key material.",
+          "Preserve confidentiality and integrity of cryptographic keys and config-controlled behavior."
+        ],
+        "whyItMatters": "These values are used to encrypt config links and sign/verify JWTs; disclosure or manipulation can affect authentication and sensitive-value exposure.",
+        "evidence": [
+          "main.py:24-45 initializes random secrets and CONFIG.",
+          "main.py:107-124 loads or generates RSA keys and may write them to temp files.",
+          "main.py:156-168 implements AES-CBC encryption/decryption.",
+          "main.py:417-443 exposes encrypted config lookup behavior."
+        ]
+      },
+      {
+        "id": "asset_database_contents",
+        "name": "Relational database contents",
+        "description": "The public_stuff and secret_stuff tables created and seeded during startup.",
+        "securityObjectives": [
+          "Prevent unauthorized reading or modification of relational data.",
+          "Preserve query integrity for route-driven database access."
+        ],
+        "whyItMatters": "The application seeds a public table queried by /listservices and a secret table not directly exposed by normal routes.",
+        "evidence": [
+          "main.py:49-82 defines public_stuff and secret_stuff tables and seed rows.",
+          "main.py:472-490 queries public_stuff.",
+          "main.py:647-656 creates and seeds missing tables."
+        ]
+      },
+      {
+        "id": "asset_client_browser_session",
+        "name": "Client browser session and rendered content",
+        "description": "HTML generated by the application, cookies stored in the browser, and browser-side trust in application responses.",
+        "securityObjectives": [
+          "Prevent server-generated responses from executing attacker-controlled active content in another user's browser.",
+          "Protect authentication and value cookies from unintended manipulation or exposure."
+        ],
+        "whyItMatters": "The app builds HTML by concatenating request and database-derived values and stores security-relevant state in cookies.",
+        "evidence": [
+          "main.py:332-346 renders and sets the value cookie.",
+          "main.py:489-500 renders database rows into an HTML table.",
+          "main.py:547-550 sets the authentication cookie."
+        ]
+      }
+    ],
+    "threatActors": [
+      {
+        "id": "actor_http_client",
+        "name": "Unauthenticated HTTP client",
+        "capabilities": [
+          "Can send GET and POST requests to exposed routes if the Flask server is reachable.",
+          "Can supply form fields, query parameters, and cookies.",
+          "Can read normal HTTP responses returned to its own requests."
+        ],
+        "absentPrivileges": [
+          "Does not initially control the server process, local filesystem, database server, environment variables, or private signing key.",
+          "Does not initially possess admin JWT claims unless a token validation boundary fails."
+        ],
+        "entryPoints": [
+          "/",
+          "/cookie",
+          "/lookup",
+          "/evaluate",
+          "/xml",
+          "/config",
+          "/sayhi",
+          "/listservices",
+          "/user",
+          "/user/jwks",
+          "/user/login"
+        ],
+        "basis": [
+          "main.py:299-572 exposes these HTTP handlers.",
+          "README.md:42-48 describes running the server locally and optionally connecting to external databases."
+        ]
+      },
+      {
+        "id": "actor_guest_user",
+        "name": "Authenticated guest user",
+        "capabilities": [
+          "Can authenticate with the documented guest credentials.",
+          "Can hold and replay the authentication cookie issued by /user/login.",
+          "Can access /user and /user/jwks."
+        ],
+        "absentPrivileges": [
+          "Does not initially have the admin sub claim.",
+          "Does not control signing key material."
+        ],
+        "entryPoints": [
+          "/user/login",
+          "/user",
+          "/user/jwks"
+        ],
+        "basis": [
+          "main.py:34 defines ALLOWED_USER as guest.",
+          "main.py:543-550 accepts guest/guest and issues a JWT cookie.",
+          "main.py:531-536 exposes JWKS data."
+        ]
+      },
+      {
+        "id": "actor_operator",
+        "name": "Application operator or local developer",
+        "capabilities": [
+          "Can choose command-line options such as bind address, port, database type, database credentials, database filename, and Oracle client library directory.",
+          "Can provide PRIVATE_KEY_FILE and PUBLIC_KEY_FILE environment variables."
+        ],
+        "absentPrivileges": [
+          "Operator authority is not an attacker capability unless a separate operational compromise exists."
+        ],
+        "entryPoints": [
+          "CLI arguments",
+          "Environment variables",
+          "Database server setup"
+        ],
+        "basis": [
+          "main.py:107-124 reads key file environment variables or writes generated temp keys.",
+          "main.py:579-589 defines CLI options.",
+          "main.py:598-656 uses CLI options for database setup."
+        ]
+      }
+    ],
+    "trustBoundaries": [
+      {
+        "id": "tb_http_to_app",
+        "name": "HTTP client to Flask route handlers",
+        "description": "Untrusted clients supply request method, form fields, query parameters, and cookies to route handlers that run inside the trusted Python process.",
+        "transferredDataOrAuthority": [
+          "Form fields: value, address, expression, xml, name, username, password",
+          "Query parameters: key, category",
+          "Cookies: value, authentication"
+        ],
+        "expectedControls": [
+          "Route-specific parsing and validation",
+          "JWT verification for /user",
+          "Guest credential check for /user/login"
+        ],
+        "observedControlGaps": [
+          "Several route handlers pass request-controlled values directly to sensitive consumers.",
+          "Most routes are unauthenticated."
+        ],
+        "evidence": [
+          "main.py:320-572 reads request.form, request.args, and request.cookies directly in route handlers."
+        ]
+      },
+      {
+        "id": "tb_app_to_host_execution",
+        "name": "Flask process to host command/Python execution",
+        "description": "Request-controlled data can cross from HTTP route handlers into host command execution and Python expression evaluation.",
+        "transferredDataOrAuthority": [
+          "address to nslookup command",
+          "expression to eval"
+        ],
+        "expectedControls": [
+          "Command construction and expression evaluation should preserve process integrity."
+        ],
+        "observedControlGaps": [
+          "No input validation or command argument isolation is visible in the observed code paths.",
+          "eval executes within the Python process context."
+        ],
+        "evidence": [
+          "main.py:171-172 defines popen(command).read().",
+          "main.py:357-360 passes form input to rp('nslookup ' + address).",
+          "main.py:375-379 passes form input to eval(expression)."
+        ]
+      },
+      {
+        "id": "tb_app_to_parser_renderer",
+        "name": "Flask process to parsers and renderer",
+        "description": "Request-controlled XML and template content crosses into lxml and Jinja rendering behavior.",
+        "transferredDataOrAuthority": [
+          "xml form data to lxml parser",
+          "name form data to render_template_string"
+        ],
+        "expectedControls": [
+          "Parser and renderer should not grant file, network, or template execution authority to untrusted input."
+        ],
+        "observedControlGaps": [
+          "XML parser is configured with network access and DTD loading enabled.",
+          "User-controlled content is interpolated before template rendering."
+        ],
+        "evidence": [
+          "main.py:395-400 parses request-provided XML.",
+          "main.py:397 sets no_network=False and load_dtd=True.",
+          "main.py:453-468 interpolates name into a template and renders it."
+        ]
+      },
+      {
+        "id": "tb_app_to_database",
+        "name": "Flask process to relational database",
+        "description": "Request-controlled category data crosses into SQL query construction and execution against the configured relational backend.",
+        "transferredDataOrAuthority": [
+          "category query parameter",
+          "SQL statement executed by cursor"
+        ],
+        "expectedControls": [
+          "Query construction should preserve database query integrity and limit access to intended rows."
+        ],
+        "observedControlGaps": [
+          "The category value is inserted into the WHERE clause through string formatting."
+        ],
+        "evidence": [
+          "main.py:476-484 builds and executes SELECT * from public_stuff with an optional category-derived WHERE clause."
+        ]
+      },
+      {
+        "id": "tb_cookie_to_auth_and_deserialization",
+        "name": "Client cookies to deserialization and authentication",
+        "description": "Browser-controlled cookies cross into pickle deserialization and JWT verification.",
+        "transferredDataOrAuthority": [
+          "value cookie to pickle.loads",
+          "authentication cookie to verify_token"
+        ],
+        "expectedControls": [
+          "Cookie values should be authenticated or safely parsed before they affect server-side state.",
+          "JWT verification should enforce trusted algorithms and claims."
+        ],
+        "observedControlGaps": [
+          "value cookie is deserialized with pickle.loads.",
+          "JWT verification dispatches based on an unverified alg header and includes HS256 and None branches."
+        ],
+        "evidence": [
+          "main.py:328-329 reads and deserializes request.cookies['value'].",
+          "main.py:513-516 reads and verifies request.cookies['authentication'].",
+          "main.py:32 and main.py:267-277 define and use allowed JWT algorithms."
+        ]
+      },
+      {
+        "id": "tb_startup_configuration",
+        "name": "Operator configuration to runtime resources",
+        "description": "Operator-controlled CLI arguments and environment variables determine bind address, database backend, database credentials, SQLite filename, Oracle client path, and RSA key files.",
+        "transferredDataOrAuthority": [
+          "Web server binding",
+          "Database connection authority",
+          "Key file paths"
+        ],
+        "expectedControls": [
+          "Operator-provided configuration should point to intended local or external resources.",
+          "Secret-bearing values should not be exposed in reports or logs."
+        ],
+        "observedControlGaps": [
+          "Production exposure and file permissions for generated temp key files are unknown from available evidence.",
+          "No deployment manifest establishes a hardened runtime boundary."
+        ],
+        "evidence": [
+          "main.py:107-124 handles PRIVATE_KEY_FILE and PUBLIC_KEY_FILE or generated temp key files.",
+          "main.py:579-589 defines runtime and database CLI arguments.",
+          "Scan Report-1 records production deployment topology as unknown."
+        ]
+      }
+    ],
+    "securityObjectives": [
+      {
+        "id": "objective_process_integrity",
+        "description": "Untrusted HTTP input must not execute arbitrary Python code or host operating-system commands."
+      },
+      {
+        "id": "objective_token_integrity",
+        "description": "JWT claims, especially sub, must remain protected by trusted signing and verification semantics."
+      },
+      {
+        "id": "objective_data_confidentiality",
+        "description": "Secret config values, seeded secret table rows, key material, and host-local files should not be disclosed through ordinary HTTP routes."
+      },
+      {
+        "id": "objective_query_integrity",
+        "description": "HTTP query parameters should not change intended SQL command structure or database scope."
+      },
+      {
+        "id": "objective_response_integrity",
+        "description": "Rendered responses should not execute attacker-supplied active content or server-side template behavior outside the intended greeting functionality."
+      },
+      {
+        "id": "objective_availability",
+        "description": "Request processing should not allow easy process crashes, blocking operations, parser abuse, or database disruption outside intentional training use."
+      }
+    ],
+    "assumptions": [
+      {
+        "id": "assumption_reachability",
+        "description": "Threats requiring HTTP access assume the Flask server is reachable by the actor. The documented default bind is 127.0.0.1:4000; broader exposure is possible through the --address argument but not confirmed as a deployment.",
+        "evidence": [
+          "README.md:42-48 documents local default execution and example database options.",
+          "main.py:580-581 define configurable port and address."
+        ]
+      },
+      {
+        "id": "assumption_training_context",
+        "description": "The app is intentionally vulnerable for training. Threat scenarios describe what could happen if the app is reachable across a trust boundary; they do not imply the same risk if used only in an isolated lab."
+      },
+      {
+        "id": "assumption_no_runtime_validation",
+        "description": "No routes were executed and no exploit inputs were sent. Scenarios are based on static architecture and implementation evidence."
+      },
+      {
+        "id": "unknown_production_topology",
+        "description": "No production deployment files were found, so internet exposure, reverse proxy behavior, container isolation, process user, filesystem permissions, and network egress controls are unknown."
+      },
+      {
+        "id": "unknown_database_permissions",
+        "description": "For optional external databases, effective privileges depend on operator-provided credentials and database server setup. The code can create databases/tables for some backends, but exact production privileges are not established."
+      }
+    ]
+  },
+  "sourceReferences": [
+    "Scan Report-1\\ApplicationIntelligence.json",
+    "Scan Report-1\\ApplicationArchitectureReport.md",
+    "Scan Report-1\\SourceReferences.md",
+    "README.md",
+    "main.py",
+    "vulnerability_index.md",
+    "database-requirements.txt",
+    "docker_database_setup.md"
+  ]
+}

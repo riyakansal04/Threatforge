@@ -49,6 +49,17 @@ const FIELD_GROUPS = [
 
 const groupFor = (key) => FIELD_GROUPS.find((group) => group.includes(key)) || [key];
 
+const AUTO_COLUMN_PRIORITY = {
+  path: 1,
+  file: 1,
+  uri: 1,
+  start_line: 2,
+  startLine: 2,
+  line: 2,
+  end_line: 3,
+  endLine: 3,
+};
+
 const normalize = (items) =>
   asArray(items).map((i) =>
     i && typeof i === 'object' && !Array.isArray(i) ? i : { name: typeof i === 'string' ? i : JSON.stringify(i) }
@@ -66,7 +77,14 @@ function autoColumns(rows) {
     });
   });
 
-  return [...keys].sort((a, b) => (freq.get(b) || 0) - (freq.get(a) || 0)).slice(0, 6).map((k) => ({ label: titleCase(k), keys: [k] }));
+  return [...keys]
+    .sort((a, b) => {
+      const byFrequency = (freq.get(b) || 0) - (freq.get(a) || 0);
+      if (byFrequency) return byFrequency;
+      return (AUTO_COLUMN_PRIORITY[a] || 100) - (AUTO_COLUMN_PRIORITY[b] || 100);
+    })
+    .slice(0, 6)
+    .map((k) => ({ label: titleCase(k), keys: [k] }));
 }
 
 function pick(row, keys) {

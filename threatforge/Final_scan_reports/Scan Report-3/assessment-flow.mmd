@@ -1,0 +1,42 @@
+flowchart TD
+    intel[Scan Report-1\nApplicationIntelligence]
+    threats[Scan Report-2\nThreatModel + ThreatRecords]
+    plan[Scan Report-3\nAssessment Plan]
+
+    sf01[SF-01\nStandard Security Scan\nRepository baseline]
+    sf02[SF-02\nExploitable Scan\nExecution/interpreter paths]
+    sf03[SF-03\nExploitable Scan\nParser/crypto/JWT paths]
+    sf06[SF-06\nSupply-chain Scan\nDependencies]
+    sf04[SF-04\nRuntime Validation\nHTTP attack surfaces]
+    sf05[SF-05\nRuntime Validation\nDatabase backend]
+
+    triage[Future stage\nTriage + human approval]
+    gaps[Coverage gaps\nDeployment, DB, versions]
+
+    intel --> plan
+    threats --> plan
+    plan --> sf01
+    sf01 --> sf02
+    sf01 --> sf03
+    sf01 --> sf06
+    sf02 --> sf04
+    sf03 --> sf04
+    sf06 --> sf04
+    sf01 --> sf05
+    sf06 --> sf05
+    sf04 --> triage
+    sf05 --> triage
+    plan --> gaps
+
+    classDef input fill:#e8f4ff,stroke:#2f6f9f,color:#102033;
+    classDef plan fill:#edf8ed,stroke:#377c37,color:#102010;
+    classDef scan fill:#fff4df,stroke:#9b6500,color:#1f1600;
+    classDef future fill:#f3edff,stroke:#7446a8,color:#1c102e;
+    classDef gap fill:#ffecec,stroke:#b83232,color:#2a0f0f;
+
+    class intel,threats input;
+    class plan plan;
+    class sf01,sf02,sf03,sf04,sf05,sf06 scan;
+    class triage future;
+    class gaps gap;
+

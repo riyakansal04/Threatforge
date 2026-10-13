@@ -1,4 +1,4 @@
-import { Navigate, Routes, Route } from 'react-router-dom';
+import { Navigate, Routes, Route, useLocation } from 'react-router-dom';
 import AppShell from './layout/AppShell.jsx';
 import Home from './pages/Home.jsx';
 import About from './pages/About.jsx';
@@ -10,12 +10,18 @@ import Evidence from './pages/Evidence.jsx';
 import PrescanArtifacts from './pages/PrescanArtifacts.jsx';
 import LifecycleStage from './pages/LifecycleStage.jsx';
 import IntelligenceStage from './pages/IntelligenceStage.jsx';
+import ThreatModelingStage from './pages/ThreatModelingStage.jsx';
 import ScanningStage from './pages/ScanningStage.jsx';
 import TriagePrioritizationStage from './pages/TriagePrioritizationStage.jsx';
-import ScanOverview from './pages/scanning/ScanOverview.jsx';
+import PrioritizationStage from './pages/PrioritizationStage.jsx';
 import ScanDetail from './pages/scanning/ScanDetail.jsx';
 import Findings from './pages/scanning/Findings.jsx';
 import Coverage from './pages/scanning/Coverage.jsx';
+
+function LegacyScanOverviewRedirect() {
+  const location = useLocation();
+  return <Navigate to={`/scanning${location.search || ''}`} replace />;
+}
 
 export default function App() {
   return (
@@ -30,29 +36,32 @@ export default function App() {
         <Route path="pre-scan" element={<IntelligenceStage />} />
         <Route path="pre-scan/repository-intelligence" element={<Navigate to="/pre-scan?tab=repository-intelligence" replace />} />
         <Route path="pre-scan/architecture" element={<Navigate to="/pre-scan?tab=architecture" replace />} />
-        <Route path="pre-scan/threat-model" element={<Navigate to="/pre-scan?tab=threat-modeling" replace />} />
-        <Route path="pre-scan/security-review-plan" element={<Navigate to="/pre-scan?tab=scan-planning" replace />} />
-        <Route path="pre-scan/security-baseline" element={<Navigate to="/pre-scan?tab=scan-planning" replace />} />
-        <Route path="pre-scan/scan-planning" element={<Navigate to="/pre-scan?tab=scan-planning" replace />} />
+        <Route path="pre-scan/threat-model" element={<Navigate to="/threat-modeling?tab=threat-modeling" replace />} />
+        <Route path="pre-scan/security-review-plan" element={<Navigate to="/threat-modeling?tab=scan-planning" replace />} />
+        <Route path="pre-scan/security-baseline" element={<Navigate to="/threat-modeling?tab=scan-planning" replace />} />
+        <Route path="pre-scan/scan-planning" element={<Navigate to="/threat-modeling?tab=scan-planning" replace />} />
+        <Route path="threat-modeling" element={<ThreatModelingStage />} />
+        <Route path="threat-modeling/threat-model" element={<Navigate to="/threat-modeling?tab=threat-modeling" replace />} />
+        <Route path="threat-modeling/security-assessment" element={<Navigate to="/threat-modeling?tab=scan-planning" replace />} />
         <Route path="pre-scan/evidence" element={<Navigate to="/evidence" replace />} />
         <Route path="evidence" element={<Evidence />} />
         <Route path="pre-scan/raw-artifacts" element={<PrescanArtifacts />} />
         <Route path="scanning" element={<ScanningStage />} />
-        <Route path="scanning/overview" element={<ScanOverview />} />
+        <Route path="scanning/overview" element={<LegacyScanOverviewRedirect />} />
         <Route path="scanning/scans" element={<Navigate to="/pre-scan/raw-artifacts" replace />} />
         <Route path="scanning/scans/:id" element={<ScanDetail />} />
         <Route path="scanning/findings" element={<Findings />} />
         <Route path="scanning/coverage" element={<Coverage />} />
         <Route path="scanning/artifacts" element={<Navigate to="/pre-scan/raw-artifacts" replace />} />
         <Route path="findings-cases" element={<TriagePrioritizationStage />} />
-        <Route path="findings-cases/overview" element={<Navigate to="/findings-cases?tab=triage" replace />} />
-        <Route path="findings-cases/triage" element={<Navigate to="/findings-cases?tab=triage" replace />} />
-        <Route path="findings-cases/priority" element={<Navigate to="/findings-cases?tab=prioritization" replace />} />
+        <Route path="findings-cases/overview" element={<Navigate to="/findings-cases" replace />} />
+        <Route path="findings-cases/triage" element={<Navigate to="/findings-cases" replace />} />
+        <Route path="findings-cases/priority" element={<PrioritizationStage />} />
         <Route path="findings-cases/investigation" element={<Navigate to="/findings-cases/remediation" replace />} />
-        <Route path="findings-cases/remediation" element={<LifecycleStage key="lifecycle-investigation" stageKey="investigation" extraStageKeys={['remediation']} title="Remediation" />} />
+        <Route path="findings-cases/remediation" element={<LifecycleStage key="lifecycle-remediation" stageKey="remediation" extraStageKeys={['triage', 'prioritization', 'investigation']} title="Remediation" />} />
         <Route path="findings-cases/after-remediation" element={<Navigate to="/findings-cases/remediation" replace />} />
         <Route path="findings-cases/remediation-outcome" element={<Navigate to="/findings-cases/remediation" replace />} />
-        <Route path="post-scan/verification" element={<LifecycleStage key="lifecycle-verification-closure" stageKey="fix-verification" extraStageKeys={['regression', 'closure']} view="verification-workflow" initialWorkflowStep="verify" title="Verification & Closure" eyebrow="Verify fixes" />} />
+        <Route path="post-scan/verification" element={<LifecycleStage key="lifecycle-verification-closure" stageKey="fix-verification" extraStageKeys={['regression', 'closure']} view="verification-workflow" title="Verified Fixes" eyebrow="Verify fixes" />} />
         <Route path="post-scan/regression" element={<Navigate to="/post-scan/verification" replace />} />
         <Route path="post-scan/closure" element={<Navigate to="/post-scan/verification" replace />} />
         <Route path="*" element={<Placeholder title="Page not found" description="This address does not match any page." />} />

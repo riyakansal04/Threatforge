@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { api, currentCodebaseId, setCurrentCodebaseId } from '../api/client.js';
 import { PageShell } from '../components/Blocks.jsx';
 import { fmtDate } from '../lib/format.js';
 
 export default function CodebaseHistory() {
+  const navigate = useNavigate();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -24,12 +25,14 @@ export default function CodebaseHistory() {
 
   const open = (id) => {
     setCurrentCodebaseId(id);
-    window.location.href = '/scanning/overview';
+    navigate('/scanning');
+    window.dispatchEvent(new Event('threatforge:refresh'));
   };
 
   const fresh = () => {
     setCurrentCodebaseId('');
-    window.location.href = '/upload';
+    navigate('/upload');
+    window.dispatchEvent(new Event('threatforge:refresh'));
   };
 
   const remove = async (row) => {

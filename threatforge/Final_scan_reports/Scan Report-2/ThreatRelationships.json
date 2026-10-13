@@ -1,0 +1,91 @@
+{
+  "ThreatRelationship": [
+    {
+      "id": "TR001",
+      "sourceThreat": "T002",
+      "targetThreat": "T003",
+      "relationshipType": "shared_asset_and_boundary",
+      "description": "Both scenarios cross from unauthenticated HTTP input into application or host execution authority, affecting the host execution context.",
+      "sharedElements": [
+        "asset_host_execution_context",
+        "tb_http_to_app",
+        "tb_app_to_host_execution"
+      ],
+      "modelingEffect": "They are kept distinct because /lookup reaches os.popen through command construction, while /evaluate reaches Python eval directly."
+    },
+    {
+      "id": "TR002",
+      "sourceThreat": "T003",
+      "targetThreat": "T006",
+      "relationshipType": "shared_execution_capability",
+      "description": "Both involve server-side interpretation of request-controlled text inside the Python/Flask process.",
+      "sharedElements": [
+        "asset_host_execution_context",
+        "asset_config_and_crypto_secrets"
+      ],
+      "modelingEffect": "They are not duplicates because eval and Jinja rendering have different entry points, interpreters, preconditions, and reachable object models."
+    },
+    {
+      "id": "TR003",
+      "sourceThreat": "T004",
+      "targetThreat": "T005",
+      "relationshipType": "shared_confidentiality_objective",
+      "description": "Both may expose server-side resources or secret-bearing data through parser/decryption behavior before ordinary response rendering.",
+      "sharedElements": [
+        "asset_config_and_crypto_secrets",
+        "objective_data_confidentiality"
+      ],
+      "modelingEffect": "The scenarios differ in mechanism: XML parser resource handling versus chosen-ciphertext decryption behavior."
+    },
+    {
+      "id": "TR004",
+      "sourceThreat": "T007",
+      "targetThreat": "T009",
+      "relationshipType": "deployment_amplifies_impact",
+      "description": "SQL manipulation impact depends heavily on the database backend and privileges selected at startup.",
+      "sharedElements": [
+        "asset_database_contents",
+        "tb_app_to_database",
+        "tb_startup_configuration"
+      ],
+      "modelingEffect": "T009 captures the deployment-dependent authority that can amplify T007 beyond the default in-memory SQLite training context."
+    },
+    {
+      "id": "TR005",
+      "sourceThreat": "T008",
+      "targetThreat": "T005",
+      "relationshipType": "shared_crypto_assets",
+      "description": "JWT and config threats both depend on cryptographic material and correctness of cryptographic use, but affect different security objectives.",
+      "sharedElements": [
+        "asset_config_and_crypto_secrets",
+        "objective_token_integrity",
+        "objective_data_confidentiality"
+      ],
+      "modelingEffect": "The scenarios remain separate because T008 targets token integrity while T005 targets decryption oracle behavior over config keys."
+    },
+    {
+      "id": "TR006",
+      "sourceThreat": "T001",
+      "targetThreat": "T008",
+      "relationshipType": "shared_cookie_boundary",
+      "description": "Both threats rely on browser-controlled cookies crossing into server-side trust decisions.",
+      "sharedElements": [
+        "tb_cookie_to_auth_and_deserialization",
+        "asset_client_browser_session"
+      ],
+      "modelingEffect": "They are distinct because value cookie processing invokes pickle deserialization, while authentication cookie processing invokes JWT verification."
+    },
+    {
+      "id": "TR007",
+      "sourceThreat": "T002",
+      "targetThreat": "T009",
+      "relationshipType": "exposure_dependency",
+      "description": "Command-execution impact is strongly affected by whether the service is exposed beyond localhost and by the host privileges of the running process.",
+      "sharedElements": [
+        "asset_host_execution_context",
+        "tb_startup_configuration"
+      ],
+      "modelingEffect": "T009 records the operational preconditions that determine the reachability and blast radius of T002."
+    }
+  ]
+}

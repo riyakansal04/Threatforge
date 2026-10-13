@@ -1,0 +1,28 @@
+import pytest
+from base64 import b64encode, urlsafe_b64encode
+import json
+import time
+import main
+
+class FakeCursor:
+    def __init__(self):
+        self.query = None
+        self.params = None
+
+    def execute(self, query, params=None):
+        self.query = query
+        self.params = params
+
+    def fetchall(self):
+        return []
+
+def test_listservices_uses_bound_parameter(monkeypatch):
+    fake_cursor = FakeCursor()
+    monkeypatch.setattr(main, "cursor", fake_cursor, raising=False)
+    monkeypatch.setattr(main, "query_build", lambda query: query, raising=False)
+    monkeypatch.setattr(main, "sql_param", "?", raising=False)
+    client = main.app.test_client()
+    response = client.get("/listservices?category=' OR '1'='1")
+    assert response.status_code == 200
+    assert fake_cursor.query == "SELECT * from public_stuff WHERE category = ?"
+    assert fake_cursor.params == ("' OR '1'='1",)

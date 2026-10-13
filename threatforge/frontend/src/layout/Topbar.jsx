@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Menu, PanelLeftOpen, Plus, RefreshCw, Upload } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Menu, Plus, RefreshCw, Upload } from 'lucide-react';
 import { api, currentCodebaseId, setCurrentCodebaseId } from '../api/client.js';
 import { FINDING_PAGES, HISTORY_PAGES, POSTSCAN_PAGES, PRESCAN_PAGES, SCANNING_PAGES, TRACEABILITY_PAGES } from '../config/nav.js';
 
 export default function Topbar({ onMenu, onToggleSidebar, sidebarCollapsed }) {
   const { pathname } = useLocation();
+  const navigate = useNavigate();
   const [codebases, setCodebases] = useState([]);
   const [selected, setSelected] = useState(currentCodebaseId());
   const pre = PRESCAN_PAGES.find((p) => p.path === pathname);
@@ -32,13 +33,14 @@ export default function Topbar({ onMenu, onToggleSidebar, sidebarCollapsed }) {
   const changeCodebase = (id) => {
     setSelected(id);
     setCurrentCodebaseId(id);
-    window.location.reload();
+    window.dispatchEvent(new Event('threatforge:refresh'));
   };
 
   const freshCodebase = () => {
     setSelected('');
     setCurrentCodebaseId('');
-    window.location.href = '/upload';
+    navigate('/upload');
+    window.dispatchEvent(new Event('threatforge:refresh'));
   };
 
   let trail = ['Home'];
@@ -48,8 +50,10 @@ export default function Topbar({ onMenu, onToggleSidebar, sidebarCollapsed }) {
   else if (pathname === '/flow') trail = ['ThreatForge workflow'];
   else if (pathname === '/pre-scan/raw-artifacts') trail = ['Artifacts'];
   else if (pathname === '/pre-scan') trail = ['ThreatForge workflow', 'Intelligence'];
+  else if (pathname === '/threat-modeling') trail = ['ThreatForge workflow', 'Threat Modeling'];
   else if (pathname === '/scanning') trail = ['ThreatForge workflow', 'Scanning'];
-  else if (pathname === '/findings-cases') trail = ['ThreatForge workflow', 'Triage and prioritization'];
+  else if (pathname === '/findings-cases') trail = ['ThreatForge workflow', 'Triage'];
+  else if (pathname === '/findings-cases/priority') trail = ['ThreatForge workflow', 'Prioritization'];
   else if (pathname === '/findings-cases/remediation') trail = ['ThreatForge workflow', 'Remediation'];
   else if (history) trail = ['Codebases', history.label];
   else if (pre) trail = ['Before scanning', pre.label];
@@ -73,8 +77,7 @@ export default function Topbar({ onMenu, onToggleSidebar, sidebarCollapsed }) {
             aria-label="Show sidebar"
             title="Show sidebar"
           >
-            <PanelLeftOpen size={18} />
-            <span>Show sidebar</span>
+            <span aria-hidden="true">&gt;&gt;</span>
           </button>
         )}
         <nav aria-label="Breadcrumb">

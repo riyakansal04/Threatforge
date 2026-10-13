@@ -1,0 +1,371 @@
+{
+  "ScanFocus": [
+    {
+      "id": "SF-01",
+      "name": "Repository-wide baseline source security scan",
+      "scanCapability": "Standard Security Scan",
+      "target": {
+        "type": "repository",
+        "path": ".",
+        "primaryFiles": [
+          "main.py",
+          "README.md",
+          "database-requirements.txt",
+          "requirements.txt",
+          "docker_database_setup.md",
+          "vulnerability_index.md"
+        ]
+      },
+      "scopeAndBoundaries": {
+        "included": [
+          "All application source and documentation files in the current Codebase folder",
+          "Flask routes",
+          "startup/database bootstrap",
+          "crypto/JWT helpers",
+          "dependency manifests"
+        ],
+        "excluded": [
+          "Runtime exploit execution",
+          "External database infrastructure unless represented in source or docs",
+          "ThreatForge frontend/dashboard code from the referenced chat"
+        ]
+      },
+      "assessmentObjective": "Confirm which plausible threats have complete source-backed paths, identify actual controls and counterevidence, and check for additional security-relevant implementation not captured in the existing threat model.",
+      "whyThisScope": "The application is a compact single-file Flask app with supporting manifests and docs. A repository-wide standard pass is small enough to be comprehensive and avoids missing startup or documentation-driven exposure paths.",
+      "relatedApplicationReferences": [
+        "ApplicationIntelligence.components.web_app",
+        "ApplicationIntelligence.components.database_bootstrap",
+        "ApplicationIntelligence.securityRelevantImplementation.sensitiveOperations"
+      ],
+      "relatedThreats": [
+        "T001",
+        "T002",
+        "T003",
+        "T004",
+        "T005",
+        "T006",
+        "T007",
+        "T008",
+        "T009"
+      ],
+      "expectedCoverage": [
+        "Source-to-sink review for route handlers",
+        "Authentication and JWT verification review",
+        "Database query construction review",
+        "Crypto and config handling review",
+        "Startup configuration review"
+      ],
+      "requiredPrerequisites": [
+        "Read-only access to current Codebase folder",
+        "Existing ApplicationIntelligence and ThreatModel artifacts"
+      ],
+      "limitations": [
+        "Cannot prove exploitability for shell/parser/JWT/database behavior without runtime validation.",
+        "Cannot determine production blast radius without deployment details."
+      ]
+    },
+    {
+      "id": "SF-02",
+      "name": "Execution and interpreter exploitability review",
+      "scanCapability": "Exploitable Security Scan",
+      "target": {
+        "type": "interfaces-and-code-paths",
+        "components": [
+          "cookie_workflow",
+          "lookup_workflow",
+          "evaluate_workflow",
+          "sayhi_workflow"
+        ],
+        "entryPoints": [
+          "GET /cookie with value cookie",
+          "POST /lookup address",
+          "POST /evaluate expression",
+          "POST /sayhi name"
+        ]
+      },
+      "scopeAndBoundaries": {
+        "included": [
+          "Attack-path feasibility from unauthenticated HTTP input to pickle, os.popen, eval, and render_template_string",
+          "Preconditions for process compromise and server-side interpretation",
+          "Available in-process objects and controls visible in source"
+        ],
+        "excluded": [
+          "Live payload execution",
+          "Payload development against a running process",
+          "Post-exploitation activity"
+        ]
+      },
+      "assessmentObjective": "Determine whether route-level execution threats are reachable and what concrete preconditions are needed for exploitation.",
+      "whyThisScope": "Threat relationships TR001 and TR002 show shared process-execution assets across T002/T003/T006, while T001 shares the cookie boundary with T008. These are the highest-impact paths and deserve focused exploitability reasoning before dynamic testing.",
+      "relatedApplicationReferences": [
+        "ApplicationIntelligence.components.cookie_workflow",
+        "ApplicationIntelligence.components.lookup_workflow",
+        "ApplicationIntelligence.components.evaluate_workflow",
+        "ApplicationIntelligence.components.sayhi_workflow"
+      ],
+      "relatedThreats": [
+        "T001",
+        "T002",
+        "T003",
+        "T006"
+      ],
+      "expectedCoverage": [
+        "Reachability analysis",
+        "Required actor capabilities",
+        "Control and counterevidence review",
+        "Precondition list suitable for safe runtime validation planning"
+      ],
+      "requiredPrerequisites": [
+        "SF-01 baseline scan results",
+        "No runtime environment required for this planning/review focus"
+      ],
+      "limitations": [
+        "Can establish source-backed exploitability hypotheses but cannot confirm shell behavior, template object reachability, or pickle payload behavior without runtime validation."
+      ]
+    },
+    {
+      "id": "SF-03",
+      "name": "Parser, crypto, and JWT exploitability review",
+      "scanCapability": "Exploitable Security Scan",
+      "target": {
+        "type": "interfaces-and-code-paths",
+        "components": [
+          "xml_workflow",
+          "config_workflow",
+          "jwt_workflow"
+        ],
+        "entryPoints": [
+          "POST /xml xml",
+          "GET /config key",
+          "GET /user authentication cookie",
+          "GET /user/jwks"
+        ]
+      },
+      "scopeAndBoundaries": {
+        "included": [
+          "XXE preconditions",
+          "Padding-oracle signal requirements",
+          "JWT None and HS256 branch acceptance requirements",
+          "Use of public JWKS data in token forgery hypotheses"
+        ],
+        "excluded": [
+          "Sending chosen ciphertexts or JWTs to a running service",
+          "Network/file access from XML parser",
+          "Cryptographic attack execution"
+        ]
+      },
+      "assessmentObjective": "Establish whether parser, decryption, and JWT threats have coherent attack paths and define the exact runtime questions that remain.",
+      "whyThisScope": "T004, T005, and T008 depend heavily on library/runtime behavior. A focused exploitability review clarifies whether runtime validation should target entity resolution, response-oracle behavior, token construction, or all three.",
+      "relatedApplicationReferences": [
+        "ApplicationIntelligence.components.xml_workflow",
+        "ApplicationIntelligence.components.config_workflow",
+        "ApplicationIntelligence.components.jwt_workflow"
+      ],
+      "relatedThreats": [
+        "T004",
+        "T005",
+        "T008"
+      ],
+      "expectedCoverage": [
+        "JWT algorithm branch review",
+        "JWKS/public-key relationship review",
+        "XML parser configuration review",
+        "AES-CBC decrypt/error-flow review"
+      ],
+      "requiredPrerequisites": [
+        "SF-01 baseline scan results",
+        "Dependency version context from SF-06 if exact library behavior is needed"
+      ],
+      "limitations": [
+        "Cannot confirm oracle timing/error distinguishability or JWT parser acceptance without runtime requests.",
+        "Cannot determine lxml/libxml2 behavior precisely without installed version details."
+      ]
+    },
+    {
+      "id": "SF-04",
+      "name": "Controlled local runtime validation of HTTP attack surfaces",
+      "scanCapability": "Runtime / Dynamic Security Validation",
+      "target": {
+        "type": "local-runtime",
+        "runtime": "Isolated Breakable Flask instance",
+        "interfaces": [
+          "/cookie",
+          "/lookup",
+          "/evaluate",
+          "/xml",
+          "/config",
+          "/sayhi",
+          "/user",
+          "/user/jwks",
+          "/user/login"
+        ]
+      },
+      "scopeAndBoundaries": {
+        "included": [
+          "Disposable local app instance",
+          "Default SQLite mode unless separate DB validation is selected",
+          "Non-destructive proof-oriented requests",
+          "Response and behavior observation"
+        ],
+        "excluded": [
+          "Testing against production or shared systems",
+          "Persistence, lateral movement, or destructive commands",
+          "External network callbacks unless explicitly approved in a lab"
+        ]
+      },
+      "assessmentObjective": "Validate which plausible attack paths actually manifest in a safe local environment and collect behavioral evidence for triage.",
+      "whyThisScope": "The threat model repeatedly marks runtime behavior as uncertain. Dynamic validation is needed to determine shell behavior, XML parser resolution, padding oracle response signal, JWT branch acceptance, and database-driver-specific behavior.",
+      "relatedApplicationReferences": [
+        "ApplicationIntelligence.interfacesAndIntegrations.httpRoutes",
+        "ThreatModel.trustBoundaries.tb_http_to_app",
+        "ThreatModel.trustBoundaries.tb_cookie_to_auth_and_deserialization"
+      ],
+      "relatedThreats": [
+        "T001",
+        "T002",
+        "T004",
+        "T005",
+        "T006",
+        "T008"
+      ],
+      "expectedCoverage": [
+        "Reachability confirmation",
+        "Response/error behavior",
+        "Token acceptance behavior",
+        "Parser behavior in installed environment",
+        "Basic denial-of-service risk indicators without destructive testing"
+      ],
+      "requiredPrerequisites": [
+        "Explicit authorization for dynamic validation",
+        "Isolated local environment",
+        "Installed dependencies",
+        "Clear test safety rules",
+        "Rollback/disposable workspace or VM/container"
+      ],
+      "limitations": [
+        "Default local behavior may not match production.",
+        "Some tests require careful payload constraints to avoid destructive effects.",
+        "External callback behavior should remain out of scope unless a safe callback target is approved."
+      ]
+    },
+    {
+      "id": "SF-05",
+      "name": "Database backend validation for SQL and startup authority",
+      "scanCapability": "Runtime / Dynamic Security Validation",
+      "target": {
+        "type": "runtime-database",
+        "components": [
+          "services_workflow",
+          "database_bootstrap"
+        ],
+        "interfaces": [
+          "GET /listservices?category=...",
+          "CLI database options"
+        ],
+        "backends": [
+          "SQLite default",
+          "Optional: PostgreSQL/MySQL/MSSQL/Oracle when selected"
+        ]
+      },
+      "scopeAndBoundaries": {
+        "included": [
+          "Query behavior for category filter",
+          "Backend-specific statement handling",
+          "Database privilege impact",
+          "Startup database creation/table seeding authority"
+        ],
+        "excluded": [
+          "Non-disposable external databases",
+          "Production credentials",
+          "Destructive schema or data changes unless explicitly approved in a disposable database"
+        ]
+      },
+      "assessmentObjective": "Determine whether T007 is exploitable against the selected backend and how T009 startup configuration changes database impact.",
+      "whyThisScope": "The threat model identifies SQL manipulation as backend-dependent. The application supports five database modes, so validation must be scoped to the actual backend or clearly marked as conditional.",
+      "relatedApplicationReferences": [
+        "ApplicationIntelligence.components.services_workflow",
+        "ApplicationIntelligence.components.database_bootstrap",
+        "ApplicationIntelligence.dataArchitecture.storageMechanisms"
+      ],
+      "relatedThreats": [
+        "T007",
+        "T009"
+      ],
+      "expectedCoverage": [
+        "SQLite default behavior",
+        "Optional backend-specific behavior when selected",
+        "Database privilege and data exposure boundaries",
+        "Difference between local lab impact and external DB impact"
+      ],
+      "requiredPrerequisites": [
+        "Selected database backend",
+        "Disposable database instance",
+        "Non-production credentials",
+        "Agreement on destructive versus read-only test limits"
+      ],
+      "limitations": [
+        "Without a selected external backend, results only apply to default SQLite.",
+        "Driver and server versions can materially change statement behavior."
+      ]
+    },
+    {
+      "id": "SF-06",
+      "name": "Dependency and supply-chain review",
+      "scanCapability": "Supply-Chain / Dependency Security Scan",
+      "target": {
+        "type": "dependency-manifests",
+        "files": [
+          "requirements.txt",
+          "database-requirements.txt"
+        ],
+        "dependencyFamilies": [
+          "Flask/Werkzeug/Jinja/itsdangerous",
+          "lxml",
+          "pycryptodome",
+          "PyJWT",
+          "database drivers"
+        ]
+      },
+      "scopeAndBoundaries": {
+        "included": [
+          "Declared direct dependencies",
+          "Known advisories relevant to declared package names and supported version ranges",
+          "Security-sensitive dependency behavior relevant to route threats"
+        ],
+        "excluded": [
+          "Runtime environment packages not represented in a lockfile or installed package list",
+          "Transitive dependency certainty without resolved environment data",
+          "Network-based dependency fetch unless separately authorized"
+        ]
+      },
+      "assessmentObjective": "Identify dependency advisories, unsafe lower bounds, and version ambiguity that may influence parser, JWT, crypto, and framework behavior.",
+      "whyThisScope": "ApplicationIntelligence records lower-bound requirements and no lockfile. Threats T004, T005, T007, and T008 depend partly on library behavior, so dependency review is needed before final exploitability conclusions.",
+      "relatedApplicationReferences": [
+        "ApplicationIntelligence.technologyStack.runtimeLibraries",
+        "ApplicationIntelligence.assumptionsAndUnknowns exact installed dependency versions"
+      ],
+      "relatedThreats": [
+        "T004",
+        "T005",
+        "T007",
+        "T008",
+        "T009"
+      ],
+      "expectedCoverage": [
+        "Declared dependency advisory review",
+        "Version range risk",
+        "Optional driver exposure",
+        "Inputs needed for reproducible runtime validation"
+      ],
+      "requiredPrerequisites": [
+        "Access to requirements files",
+        "Optional: installed package inventory or lockfile for exact-version assessment",
+        "Network or advisory database access if performing live advisory lookup"
+      ],
+      "limitations": [
+        "With only lower-bound requirements, exact installed-version risk cannot be finalized.",
+        "Optional database dependencies may not be installed in the actual runtime."
+      ]
+    }
+  ]
+}

@@ -103,7 +103,10 @@ def markdown_tree(text: str) -> dict:
                 items.append(b.group(2).strip())
             else:
                 para.append(s)
-        add(key, items if items else " ".join(para))
+        if items and para:
+            add(key, [" ".join(para), *items])
+        else:
+            add(key, items if items else " ".join(para))
 
     for raw in text.splitlines():
         s = raw.strip()
@@ -202,6 +205,12 @@ def read_upload(filename: str, data: bytes) -> Upload:
         if "manifest" in filename.lower() or (not _has_entity_fields(tree) and manifest_entries(u)):
             u.kind = "manifest"
         return u
+
+    if ext in (".patch", ".diff"):
+        return Upload(kind="patch", **base)
+
+    if ext in (".py", ".js", ".jsx", ".ts", ".tsx", ".java", ".go", ".rb", ".php", ".cs", ".rs", ".sh", ".ps1", ".proposed"):
+        return Upload(kind="source", **base)
 
     if ext in (".sha256", ".sha", ".txt"):
         u = Upload(kind="manifest", **base)

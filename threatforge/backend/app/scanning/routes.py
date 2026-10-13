@@ -119,13 +119,19 @@ def _findings(conn, scan_id=None, scan_ids=None):
                 "SELECT finding_id, artifact_id, origin, location, description FROM scan_evidence "
                 "WHERE finding_id = ANY(%s) ORDER BY id", ([r["id"] for r in rows],)).fetchall():
             ev.setdefault(e["finding_id"], []).append(e)
-    return [
-        item for item in (
-            {**r["data"], "id": r["id"], "scan_db_id": r["scan_id"], "scan_type": r["scan_type"],
-             "scan_label": r["scan_label"], "evidence_items": ev.get(r["id"], [])} for r in rows
-        )
-        if _displayable_finding(item)
-    ]
+    items = []
+    for r in rows:
+        data = dict(r["data"] or {})
+        rows_for_finding = ev.get(r["id"], [])
+        if rows_for_finding:
+            data.setdefault("evidence_rows", rows_for_finding)
+            if _empty(data.get("evidence_items")):
+                data["evidence_items"] = rows_for_finding
+        item = {**data, "id": r["id"], "scan_db_id": r["scan_id"], "scan_type": r["scan_type"],
+                "scan_label": r["scan_label"]}
+        if _displayable_finding(item):
+            items.append(item)
+    return items
 
 
 def _display_finding_counts(conn, scan_ids):

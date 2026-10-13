@@ -1,0 +1,68 @@
+{
+  "schemaVersion": "threatforge.scan-manifest.v1",
+  "scan": {
+    "scanId": "273eb7b9-0470-443d-8f09-1c9bd5cf012f",
+    "scanName": "Scan Report-4",
+    "scanType": "Standard Security Scan",
+    "status": "completed-static-review",
+    "generatedDate": "2026-10-05",
+    "targetPath": "C:\\Users\\riyakansal\\OneDrive - Nagarro\\Desktop\\Codebase",
+    "scope": ".",
+    "mode": "standard",
+    "validationMode": "static source review",
+    "runtimeTestingPerformed": false,
+    "sourceModified": false
+  },
+  "inputs": {
+    "applicationIntelligence": "Scan Report-1\\ApplicationIntelligence.json",
+    "threatModel": "Scan Report-2\\ThreatModel.json",
+    "threatRecords": "Scan Report-2\\ThreatRecords.json",
+    "threatRelationships": "Scan Report-2\\ThreatRelationships.json",
+    "scanPlan": "Scan Report-3\\ScanPlan.json",
+    "scanFocus": "Scan Report-3\\ScanFocus.json"
+  },
+  "scope": {
+    "includePaths": [
+      "."
+    ],
+    "primarySourceFiles": [
+      "main.py",
+      "README.md",
+      "requirements.txt",
+      "database-requirements.txt",
+      "docker_database_setup.md",
+      "vulnerability_index.md"
+    ],
+    "excludedActivities": [
+      "source modification",
+      "destructive testing",
+      "runtime exploit execution",
+      "external database testing",
+      "network advisory lookup"
+    ]
+  },
+  "results": {
+    "findingCount": 8,
+    "severityCounts": {
+      "critical": 0,
+      "high": 6,
+      "medium": 2,
+      "low": 0
+    },
+    "suspectedIssueCount": 0,
+    "coverageCompleteness": "partial",
+    "partialReason": "Static source review completed for current local files, but runtime validation, exact dependency resolution, and production deployment assessment were out of scope."
+  },
+  "artifacts": {
+    "findings": "findings.json",
+    "sarif": "results.sarif",
+    "assessmentReport": "AssessmentReport.md",
+    "coverageReport": "CoverageReport.md",
+    "manifest": "scan-manifest.json"
+  },
+  "tooling": {
+    "localSearch": "ripgrep 15.2.0",
+    "managedScanContext": "Created through Codex Security prompt-only Standard scan MCP.",
+    "managedScanDirectory": "C:\\Users\\riyakansal\\.codex\\state\\plugins\\codex-security\\scans\\Codebase\\unversioned_20261005T095558Z_5eqfbf8b"
+  }
+}

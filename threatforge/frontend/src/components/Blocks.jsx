@@ -1,5 +1,5 @@
 import { createPortal } from 'react-dom';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import DataTable from './DataTable.jsx';
 import { Val, Refs } from './Val.jsx';
@@ -259,11 +259,22 @@ export function sectionHasContent(section, d = {}) {
 /** sections: [{id, title, hint, fields?: [], render?: () => node}] */
 export function Sections({ d, sections }) {
   const panels = (sections || []).filter((s) => sectionHasContent(s, d));
+  const [params, setParams] = useSearchParams();
+  if (!panels.length) return null;
 
-  return panels.map((s) => {
+  const requested = params.get('section');
+  const active = panels.find((s) => s.id === requested) || panels[0];
+  const select = (id) => {
+    const next = new URLSearchParams(params);
+    next.set('section', id);
+    setParams(next, { replace: true });
+  };
+
+  const content = (() => {
+    const s = active;
     if (s.render) {
       return (
-        <Panel key={s.id} id={s.id} title={s.title} hint={s.hint}>
+        <Panel id={s.id} title={s.title} hint={s.hint}>
           {s.render()}
         </Panel>
       );
@@ -274,35 +285,53 @@ export function Sections({ d, sections }) {
       .map(([f, value]) => <Field key={f} label={FIELD_LABELS[f] || titleCase(f)} value={value} columns={COLS[f]} />);
     if (!nodes.length) return null;
     return (
-      <Panel key={s.id} id={s.id} title={s.title} hint={s.hint}>
+      <Panel id={s.id} title={s.title} hint={s.hint}>
         {nodes}
       </Panel>
     );
-  });
+  })();
+
+  return (
+    <div className="focused-sections">
+      <nav className="section-tabs" aria-label="Content sections">
+        {panels.map((section) => (
+          <button
+            type="button"
+            key={section.id}
+            className={`section-tab ${active.id === section.id ? 'is-active' : ''}`}
+            onClick={() => select(section.id)}
+          >
+            {section.title}
+          </button>
+        ))}
+      </nav>
+      {content}
+    </div>
+  );
 }
 
-export function PageShell({ eyebrow, title, description, state, emptyTitle, emptyText, sections, sectionData, showEmptyContent = false, showWorkflowBack = true, children }) {
+export function PageShell({ eyebrow, title, description, state, emptyTitle, emptyText, sections, sectionData, showEmptyContent = false, showWorkflowBack = true, showHeader = true, children }) {
   const { loading, error, hasData } = state;
-  const navSections = (sections || []).filter((s) => sectionHasContent(s, sectionData));
   const showContent = hasData || showEmptyContent;
   return (
     <div className="stack">
-      <div className="page-head">
-        {eyebrow && <div className="eyebrow">{eyebrow}</div>}
-        <h1>{title}</h1>
-        {description && <p>{description}</p>}
-        {showWorkflowBack && (
-          <Link className="link flow-back" to="/">
-            <ArrowLeft size={14} aria-hidden="true" />
-            Back to ThreatForge workflow
-          </Link>
-        )}
-      </div>
+      {showHeader && (
+        <div className={`page-head ${showWorkflowBack ? 'page-head--with-back' : ''}`}>
+          {eyebrow && <div className="eyebrow">{eyebrow}</div>}
+          <h1>{title}</h1>
+          {description && <p>{description}</p>}
+          {showWorkflowBack && (
+            <Link className="link flow-back flow-back--icon" to="/" aria-label="Back to workflow" title="Back to workflow">
+              <ArrowLeft size={14} aria-hidden="true" />
+            </Link>
+          )}
+        </div>
+      )}
 
-      {loading && <div className="banner">Loading...</div>}
+      {loading && <div className="banner">{hasData ? 'Refreshing...' : 'Loading...'}</div>}
       {error && (
         <div className="banner banner--danger">
-          <span>Could not load data: {error}. Check that the backend is running on port 8080.</span>
+          <span>Could not load data: {error}. Check that the backend is running on port 8000.</span>
         </div>
       )}
       {!loading && !error && !hasData && (
@@ -315,18 +344,7 @@ export function PageShell({ eyebrow, title, description, state, emptyTitle, empt
         </div>
       )}
 
-      {hasData && navSections.length > 0 && (
-        <nav className="secnav" aria-label="Sections">
-          {navSections.map((s) => (
-            <a key={s.id} href={`#${s.id}`}
-              onClick={(e) => { e.preventDefault(); document.getElementById(s.id)?.scrollIntoView({ behavior: 'smooth' }); }}>
-              {s.title}
-            </a>
-          ))}
-        </nav>
-      )}
-
-      {!loading && !error && showContent && children}
+      {showContent && children}
     </div>
   );
 }

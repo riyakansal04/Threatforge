@@ -1,0 +1,74 @@
+flowchart TD
+    attacker[Unauthenticated HTTP Client]
+    guest[Authenticated Guest User]
+    operator[Operator / Startup Config]
+
+    flask[Flask App\nmain.py route handlers]
+    cookies[(Client Cookies\nvalue, authentication)]
+    host[Host Execution Context\nPython process + OS shell]
+    parser[Parser / Renderer\nlxml + Jinja]
+    crypto[Crypto + Config\nAES, RSA, JWT, CONFIG]
+    db[(Relational Database\npublic_stuff + secret_stuff)]
+    temp[(Temp / Key Files)]
+
+    t001[T001 Cookie deserialization]
+    t002[T002 Command execution]
+    t003[T003 Python eval]
+    t004[T004 XML external resource access]
+    t005[T005 Config decryption oracle]
+    t006[T006 Template execution]
+    t007[T007 SQL query manipulation]
+    t008[T008 JWT algorithm confusion]
+    t009[T009 Exposure / authority amplification]
+
+    attacker -->|form/query/cookie input| flask
+    guest -->|guest login + auth cookie| flask
+    operator -->|CLI args + env vars| flask
+
+    flask --> cookies
+    cookies --> t001
+    cookies --> t008
+    t001 --> host
+    t008 --> crypto
+
+    flask --> t002
+    t002 --> host
+    flask --> t003
+    t003 --> host
+
+    flask --> t004
+    t004 --> parser
+    parser --> host
+
+    flask --> t005
+    t005 --> crypto
+
+    flask --> t006
+    t006 --> parser
+    parser --> crypto
+
+    flask --> t007
+    t007 --> db
+
+    operator --> t009
+    t009 --> flask
+    t009 --> db
+    t009 --> temp
+    crypto --> temp
+
+    t009 -.amplifies reachability/impact.-> t002
+    t009 -.amplifies database impact.-> t007
+    t003 -.shared server-side interpretation.-> t006
+    t005 -.shared crypto assets.-> t008
+    t001 -.shared cookie boundary.-> t008
+
+    classDef actor fill:#fff4df,stroke:#9b6500,color:#1f1600;
+    classDef component fill:#e8f4ff,stroke:#2f6f9f,color:#102033;
+    classDef threat fill:#ffecec,stroke:#b83232,color:#2a0f0f;
+    classDef asset fill:#edf8ed,stroke:#377c37,color:#102010;
+
+    class attacker,guest,operator actor;
+    class flask,parser,crypto component;
+    class t001,t002,t003,t004,t005,t006,t007,t008,t009 threat;
+    class cookies,host,db,temp asset;
+

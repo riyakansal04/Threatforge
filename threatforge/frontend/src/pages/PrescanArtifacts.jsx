@@ -107,7 +107,7 @@ export default function PrescanArtifacts() {
         <Link className="btn btn--primary" to="/upload">Upload replacement reports</Link>
       </div>
 
-      <Panel id="stage-files" title="Raw files by stage or scan" hint="Use this table to see exactly which report package owns each uploaded artifact group.">
+      <Panel id="stage-files" title="Raw files by stage or scan">
         <div className="table-wrap">
           <table className="table">
             <thead><tr><th>Stage or scan</th><th>Report package</th><th>Files</th><th>Types</th><th>Total size</th><th>Last upload</th><th /></tr></thead>
@@ -155,7 +155,7 @@ export default function PrescanArtifacts() {
                   <td>{a.stageLabel}</td>
                   <td>{a.packageType}</td>
                   <td>{fmtBytes(a.size_bytes)}</td>
-                  <td>{a.sha256 ? <code>{a.sha256.slice(0, 12)}...</code> : <span className="muted">-</span>}</td>
+                  <td className="table__cell--hash">{a.sha256 ? <code>{a.sha256}</code> : <span className="muted">-</span>}</td>
                   <td>{fmtDate(a.created_at)}</td>
                   <td><button type="button" className="btn btn--sm" onClick={() => open(a.id)}>View</button></td>
                 </tr>

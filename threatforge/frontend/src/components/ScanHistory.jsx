@@ -45,7 +45,7 @@ export function ScanHistoryTable({ scans = [], selectedId = '', onSelect }) {
             return (
               <tr key={scan.id} className={isSelected ? 'is-selected' : ''}>
                 <td>
-                  <Link className="link" to={`/scanning/overview?scan_id=${scan.id}`}>{scanTitle(scan)}</Link>
+                  <Link className="link" to={`/scanning?scan_id=${scan.id}`}>{scanTitle(scan)}</Link>
                 </td>
                 <td><span className="tag">{SCAN_LABELS[scan.scan_type] || scan.scan_type}</span></td>
                 <td>{textLabel(scan.target) || <span className="muted">-</span>}</td>

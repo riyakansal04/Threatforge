@@ -1,0 +1,120 @@
+{
+  "schemaVersion": "threatforge.remediation-proposals.v2",
+  "generatedAt": "2026-10-05T00:00:00+05:30",
+  "processingIdentity": {
+    "name": "Remediation Engineer",
+    "mode": "generate-only",
+    "outputFolder": "Scan Report-8"
+  },
+  "sourceModified": false,
+  "inputReferences": {
+    "triagedFindings": "Scan Report-5/TriageFindings.json",
+    "priorCombinedRemediation": "Scan Report-7/RemediationRecords.json"
+  },
+  "Finding": [
+    {
+      "findingId": "BF-STD-001",
+      "title": "Client-controlled cookie is deserialized with pickle",
+      "rootCause": "The /cookie route stores browser-controlled state as pickle data and passes the returned value cookie to pickle.loads.",
+      "proposedFix": "Use JSON cookie serialization/deserialization for string values, reject malformed values, and HTML-escape displayed cookie content.",
+      "patchReference": "Scan Report-8/patches/BF-STD-001.md",
+      "testReference": "Scan Report-8/tests/BF-STD-001_test.py.proposed",
+      "atomicity": "Finding-scoped proposal targeting the original repository baseline. Shared helper/import concepts must be merged carefully if multiple patches are applied together.",
+      "sideEffects": [
+        "Existing pickle-formatted cookies become invalid."
+      ],
+      "status": "patch_generated_not_applied"
+    },
+    {
+      "findingId": "BF-STD-002",
+      "title": "DNS lookup route concatenates form input into an OS command",
+      "rootCause": "The /lookup route concatenates address into a shell command executed by os.popen.",
+      "proposedFix": "Remove shell execution and use validated hostname/IP input with socket.getaddrinfo.",
+      "patchReference": "Scan Report-8/patches/BF-STD-002.md",
+      "testReference": "Scan Report-8/tests/BF-STD-002_test.py.proposed",
+      "atomicity": "Finding-scoped proposal targeting the original repository baseline. Shared helper/import concepts must be merged carefully if multiple patches are applied together.",
+      "sideEffects": [
+        "Lookup output changes from raw nslookup text to resolved address lines."
+      ],
+      "status": "patch_generated_not_applied"
+    },
+    {
+      "findingId": "BF-STD-003",
+      "title": "Expression evaluation route executes user input with eval",
+      "rootCause": "The /evaluate route passes request.form['expression'] directly to Python eval.",
+      "proposedFix": "Use an AST arithmetic evaluator that permits numeric constants and arithmetic operators only.",
+      "patchReference": "Scan Report-8/patches/BF-STD-003.md",
+      "testReference": "Scan Report-8/tests/BF-STD-003_test.py.proposed",
+      "atomicity": "Finding-scoped proposal targeting the original repository baseline. Shared helper/import concepts must be merged carefully if multiple patches are applied together.",
+      "sideEffects": [
+        "Arbitrary Python expressions are no longer supported."
+      ],
+      "status": "patch_generated_not_applied"
+    },
+    {
+      "findingId": "BF-STD-004",
+      "title": "XML parser enables DTD loading and network access",
+      "rootCause": "The XML route parses untrusted XML with load_dtd=True, no_network=False, and huge_tree=True.",
+      "proposedFix": "Reject DOCTYPE and parse with entity resolution, DTD loading, network access, and huge_tree disabled.",
+      "patchReference": "Scan Report-8/patches/BF-STD-004.md",
+      "testReference": "Scan Report-8/tests/BF-STD-004_test.py.proposed",
+      "atomicity": "Finding-scoped proposal targeting the original repository baseline. Shared helper/import concepts must be merged carefully if multiple patches are applied together.",
+      "sideEffects": [
+        "XML documents requiring DTDs are rejected."
+      ],
+      "status": "patch_generated_not_applied"
+    },
+    {
+      "findingId": "BF-STD-005",
+      "title": "Config endpoint decrypts attacker-controlled ciphertext and returns padding errors",
+      "rootCause": "The config route decrypts arbitrary key query values with AES-CBC and returns raw exception text.",
+      "proposedFix": "Replace decryptable config links with HMAC-signed config-key tokens and generic invalid-key errors.",
+      "patchReference": "Scan Report-8/patches/BF-STD-005.md",
+      "testReference": "Scan Report-8/tests/BF-STD-005_test.py.proposed",
+      "atomicity": "Finding-scoped proposal targeting the original repository baseline. Shared helper/import concepts must be merged carefully if multiple patches are applied together.",
+      "sideEffects": [
+        "Previously generated encrypted config links become invalid."
+      ],
+      "status": "patch_generated_not_applied"
+    },
+    {
+      "findingId": "BF-STD-006",
+      "title": "Greeting route renders user input as Jinja template source",
+      "rootCause": "The route inserts name into template source and calls render_template_string.",
+      "proposedFix": "Escape name and return fixed HTML directly without rendering user-controlled template source.",
+      "patchReference": "Scan Report-8/patches/BF-STD-006.md",
+      "testReference": "Scan Report-8/tests/BF-STD-006_test.py.proposed",
+      "atomicity": "Finding-scoped proposal targeting the original repository baseline. Shared helper/import concepts must be merged carefully if multiple patches are applied together.",
+      "sideEffects": [
+        "Jinja syntax submitted as a name is displayed as text."
+      ],
+      "status": "patch_generated_not_applied"
+    },
+    {
+      "findingId": "BF-STD-007",
+      "title": "Category query parameter is concatenated into SQL",
+      "rootCause": "The category query parameter is formatted into a SQL WHERE clause.",
+      "proposedFix": "Use a DB-API parameter placeholder and pass category as a bound parameter.",
+      "patchReference": "Scan Report-8/patches/BF-STD-007.md",
+      "testReference": "Scan Report-8/tests/BF-STD-007_test.py.proposed",
+      "atomicity": "Finding-scoped proposal targeting the original repository baseline. Shared helper/import concepts must be merged carefully if multiple patches are applied together.",
+      "sideEffects": [
+        "External database backends need integration validation for placeholder style."
+      ],
+      "status": "patch_generated_not_applied"
+    },
+    {
+      "findingId": "BF-STD-008",
+      "title": "JWT verifier accepts None and HS256 algorithms based on untrusted token header",
+      "rootCause": "verify_token dispatches verification from the untrusted JWT alg header and allows None and HS256.",
+      "proposedFix": "Pin JWT verification to RS256 with expected audience and issuer.",
+      "patchReference": "Scan Report-8/patches/BF-STD-008.md",
+      "testReference": "Scan Report-8/tests/BF-STD-008_test.py.proposed",
+      "atomicity": "Finding-scoped proposal targeting the original repository baseline. Shared helper/import concepts must be merged carefully if multiple patches are applied together.",
+      "sideEffects": [
+        "None and HS256 tokens are rejected."
+      ],
+      "status": "patch_generated_not_applied"
+    }
+  ]
+}

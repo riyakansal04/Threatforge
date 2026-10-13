@@ -18,23 +18,35 @@ def _match_token(value) -> str:
     return "".join(ch for ch in str(value or "").lower() if ch.isalnum())
 
 
+def _token_parts(value):
+    if isinstance(value, dict):
+        for item in value.values():
+            yield from _token_parts(item)
+        return
+    if isinstance(value, (list, tuple, set)):
+        for item in value:
+            yield from _token_parts(item)
+        return
+    for part in str(value or "").replace(",", " ").replace(";", " ").replace("/", " ").split():
+        yield part
+
+
 def _tokens(row: dict) -> set[str]:
     values = [
         row.get("finding_id"),
+        row.get("original_finding_id"),
         row.get("logical_finding_id"),
         row.get("consolidated_finding_id"),
         row.get("remediation_id"),
         row.get("priority_id"),
         row.get("id"),
-        row.get("title"),
+        row.get("source_findings"),
+        row.get("source_finding_ids"),
+        row.get("triage_evidence_ids"),
     ]
     out = set()
     for value in values:
-        if isinstance(value, (list, tuple, set)):
-            parts = value
-        else:
-            parts = str(value or "").replace(",", " ").replace(";", " ").replace("/", " ").split()
-        for part in parts:
+        for part in _token_parts(value):
             token = _match_token(part)
             if token:
                 out.add(token)
@@ -52,6 +64,37 @@ def _with_priority_context(remediation: dict, priority_rows: list[dict]) -> dict
     return merged
 
 
+def _approval_state(row: dict) -> str:
+    state = str(row.get("authorization_status") or "").strip().lower()
+    return state or "pending"
+
+
+def _triage_approval_counts(rows: list[dict]) -> dict:
+    approved = sum(1 for row in rows if _approval_state(row) == "approved")
+    rejected = sum(1 for row in rows if _approval_state(row) == "rejected")
+    return {
+        "approved_for_priority": approved,
+        "rejected_for_priority": rejected,
+        "pending_human_approval": max(len(rows) - approved - rejected, 0),
+    }
+
+
+def _matching_triage_decision(row: dict, decisions: list[dict]) -> dict | None:
+    tokens = _tokens(row)
+    if not tokens:
+        return None
+    return next((decision for decision in decisions if tokens & _tokens(decision)), None)
+
+
+def _approved_priority_count(priority_rows: list[dict], triage_rows: list[dict]) -> int:
+    total = 0
+    for row in priority_rows:
+        decision = _matching_triage_decision(row, triage_rows)
+        if decision and _approval_state(decision) == "approved":
+            total += 1
+    return total
+
+
 @router.get("/health")
 def health():
     with pool.connection() as conn:
@@ -64,22 +107,32 @@ def jira_config():
     return jira.config_status()
 
 
-@router.post("/jira/remediations/{item_key:path}")
-async def create_jira_remediation(item_key: str, codebase_id: int | None = None):
+async def _create_jira_for_record(stage_key: str, record_key: str, item_key: str, codebase_id: int | None = None):
+    if stage_key not in STAGES:
+        raise HTTPException(404, "Unknown lifecycle stage.")
+    cfg = STAGES[stage_key]
+    if record_key not in cfg["records"]:
+        raise HTTPException(404, "Unknown lifecycle record type.")
+
     cid = store.normalize_codebase_id(codebase_id)
     with pool.connection() as conn:
-        row = store.get_item(conn, "remediations", item_key, cid)
+        row = store.get_item(conn, cfg["records"][record_key]["table"], item_key, cid)
         priority_rows = store.list_items(conn, STAGES["prioritization"]["records"]["priority_queue"]["table"], cid)
+        triage_rows = store.list_items(conn, STAGES["triage"]["records"]["triage_decisions"]["table"], cid)
     if not row:
-        raise HTTPException(404, "Remediation record not found.")
-    jira_record = _with_priority_context(row, priority_rows)
+        raise HTTPException(404, "Lifecycle record not found.")
+    if stage_key == "prioritization" and record_key == "priority_queue":
+        decision = _matching_triage_decision(row, triage_rows)
+        if not decision or _approval_state(decision) != "approved":
+            raise HTTPException(400, "Approve this finding in triage before creating Jira work.")
+    jira_record = row if record_key == "priority_queue" else _with_priority_context(row, priority_rows)
     if row.get("jira_key"):
         try:
             issue = await run_in_threadpool(jira.update_issue_priority, row.get("jira_key"), jira_record)
         except RuntimeError as exc:
             raise HTTPException(400, str(exc)) from exc
         with pool.connection() as conn:
-            updated = store.update_item(conn, "remediations", item_key, {
+            updated = store.update_item(conn, cfg["records"][record_key]["table"], item_key, {
                 "jira_priority": issue.get("priority"),
                 "jira_status": "synced",
             }, cid)
@@ -91,7 +144,7 @@ async def create_jira_remediation(item_key: str, codebase_id: int | None = None)
         raise HTTPException(400, str(exc)) from exc
 
     with pool.connection() as conn:
-        updated = store.update_item(conn, "remediations", item_key, {
+        updated = store.update_item(conn, cfg["records"][record_key]["table"], item_key, {
             "jira_id": issue.get("id"),
             "jira_key": issue["key"],
             "jira_url": issue["url"],
@@ -99,6 +152,16 @@ async def create_jira_remediation(item_key: str, codebase_id: int | None = None)
             "jira_status": "created",
         }, cid)
     return {"issue": issue, "record": updated}
+
+
+@router.post("/jira/remediations/{item_key:path}")
+async def create_jira_remediation(item_key: str, codebase_id: int | None = None):
+    return await _create_jira_for_record("remediation", "remediations", item_key, codebase_id)
+
+
+@router.post("/jira/{stage_key}/{record_key}/{item_key:path}")
+async def create_jira_lifecycle_item(stage_key: str, record_key: str, item_key: str, codebase_id: int | None = None):
+    return await _create_jira_for_record(stage_key, record_key, item_key, codebase_id)
 
 
 @router.get("/catalog")
@@ -174,6 +237,9 @@ def status(codebase_id: int | None = None):
         runs = {r["stage_key"]: r for r in conn.execute(
             "SELECT stage_key, count(*) AS runs, max(created_at) AS last_run_at FROM analysis_runs WHERE codebase_id = %s GROUP BY stage_key",
             (cid,))}
+        triage_table = STAGES["triage"]["records"]["triage_decisions"]["table"]
+        triage_rows = store.list_items(conn, triage_table, cid)
+        triage_counts = _triage_approval_counts(triage_rows)
         stages = []
         for key, cfg in STAGES.items():
             row = store.load_singleton(conn, cfg["table"], cid)
@@ -181,10 +247,23 @@ def status(codebase_id: int | None = None):
             counts = {f: len(data.get(f) or []) for f in cfg["summary_fields"]}
             for name, rs in cfg["records"].items():
                 counts[name] = store.count_items(conn, rs["table"], cid)
+            if key == "triage":
+                counts.update(triage_counts)
+            if key == "prioritization" and "priority_queue" in cfg["records"]:
+                priority_table = cfg["records"]["priority_queue"]["table"]
+                priority_rows = store.list_items(conn, priority_table, cid)
+                uploaded = counts.get("priority_queue", 0)
+                ready = _approved_priority_count(priority_rows, triage_rows)
+                counts["priority_queue_uploaded"] = uploaded
+                counts["priority_queue"] = ready
+                counts["held_for_approval"] = max(uploaded - ready, 0)
             run = runs.get(key)
+            has_records = any(counts.get(n) for n in cfg["records"])
+            if key == "prioritization":
+                has_records = counts.get("priority_queue", 0) > 0
             stages.append({
                 "key": key, "label": cfg["label"], "phase": cfg.get("phase", "pre-scan"),
-                "has_data": bool(data) or any(counts.get(n) for n in cfg["records"]),
+                "has_data": (bool(data) or has_records) if key != "prioritization" else has_records,
                 "runs": run["runs"] if run else 0,
                 "last_run_at": run["last_run_at"] if run else None,
                 "counts": counts,
@@ -205,7 +284,14 @@ def _singleton(key: str, codebase_id=None):
 def lifecycle_stage(stage_key: str, codebase_id: int | None = None):
     if stage_key not in STAGES:
         raise HTTPException(404, "Unknown lifecycle stage.")
-    data, updated, rec = _singleton(stage_key, codebase_id)
+    cid = store.normalize_codebase_id(codebase_id)
+    data, updated, rec = _singleton(stage_key, cid)
+    with pool.connection() as conn:
+        artifacts = conn.execute(
+            "SELECT id, run_id, stage_key, filename, kind, size_bytes, sha256, redacted, created_at "
+            "FROM artifacts WHERE stage_key = %s AND codebase_id = %s ORDER BY id DESC",
+            (stage_key, cid),
+        ).fetchall()
     has = bool(data) or any(rec.values())
     return {
         "stage": stage_key,
@@ -215,6 +301,7 @@ def lifecycle_stage(stage_key: str, codebase_id: int | None = None):
         "updated_at": updated,
         "data": data or {},
         "records": rec,
+        "artifacts": artifacts,
     }
 
 

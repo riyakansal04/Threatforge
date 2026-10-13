@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "ThreatForge Risk-Based Prioritization",
+          "informationUri": "local://Scan%20Report-6/RiskPrioritizationReport.md",
+          "rules": [
+            {"id": "python-eval-expression-injection", "name": "Risk priority for Python eval injection", "properties": {"proposedPriority": "Critical"}},
+            {"id": "os-command-injection-lookup", "name": "Risk priority for OS command injection", "properties": {"proposedPriority": "Critical"}},
+            {"id": "python-pickle-cookie-deserialization", "name": "Risk priority for unsafe pickle deserialization", "properties": {"proposedPriority": "Critical"}},
+            {"id": "jinja-template-injection-sayhi", "name": "Risk priority for server-side template injection", "properties": {"proposedPriority": "Critical"}},
+            {"id": "jwt-none-hs256-algorithm-confusion", "name": "Risk priority for JWT algorithm confusion", "properties": {"proposedPriority": "High"}},
+            {"id": "sql-injection-listservices-category", "name": "Risk priority for SQL injection", "properties": {"proposedPriority": "High"}},
+            {"id": "xxe-enabled-xml-parser", "name": "Risk priority for unsafe XML parser configuration", "properties": {"proposedPriority": "Medium"}},
+            {"id": "cbc-padding-oracle-config", "name": "Risk priority for CBC padding oracle pattern", "properties": {"proposedPriority": "Medium"}}
+          ]
+        }
+      },
+      "automationDetails": {"id": "risk-prioritization-2026-10-05-scan-report-6"},
+      "invocations": [
+        {
+          "executionSuccessful": true,
+          "toolExecutionNotifications": [
+            {"level": "note", "message": {"text": "Priorities are recommendations only. No dashboard priority, approval, risk acceptance, or remediation SLA was assigned."}}
+          ]
+        }
+      ],
+      "results": [
+        {
+          "ruleId": "python-eval-expression-injection",
+          "level": "error",
+          "message": {"text": "BF-STD-003 proposed priority Critical: unauthenticated HTTP form input reaches Python eval with no observed compensating control."},
+          "locations": [{"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 379}}}],
+          "properties": {"findingId": "BF-STD-003", "originalSeverity": "high", "triageTechnicalVerdict": "confirmed", "proposedPriority": "Critical", "businessContextLimitation": "Training/lab isolation could reduce operational urgency."}
+        },
+        {
+          "ruleId": "os-command-injection-lookup",
+          "level": "error",
+          "message": {"text": "BF-STD-002 proposed priority Critical: unauthenticated form input is concatenated into a command passed to os.popen."},
+          "locations": [{"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 172}}}, {"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 357}}}],
+          "properties": {"findingId": "BF-STD-002", "originalSeverity": "high", "triageTechnicalVerdict": "confirmed", "proposedPriority": "Critical", "businessContextLimitation": "Training/lab isolation could reduce operational urgency."}
+        },
+        {
+          "ruleId": "python-pickle-cookie-deserialization",
+          "level": "error",
+          "message": {"text": "BF-STD-001 proposed priority Critical: a client-controlled cookie reaches pickle.loads without integrity protection."},
+          "locations": [{"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 329}}}],
+          "properties": {"findingId": "BF-STD-001", "originalSeverity": "high", "triageTechnicalVerdict": "confirmed", "proposedPriority": "Critical", "businessContextLimitation": "Training/lab isolation could reduce operational urgency."}
+        },
+        {
+          "ruleId": "jinja-template-injection-sayhi",
+          "level": "error",
+          "message": {"text": "BF-STD-006 proposed priority Critical: request-controlled name becomes Jinja template source before render_template_string."},
+          "locations": [{"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 468}}}],
+          "properties": {"findingId": "BF-STD-006", "originalSeverity": "high", "triageTechnicalVerdict": "confirmed", "proposedPriority": "Critical", "businessContextLimitation": "Training/lab isolation could reduce operational urgency."}
+        },
+        {
+          "ruleId": "jwt-none-hs256-algorithm-confusion",
+          "level": "error",
+          "message": {"text": "BF-STD-008 proposed priority High: JWT verification accepts None and HS256 based on an untrusted header, threatening token integrity."},
+          "locations": [{"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 32}}}, {"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 267}}}],
+          "properties": {"findingId": "BF-STD-008", "originalSeverity": "high", "triageTechnicalVerdict": "confirmed", "proposedPriority": "High", "businessContextLimitation": "Observed admin behavior is display-oriented; production privileged operations are not documented."}
+        },
+        {
+          "ruleId": "sql-injection-listservices-category",
+          "level": "error",
+          "message": {"text": "BF-STD-007 proposed priority High: category query parameter is formatted into SQL; impact depends on selected database backend and privileges."},
+          "locations": [{"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 476}}}],
+          "properties": {"findingId": "BF-STD-007", "originalSeverity": "high", "triageTechnicalVerdict": "confirmed", "proposedPriority": "High", "businessContextLimitation": "Actual data sensitivity and backend privileges are undocumented."}
+        },
+        {
+          "ruleId": "xxe-enabled-xml-parser",
+          "level": "warning",
+          "message": {"text": "BF-STD-004 proposed priority Medium: XML parser enables DTD loading and network access; concrete impact is runtime/environment dependent."},
+          "locations": [{"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 397}}}],
+          "properties": {"findingId": "BF-STD-004", "originalSeverity": "medium", "triageTechnicalVerdict": "confirmed", "proposedPriority": "Medium", "businessContextLimitation": "Sensitive local files/network targets are not documented."}
+        },
+        {
+          "ruleId": "cbc-padding-oracle-config",
+          "level": "warning",
+          "message": {"text": "BF-STD-005 proposed priority Medium: chosen ciphertext reaches CBC decrypt and padding errors are returned; exploitation practicality was not demonstrated."},
+          "locations": [{"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 140}}}, {"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 428}}}],
+          "properties": {"findingId": "BF-STD-005", "originalSeverity": "medium", "triageTechnicalVerdict": "confirmed", "proposedPriority": "Medium", "businessContextLimitation": "Business sensitivity of CONFIG values is undocumented."}
+        }
+      ]
+    }
+  ]
+}

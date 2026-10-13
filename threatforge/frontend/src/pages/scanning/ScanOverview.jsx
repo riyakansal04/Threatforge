@@ -40,7 +40,7 @@ function ScanTypeCards({ rows = [], selectedId = '' }) {
   );
 }
 
-export default function ScanOverview() {
+export default function ScanOverview({ embedded = false }) {
   const [params, setParams] = useSearchParams();
   const selectedId = params.get('scan_id') || '';
   const fn = useCallback(() => api.scanOverview(selectedId), [selectedId]);
@@ -65,12 +65,13 @@ export default function ScanOverview() {
     setParams(next);
   };
 
-  const sections = [
-    { id: 'summary', title: 'Select report', render: () => (
+  const summarySection = { id: 'summary', title: 'Select report', render: () => (
+    <div className="scan-overview-picker">
       <ScanScopeSelector scans={history} value={selectedId} onChange={setSelected} />
-    ) },
-    { id: 'types', title: 'Report scope by type', render: () => <ScanTypeCards rows={d.by_type || []} selectedId={selectedId} /> },
-    { id: 'distribution', title: 'Finding signals', hint: 'Counted from uploaded reports only. Nothing is scored or estimated.', render: () => (
+    </div>
+    ) };
+  const typesSection = { id: 'types', title: 'Report scope by type', render: () => <ScanTypeCards rows={d.by_type || []} selectedId={selectedId} /> };
+  const distributionSection = { id: 'distribution', title: 'Finding signals', hint: 'Counted from uploaded reports only. Nothing is scored or estimated.', render: () => (
       <div className="dist-grid">
         <Dist title="Severity (as reported)" items={d.severity} unit="findings" />
         <Dist title="Confidence (as reported)" items={d.confidence} unit="findings" />
@@ -79,16 +80,16 @@ export default function ScanOverview() {
         <Dist title="Scan status" items={d.statuses} unit="reports" />
         {!(d.severity?.length || d.category?.length || d.classification?.length) && <p className="muted">The uploaded reports contain no severity, category or classification values.</p>}
       </div>
-    ) },
-    { id: 'history', title: 'Report history', render: () => (
+    ) };
+  const historySection = { id: 'history', title: 'Report history', render: () => (
       <ScanHistoryTable scans={history} selectedId={selectedId} onSelect={setSelected} />
-    ) },
-    { id: 'artifacts', title: 'Available artifact types', render: () => (
+    ) };
+  const artifactsSection = { id: 'artifacts', title: 'Available artifact types', render: () => (
       (d.artifact_types || []).length
         ? <div className="chips">{d.artifact_types.map((a) => <span className="chip" key={a.label}>{a.label}: {a.count}</span>)}</div>
         : <p className="muted">No artifacts stored.</p>
-    ) },
-    { id: 'runs', title: 'Recent runs', render: () => (
+    ) };
+  const runsSection = { id: 'runs', title: 'Recent runs', render: () => (
       (d.recent_runs || []).length ? (
         <MiniTable
           cols={[
@@ -101,8 +102,42 @@ export default function ScanOverview() {
           rows={d.recent_runs}
         />
       ) : <p className="muted">No runs yet.</p>
-    ) },
-  ];
+    ) };
+
+  const sections = embedded
+    ? [distributionSection, typesSection, historySection, artifactsSection, runsSection]
+    : [summarySection, typesSection, distributionSection, historySection, artifactsSection, runsSection];
+
+  if (embedded) {
+    return (
+      <PageShell
+        eyebrow="Scanning"
+        title="Security analysis dashboard"
+        description="What scan reports have been uploaded, what they reviewed, and what findings they produced."
+        state={{ loading, error, hasData: !!d.has_data }}
+        emptyTitle="No scan reports yet"
+        emptyText="Run a scanning stage in Codex Security, then upload its report files. This page shows what will appear."
+        sections={sections}
+        showHeader={false}
+        showWorkflowBack={false}
+      >
+        <div className="stack">
+          <section className="panel scan-overview-signals">
+            <div className="panel__head">
+              <div>
+                <h2>Finding signals</h2>
+                <p>Reported severity, confidence, category, classification and scan status for the selected report.</p>
+              </div>
+              <div className="scan-overview-picker scan-overview-picker--header">
+                <ScanScopeSelector scans={history} value={selectedId} onChange={setSelected} />
+              </div>
+            </div>
+            {distributionSection.render()}
+          </section>
+        </div>
+      </PageShell>
+    );
+  }
 
   return (
     <PageShell
@@ -113,6 +148,8 @@ export default function ScanOverview() {
       emptyTitle="No scan reports yet"
       emptyText="Run a scanning stage in Codex Security, then upload its report files. This page shows what will appear."
       sections={sections}
+      showHeader={!embedded}
+      showWorkflowBack={!embedded}
     >
       <Sections d={{}} sections={sections} />
     </PageShell>

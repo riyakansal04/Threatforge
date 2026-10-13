@@ -10,6 +10,7 @@ import '@fontsource/ibm-plex-mono/400.css';
 import './styles/tokens.css';
 import './styles/base.css';
 import './styles/app.css';
+import './styles/final-overrides.css';
 
 import App from './App.jsx';
 

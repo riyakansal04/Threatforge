@@ -1,7 +1,49 @@
 import { useEffect, useState } from 'react';
-import { Moon, Sun } from 'lucide-react';
+import {
+  CheckCircle2,
+  Database,
+  FolderKanban,
+  Moon,
+  Palette,
+  RefreshCw,
+  ShieldCheck,
+  Sun,
+} from 'lucide-react';
 
 const THEME_KEY = 'threatforge:theme';
+
+const THEME_OPTIONS = [
+  {
+    id: 'dark',
+    label: 'Dark console',
+    description: 'High-contrast review mode for long security sessions.',
+    icon: Moon,
+  },
+  {
+    id: 'light',
+    label: 'Light console',
+    description: 'Cleaner daytime view for reports and stakeholder review.',
+    icon: Sun,
+  },
+];
+
+const WORKSPACE_ITEMS = [
+  {
+    icon: RefreshCw,
+    title: 'Refresh behavior',
+    text: 'Fetches the latest mapped output without clearing saved report history.',
+  },
+  {
+    icon: FolderKanban,
+    title: 'Codebase memory',
+    text: 'Saved project contexts keep uploads, stages, and findings separated.',
+  },
+  {
+    icon: Database,
+    title: 'Evidence retention',
+    text: 'Source references, uploaded files, and generated mappings stay available for review.',
+  },
+];
 
 function applyTheme(theme) {
   document.documentElement.dataset.theme = theme;
@@ -16,51 +58,72 @@ export default function Settings() {
   }, [theme]);
 
   return (
-    <div className="stack">
+    <div className="settings-page stack">
       <div className="page-head">
         <div className="eyebrow">Workspace</div>
         <h1>Settings</h1>
-        <p>Adjust dashboard presentation without changing stored analysis data.</p>
+        <p>Control local presentation preferences while keeping uploaded evidence and analysis data unchanged.</p>
       </div>
 
-      <section className="panel">
-        <header className="panel__head">
-          <h2 className="panel__title">Appearance</h2>
-          <p className="panel__hint">Choose the visual mode that is easier to review in your environment.</p>
-        </header>
-        <div className="panel__body">
-          <div className="setting-row">
+      <section className="settings-console" aria-label="Workspace settings">
+        <article className="settings-console__main">
+          <header className="settings-section-head">
+            <span className="feature__icon"><Palette size={18} aria-hidden="true" /></span>
             <div>
-              <h3>Theme</h3>
-              <p className="muted">This preference is saved in this browser.</p>
+              <h2>Appearance</h2>
+              <p>Choose the review surface that fits your environment.</p>
             </div>
-            <div className="segmented" role="group" aria-label="Theme">
-              <button type="button" className={theme === 'dark' ? 'is-on' : ''} onClick={() => setTheme('dark')}>
-                <Moon size={15} aria-hidden="true" />
-                Dark
+          </header>
+
+          <div className="theme-options" role="radiogroup" aria-label="Theme">
+            {THEME_OPTIONS.map(({ id, label, description, icon: Icon }) => (
+              <button
+                type="button"
+                key={id}
+                role="radio"
+                aria-checked={theme === id}
+                className={`theme-option${theme === id ? ' is-on' : ''}`}
+                onClick={() => setTheme(id)}
+              >
+                <span className="theme-option__icon"><Icon size={18} aria-hidden="true" /></span>
+                <span className="theme-option__copy">
+                  <strong>{label}</strong>
+                  <small>{description}</small>
+                </span>
+                {theme === id && <CheckCircle2 className="theme-option__check" size={16} aria-hidden="true" />}
               </button>
-              <button type="button" className={theme === 'light' ? 'is-on' : ''} onClick={() => setTheme('light')}>
-                <Sun size={15} aria-hidden="true" />
-                Light
-              </button>
+            ))}
+          </div>
+        </article>
+
+        <aside className="settings-console__side" aria-label="Settings status">
+          <div className="settings-status">
+            <CheckCircle2 size={18} aria-hidden="true" />
+            <div>
+              <strong>Saved locally</strong>
+              <span>Theme preference stays in this browser.</span>
             </div>
           </div>
-        </div>
+          <div className="settings-status">
+            <ShieldCheck size={18} aria-hidden="true" />
+            <div>
+              <strong>Analysis protected</strong>
+              <span>Changing settings does not modify uploaded reports.</span>
+            </div>
+          </div>
+        </aside>
       </section>
 
       <section className="settings-grid">
-        <article className="setting-card">
-          <h2>Dashboard behavior</h2>
-          <p>Refresh fetches latest data only. Fresh starts a new upload context without deleting history.</p>
-        </article>
-        <article className="setting-card">
-          <h2>Project memory</h2>
-          <p>Use Codebases to switch between saved project contexts and keep reports separated.</p>
-        </article>
-        <article className="setting-card">
-          <h2>Evidence model</h2>
-          <p>Mapped information keeps source references and uploaded files available for review.</p>
-        </article>
+        {WORKSPACE_ITEMS.map(({ icon: Icon, title, text }) => (
+          <article className="setting-card" key={title}>
+            <div className="setting-card__head">
+              <span className="feature__icon"><Icon size={18} aria-hidden="true" /></span>
+              <h2>{title}</h2>
+            </div>
+            <p>{text}</p>
+          </article>
+        ))}
       </section>
     </div>
   );

@@ -1,0 +1,293 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "ThreatForge Standard Security Scan",
+          "informationUri": "plugin://codex-security@openai-curated-remote",
+          "rules": [
+            {
+              "id": "python-pickle-cookie-deserialization",
+              "name": "Client-controlled cookie is deserialized with pickle",
+              "shortDescription": {
+                "text": "Client-controlled cookie reaches pickle.loads."
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "CWE-502"
+                ],
+                "security-severity": "8.1",
+                "precision": "high"
+              }
+            },
+            {
+              "id": "os-command-injection-lookup",
+              "name": "DNS lookup route concatenates form input into an OS command",
+              "shortDescription": {
+                "text": "Form input reaches os.popen command execution."
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "CWE-78"
+                ],
+                "security-severity": "8.8",
+                "precision": "high"
+              }
+            },
+            {
+              "id": "python-eval-expression-injection",
+              "name": "Expression evaluation route executes user input with eval",
+              "shortDescription": {
+                "text": "Form input is evaluated with Python eval."
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "CWE-94"
+                ],
+                "security-severity": "8.8",
+                "precision": "high"
+              }
+            },
+            {
+              "id": "xxe-enabled-xml-parser",
+              "name": "XML parser enables DTD loading and network access for user-supplied XML",
+              "shortDescription": {
+                "text": "Untrusted XML is parsed with DTD loading and network access enabled."
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "CWE-611"
+                ],
+                "security-severity": "6.5",
+                "precision": "high"
+              }
+            },
+            {
+              "id": "cbc-padding-oracle-config",
+              "name": "Config endpoint decrypts attacker-controlled ciphertext and returns padding errors",
+              "shortDescription": {
+                "text": "Chosen ciphertext reaches AES-CBC decrypt and exception text is returned."
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "CWE-209",
+                  "CWE-327"
+                ],
+                "security-severity": "6.8",
+                "precision": "high"
+              }
+            },
+            {
+              "id": "jinja-template-injection-sayhi",
+              "name": "Greeting route renders user input as Jinja template source",
+              "shortDescription": {
+                "text": "User input is interpolated into a template before render_template_string."
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "CWE-1336"
+                ],
+                "security-severity": "8.2",
+                "precision": "high"
+              }
+            },
+            {
+              "id": "sql-injection-listservices-category",
+              "name": "Category query parameter is concatenated into SQL",
+              "shortDescription": {
+                "text": "Query parameter is formatted into SQL and executed."
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "CWE-89"
+                ],
+                "security-severity": "8.1",
+                "precision": "high"
+              }
+            },
+            {
+              "id": "jwt-none-hs256-algorithm-confusion",
+              "name": "JWT verifier accepts None and HS256 algorithms based on untrusted token header",
+              "shortDescription": {
+                "text": "JWT verifier dispatches based on unverified alg and accepts None/HS256."
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "CWE-287",
+                  "CWE-347"
+                ],
+                "security-severity": "8.0",
+                "precision": "high"
+              }
+            }
+          ]
+        }
+      },
+      "results": [
+        {
+          "ruleId": "python-pickle-cookie-deserialization",
+          "level": "error",
+          "message": {
+            "text": "The /cookie handler deserializes the client-controlled value cookie with pickle.loads, allowing unsafe object deserialization in the Flask process."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "main.py"
+                },
+                "region": {
+                  "startLine": 329
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "os-command-injection-lookup",
+          "level": "error",
+          "message": {
+            "text": "The /lookup handler concatenates the address form field into an nslookup command and executes it through os.popen."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "main.py"
+                },
+                "region": {
+                  "startLine": 360
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "python-eval-expression-injection",
+          "level": "error",
+          "message": {
+            "text": "The /evaluate handler passes the expression form field directly to Python eval."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "main.py"
+                },
+                "region": {
+                  "startLine": 379
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "xxe-enabled-xml-parser",
+          "level": "warning",
+          "message": {
+            "text": "The /xml handler parses user-supplied XML with DTD loading enabled and no_network=False."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "main.py"
+                },
+                "region": {
+                  "startLine": 397
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "cbc-padding-oracle-config",
+          "level": "warning",
+          "message": {
+            "text": "The /config handler decrypts attacker-controlled ciphertext and returns raw exception text, exposing oracle behavior."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "main.py"
+                },
+                "region": {
+                  "startLine": 431
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "jinja-template-injection-sayhi",
+          "level": "error",
+          "message": {
+            "text": "The /sayhi handler interpolates the name form field into a Jinja template string before render_template_string."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "main.py"
+                },
+                "region": {
+                  "startLine": 468
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "sql-injection-listservices-category",
+          "level": "error",
+          "message": {
+            "text": "The /listservices handler formats the category query parameter into SQL before cursor.execute."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "main.py"
+                },
+                "region": {
+                  "startLine": 481
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "jwt-none-hs256-algorithm-confusion",
+          "level": "error",
+          "message": {
+            "text": "The JWT verifier accepts None and HS256 algorithms and dispatches verification based on the untrusted token header."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "main.py"
+                },
+                "region": {
+                  "startLine": 267
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "columnKind": "utf16CodeUnits"
+    }
+  ]
+}

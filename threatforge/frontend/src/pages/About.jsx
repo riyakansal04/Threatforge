@@ -1,46 +1,82 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, FolderClock, Layers3, ScanSearch, ShieldCheck } from 'lucide-react';
+import {
+  ArrowRight,
+  CheckCircle2,
+  FileSearch,
+  FolderClock,
+  GitBranch,
+  Layers3,
+  ScanSearch,
+  ShieldCheck,
+  Upload,
+} from 'lucide-react';
 
 const SECTIONS = [
   {
-    icon: FolderClock,
-    title: 'Codebase-centered workspace',
-    text: 'Each upload belongs to a named project context, so repositories, demos, and review runs stay cleanly separated.',
+    icon: GitBranch,
+    title: 'Codebase context',
+    text: 'Named project spaces keep repositories, demos, and review runs separated.',
   },
   {
     icon: Layers3,
-    title: 'Readable security context',
-    text: 'Architecture, assets, threats, scan plans, findings, and evidence are presented as one review path.',
+    title: 'Stage mapping',
+    text: 'Architecture, threats, scans, triage, remediation, and verification stay connected.',
   },
   {
     icon: ScanSearch,
-    title: 'Scan results with context',
-    text: 'Reports can be inspected individually or together, with findings tied back to their source files.',
+    title: 'Evidence review',
+    text: 'Findings stay tied to raw artifacts, source references, and review evidence.',
   },
   {
     icon: ShieldCheck,
-    title: 'Traceable decisions',
-    text: 'Triage, priority, remediation, verification, and closure records preserve the reasoning behind decisions.',
+    title: 'Closure readiness',
+    text: 'Verified fixes and decisions preserve the reasoning needed for assurance review.',
   },
 ];
 
 const STEPS = [
-  'Choose or create a codebase.',
-  'Upload the report files produced during the security review.',
-  'Review the mapped codebase, threat model, scan results, findings, and evidence trail.',
-  'Use the finding review path to track decisions through remediation and closure.',
+  {
+    icon: FolderClock,
+    title: 'Select codebase',
+    text: 'Start from the project context that owns the reports.',
+  },
+  {
+    icon: Upload,
+    title: 'Load reports',
+    text: 'Upload the raw artifacts produced during the review.',
+  },
+  {
+    icon: FileSearch,
+    title: 'Inspect evidence',
+    text: 'Review findings, paths, stages, and supporting details together.',
+  },
+  {
+    icon: CheckCircle2,
+    title: 'Close with trace',
+    text: 'Carry decisions through remediation and verification.',
+  },
+];
+
+const ASSURANCE_STAGES = [
+  'Intelligence',
+  'Threat Model',
+  'Scanning',
+  'Triage',
+  'Priority',
+  'Remediation',
+  'Verification',
 ];
 
 export default function About() {
   return (
-    <div className="stack">
+    <div className="about-page stack">
       <section className="about-hero">
-        <div>
+        <div className="about-hero__copy">
           <div className="eyebrow">About ThreatForge</div>
-          <h1>From scattered security reports to a presentation-ready review workspace.</h1>
+          <h1>Security review evidence, decisions, and fix status in one workspace.</h1>
           <p>
-            ThreatForge organizes security analysis around codebases, evidence, scan results, findings, remediation,
-            and closure so teams can browse, compare, and explain the review with confidence.
+            ThreatForge turns uploaded report packages into a mapped assurance workflow so teams can review what was
+            found, why it matters, what changed, and what is ready for closure.
           </p>
           <div className="hero__actions">
             <Link to="/upload" className="btn btn--primary btn--lg">
@@ -48,30 +84,64 @@ export default function About() {
             </Link>
             <Link to="/history" className="btn btn--lg">View history</Link>
           </div>
+          <div className="about-hero__signals" aria-label="ThreatForge review outputs">
+            <span>Evidence mapped</span>
+            <span>Risk decisions</span>
+            <span>Fix verification</span>
+          </div>
+        </div>
+
+        <div className="about-board" aria-label="ThreatForge assurance path">
+          <div className="about-board__head">
+            <span><ShieldCheck size={18} aria-hidden="true" /> Assurance path</span>
+            <strong>7 stages</strong>
+          </div>
+          <div className="about-board__summary">
+            <strong>Upload to closure</strong>
+            <span>One traceable path across every review stage.</span>
+          </div>
+          <div className="about-board__rail">
+            {ASSURANCE_STAGES.map((stage, index) => (
+              <span className={index === 6 ? 'is-current' : ''} key={stage}>
+                <b>{String(index + 1).padStart(2, '0')}</b>
+                {stage}
+              </span>
+            ))}
+          </div>
+          <div className="about-board__metrics">
+            <span>Raw files</span>
+            <span>Mapped findings</span>
+            <span>Verified fixes</span>
+          </div>
         </div>
       </section>
 
       <section className="about-grid">
-        {SECTIONS.map(({ icon: Icon, title, text }) => (
+        {SECTIONS.map(({ icon: Icon, title, text }, index) => (
           <article className="about-card" key={title}>
-            <span className="feature__icon"><Icon size={18} aria-hidden="true" /></span>
-            <h2>{title}</h2>
+            <div className="about-card__head">
+              <span className="feature__icon"><Icon size={18} aria-hidden="true" /></span>
+              <h2>{title}</h2>
+              <span className="about-card__index">{String(index + 1).padStart(2, '0')}</span>
+            </div>
             <p>{text}</p>
           </article>
         ))}
       </section>
 
-      <section className="panel">
+      <section className="panel about-flow-panel">
         <header className="panel__head">
           <h2 className="panel__title">How a review moves through ThreatForge</h2>
           <p className="panel__hint">The workspace keeps raw reports, mapped data, and decisions connected.</p>
         </header>
         <div className="panel__body">
           <ol className="review-steps">
-            {STEPS.map((step, index) => (
-              <li key={step}>
+            {STEPS.map(({ icon: Icon, title, text }, index) => (
+              <li key={title}>
                 <span>{String(index + 1).padStart(2, '0')}</span>
-                <strong>{step}</strong>
+                <Icon size={18} aria-hidden="true" />
+                <strong>{title}</strong>
+                <p>{text}</p>
               </li>
             ))}
           </ol>

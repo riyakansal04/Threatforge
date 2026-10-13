@@ -43,7 +43,8 @@ export const api = {
   evidence: () => req(scoped('/prescan/evidence')),
   lifecycleStage: (key) => req(scoped(`/lifecycle/${key}`)),
   jiraConfig: () => req(scoped('/jira/config')),
-  createJiraIssue: (itemKey) => req(scoped(`/jira/remediations/${encodeURIComponent(itemKey)}`), { method: 'POST' }),
+  createJiraIssue: (itemKey, stageKey = 'prioritization', recordKey = 'priority_queue') =>
+    req(scoped(`/jira/${encodeURIComponent(stageKey)}/${encodeURIComponent(recordKey)}/${encodeURIComponent(itemKey)}`), { method: 'POST' }),
   updateLifecycleRecord: (stageKey, recordKey, itemKey, updates) =>
     req(scoped(`/lifecycle/${encodeURIComponent(stageKey)}/records/${encodeURIComponent(recordKey)}/${encodeURIComponent(itemKey)}`), {
       method: 'PATCH',

@@ -1,0 +1,30 @@
+import pytest
+from base64 import b64encode, urlsafe_b64encode
+import json
+import time
+import main
+
+def b64url(value):
+    return urlsafe_b64encode(value).rstrip(b"=").decode()
+
+
+def unsigned_token(subject):
+    now = int(time.time())
+    header = {"alg": "None", "typ": "JWT"}
+    claims = {
+        "exp": now + 3600,
+        "iat": now - 1,
+        "nbf": now - 1,
+        "iss": main.APP_NAME,
+        "aud": main.APP_NAME,
+        "sub": subject,
+    }
+    return "{}.{}.".format(
+        b64url(json.dumps(header, separators=(",", ":")).encode()),
+        b64url(json.dumps(claims, separators=(",", ":")).encode()),
+    )
+
+
+def test_verify_token_rejects_none_algorithm():
+    with pytest.raises(Exception):
+        main.verify_token(unsigned_token(main.ADMIN_USER), main.VERIFY_KEY)

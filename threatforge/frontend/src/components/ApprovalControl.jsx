@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Check, X } from 'lucide-react';
 import { api } from '../api/client.js';
 
@@ -8,18 +8,32 @@ const STATES = {
   pending: { label: 'Awaiting approval', className: 'is-working' },
 };
 
-export default function ApprovalControl({ stageKey, recordKey, itemKey, value, onReload, onDecision }) {
+const normalizeState = (value) => (value === 'approved' || value === 'rejected' ? value : 'pending');
+
+export default function ApprovalControl({ stageKey, recordKey, itemKey, value, onDecision }) {
+  const [current, setCurrent] = useState(normalizeState(value));
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    setCurrent(normalizeState(value));
+  }, [value]);
+
   if (!itemKey) return null;
-  const current = value === 'approved' || value === 'rejected' ? value : 'pending';
 
   const decide = async (next) => {
     if (busy || next === current) return;
+    const previous = current;
+    setCurrent(next);
+    onDecision?.(next);
     setBusy(true);
+    setError('');
     try {
       await api.updateLifecycleRecord(stageKey, recordKey, itemKey, { authorization_status: next });
-      onDecision?.(next);
-      onReload?.();
+    } catch (err) {
+      setCurrent(previous);
+      onDecision?.(previous);
+      setError(err.message || 'Could not update approval.');
     } finally {
       setBusy(false);
     }
@@ -38,6 +52,7 @@ export default function ApprovalControl({ stageKey, recordKey, itemKey, value, o
           Reject
         </button>
       </div>
+      {error && <small className="approval-control__error">{error}</small>}
     </div>
   );
 }

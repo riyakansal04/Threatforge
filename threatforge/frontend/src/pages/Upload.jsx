@@ -6,17 +6,44 @@ import Counts from '../components/Counts.jsx';
 import { fmtBytes } from '../lib/format.js';
 import { STAGE_LABELS, STAGE_PAGES } from '../lib/stages.js';
 
-const EXT = ['.json', '.md', '.markdown', '.mmd', '.mermaid', '.sarif', '.txt', '.sha256', '.sha'];
+const EXT = ['.json', '.md', '.markdown', '.mmd', '.mermaid', '.sarif', '.txt', '.sha256', '.sha', '.patch', '.diff', '.py', '.js', '.jsx', '.ts', '.tsx', '.java', '.go', '.rb', '.php', '.cs', '.rs', '.sh', '.ps1', '.proposed'];
 const okFile = (f) => EXT.some((e) => f.name.toLowerCase().endsWith(e));
 const extOf = (n) => (n.includes('.') ? n.slice(n.lastIndexOf('.')).toLowerCase() : '');
-const KIND = { '.json': 'JSON', '.md': 'Markdown', '.markdown': 'Markdown', '.mmd': 'Mermaid', '.mermaid': 'Mermaid', '.sarif': 'SARIF', '.txt': 'Manifest', '.sha256': 'Manifest', '.sha': 'Manifest' };
+const KIND = {
+  '.json': 'JSON',
+  '.md': 'Markdown',
+  '.markdown': 'Markdown',
+  '.mmd': 'Mermaid',
+  '.mermaid': 'Mermaid',
+  '.sarif': 'SARIF',
+  '.txt': 'Manifest',
+  '.sha256': 'Manifest',
+  '.sha': 'Manifest',
+  '.patch': 'Patch',
+  '.diff': 'Patch',
+  '.proposed': 'Proposed test',
+  '.py': 'Source',
+  '.js': 'Source',
+  '.jsx': 'Source',
+  '.ts': 'Source',
+  '.tsx': 'Source',
+  '.java': 'Source',
+  '.go': 'Source',
+  '.rb': 'Source',
+  '.php': 'Source',
+  '.cs': 'Source',
+  '.rs': 'Source',
+  '.sh': 'Source',
+  '.ps1': 'Source',
+};
 const sig = (f) => `${f.name}|${f.size}|${f.lastModified}`;
 
 const STAGE_DESCRIPTIONS = {
   triage: 'Validate, classify, correlate and deduplicate reported findings.',
   prioritization: 'Prioritize validated findings and define the remediation order.',
-  investigation: 'Confirm root cause, affected paths, required controls and the recommended fix direction.',
-  remediation: 'Capture implemented fixes, validation notes and remaining risk.',
+  investigation: 'Root cause, proposed or implemented fixes, validation notes and remaining risk.',
+  remediation: 'Review proposed code patches, validation evidence and approval before implementation.',
+  'fix-verification': 'Upload the final post-scan verification package: fix checks, related-path review, closure readiness, SARIF, coverage and manifest.',
 };
 
 const stageDisplay = (stage) => ({
@@ -60,7 +87,7 @@ function StageUpload({ stage, files, onAdd, onRemove }) {
               <FolderUp size={15} aria-hidden="true" /> Add folder
             </button>
           </div>
-          <span className="muted">Supported: JSON, Markdown, Mermaid, SARIF, text and manifest files.</span>
+          <span className="muted">Supported: JSON, Markdown, Mermaid, SARIF, patch, source, test and manifest files.</span>
           <input ref={fileRef} type="file" multiple hidden accept={EXT.join(',')}
             onChange={(e) => { add(e.target.files); e.target.value = ''; }} />
           <input ref={dirRef} type="file" multiple hidden webkitdirectory="true"
@@ -165,7 +192,7 @@ export default function Upload() {
         <span className={stepCls(4)}><b>4</b> Review import</span>
       </div>
 
-      {loadErr && <div className="banner banner--danger">Could not load stages: {loadErr}. Check that the backend is running on port 8080.</div>}
+      {loadErr && <div className="banner banner--danger">Could not load stages: {loadErr}. Check that the backend is running on port 8000.</div>}
       {error && <div className="banner banner--danger">{error}</div>}
 
       {step === 1 && phases && (
@@ -299,7 +326,7 @@ export default function Upload() {
           })}
           <div className="actions">
             <button type="button" className="btn" onClick={reset}>Upload more</button>
-            <Link className="btn" to="/scanning/overview">Open analysis dashboard</Link>
+            <Link className="btn" to="/scanning">Open scanning overview</Link>
             <Link className="btn" to="/pre-scan/raw-artifacts">Open raw artifacts</Link>
           </div>
         </>

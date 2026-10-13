@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "threatforge.risk-manifest.v1",
+  "processingId": "risk-prioritization-2026-10-05-scan-report-6",
+  "generatedAt": "2026-10-05T00:00:00+05:30",
+  "agentRole": "Risk-Based Prioritization",
+  "sourceRoot": "C:\\Users\\riyakansal\\OneDrive - Nagarro\\Desktop\\Codebase",
+  "outputFolder": "Scan Report-6",
+  "inputArtifacts": [
+    {"type": "TriagedFindings", "path": "Scan Report-5/TriageFindings.json"},
+    {"type": "ApplicationIntelligence", "path": "Scan Report-1/ApplicationIntelligence.json"},
+    {"type": "ThreatModel", "path": "Scan Report-2/ThreatModel.json"},
+    {"type": "ScanPlan", "path": "Scan Report-3/ScanPlan.json"},
+    {"type": "ScanResults", "path": "Scan Report-4/findings.json", "scanId": "273eb7b9-0470-443d-8f09-1c9bd5cf012f"}
+  ],
+  "generatedArtifacts": [
+    {"type": "risk-prioritization-json", "path": "Scan Report-6/RiskPrioritization.json"},
+    {"type": "sarif", "path": "Scan Report-6/risk-results.sarif"},
+    {"type": "markdown-report", "path": "Scan Report-6/RiskPrioritizationReport.md"},
+    {"type": "coverage-report", "path": "Scan Report-6/CoverageReport.md"},
+    {"type": "manifest", "path": "Scan Report-6/risk-manifest.json"}
+  ],
+  "scope": {
+    "eligibleFindings": ["BF-STD-001", "BF-STD-002", "BF-STD-003", "BF-STD-004", "BF-STD-005", "BF-STD-006", "BF-STD-007", "BF-STD-008"],
+    "excludedFindings": [],
+    "reviewMode": "static risk prioritization from confirmed triage evidence",
+    "dashboardWorkflowDecisionsMade": false,
+    "sourceModified": false
+  },
+  "priorityScale": {
+    "configuredScaleFound": false,
+    "scaleUsed": ["Critical", "High", "Medium", "Low", "Informational"]
+  },
+  "results": {
+    "critical": ["BF-STD-003", "BF-STD-002", "BF-STD-001", "BF-STD-006"],
+    "high": ["BF-STD-008", "BF-STD-007"],
+    "medium": ["BF-STD-004", "BF-STD-005"],
+    "low": [],
+    "informational": [],
+    "deferredWithoutPriority": []
+  },
+  "limitations": [
+    "No approved remediation SLA or policy was available.",
+    "No production deployment or business-criticality context was available.",
+    "No dynamic validation was performed.",
+    "No dashboard priority, risk acceptance, approval, or workflow state was assigned."
+  ],
+  "status": "completed"
+}

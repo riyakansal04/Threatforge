@@ -1,0 +1,40 @@
+{
+  "schemaVersion": "threatforge.post-fix-verification-manifest.v1",
+  "processingId": "post-fix-verification-2026-10-05-scan-report-9",
+  "generatedAt": "2026-10-05T00:00:00+05:30",
+  "agentRole": "Post-Fix Verification",
+  "sourceRoot": "C:\\Users\\riyakansal\\OneDrive - Nagarro\\Desktop\\Codebase",
+  "outputFolder": "Scan Report-9",
+  "inputArtifacts": [
+    {"type": "TriagedFindings", "path": "Scan Report-5/TriageFindings.json"},
+    {"type": "RemediationProposal", "path": "Scan Report-8/RemediationRecords.json"},
+    {"type": "ImplementedSource", "path": "main.py"},
+    {"type": "ImplementedTests", "path": "tests/test_selected_security_remediations.py"}
+  ],
+  "generatedArtifacts": [
+    {"type": "verification-json", "path": "Scan Report-9/PostFixVerification.json"},
+    {"type": "sarif", "path": "Scan Report-9/post-fix-verification.sarif"},
+    {"type": "markdown-report", "path": "Scan Report-9/PostFixVerificationReport.md"},
+    {"type": "coverage-report", "path": "Scan Report-9/CoverageReport.md"},
+    {"type": "manifest", "path": "Scan Report-9/verification-manifest.json"}
+  ],
+  "verificationScope": {
+    "verifiedFindings": ["BF-STD-001", "BF-STD-002", "BF-STD-003"],
+    "excludedFindings": ["BF-STD-004", "BF-STD-005", "BF-STD-006", "BF-STD-007", "BF-STD-008"],
+    "scopeType": "focused post-fix verification"
+  },
+  "environment": {
+    "os": "Windows",
+    "shell": "PowerShell",
+    "python": "Python 3.13.2 observed in pytest output",
+    "pytest": "pytest 9.1.1 observed in pytest output"
+  },
+  "executionDetails": [
+    {"command": "python -m py_compile main.py tests\\test_selected_security_remediations.py", "result": "passed"},
+    {"command": "python -m pytest -p no:cacheprovider tests\\test_selected_security_remediations.py", "result": "passed: 6 tests"},
+    {"command": "rg -n \"pickle|from os import popen|def rp\\(|eval\\(\" main.py", "result": "no matches"}
+  ],
+  "sourceModifiedDuringVerification": false,
+  "dashboardWorkflowDecisionMade": false,
+  "status": "completed"
+}

@@ -1,0 +1,772 @@
+{
+  "scanMetadata": {
+    "scanName": "Scan Report-1",
+    "generatedDate": "2026-10-05",
+    "sourceRoot": "C:\\Users\\riyakansal\\OneDrive - Nagarro\\Desktop\\Codebase",
+    "outputFolder": "C:\\Users\\riyakansal\\.codex\\visualizations\\2026\\10\\05\\01a10aea-c4d8-7943-ae98-a306548a2037\\Scan Report-1",
+    "repositoryState": {
+      "gitRepository": false,
+      "evidence": "git rev-parse --show-toplevel returned: fatal: not a git repository"
+    },
+    "analysisScope": [
+      "README.md",
+      "main.py",
+      "requirements.txt",
+      "database-requirements.txt",
+      "docker_database_setup.md",
+      "vulnerability_index.md"
+    ],
+    "constraintsApplied": [
+      "No source code modification performed",
+      "No threat modeling, security scanning, or remediation performed",
+      "Analysis based on available code and repository evidence"
+    ]
+  },
+  "application": {
+    "name": "Breakable Flask",
+    "type": "single-file Flask web application",
+    "purpose": {
+      "summary": "A deliberately vulnerable web application used as a compact test bed for learning and checking exploitation of common web application vulnerability classes.",
+      "confidence": "confirmed",
+      "evidence": [
+        "README.md:1 names the project Breakable Flask.",
+        "README.md:4 describes it as a simple vulnerable Flask application.",
+        "README.md:6-8 state that it is used to test and learn exploitation of common web application vulnerabilities and was intended as a single-file vulnerable app."
+      ]
+    },
+    "primaryFunctionality": [
+      "Index page listing vulnerable feature routes",
+      "Cookie set/read workflow using pickle serialization",
+      "DNS lookup workflow using an operating-system command",
+      "Python expression evaluation workflow",
+      "XML parsing workflow",
+      "Encrypted configuration lookup workflow",
+      "Personalized greeting rendered through a Jinja template string",
+      "Products/services listing backed by SQL tables",
+      "JWT login, token verification, and JWKS publication workflow"
+    ]
+  },
+  "technologyStack": {
+    "language": {
+      "name": "Python",
+      "evidence": [
+        "main.py:1 uses a Python 3 shebang.",
+        "README.md:25 states the code has been updated for Python3."
+      ]
+    },
+    "webFramework": {
+      "name": "Flask",
+      "evidence": [
+        "main.py:21 imports Flask, request, make_response, and render_template_string.",
+        "main.py:296 creates app = Flask(__name__).",
+        "requirements.txt:2 declares Flask>=3.1.2."
+      ]
+    },
+    "runtimeLibraries": [
+      {
+        "name": "PyJWT / jwt",
+        "responsibility": "JWT creation, RS256 token verification, and header parsing",
+        "evidence": [
+          "main.py:4 imports jwt.",
+          "main.py:190 and main.py:293 call jwt.encode.",
+          "main.py:213 calls jwt.decode."
+        ]
+      },
+      {
+        "name": "lxml",
+        "responsibility": "XML parsing",
+        "evidence": [
+          "main.py:12 imports etree from lxml.",
+          "main.py:397 creates an etree.XMLParser.",
+          "requirements.txt:5 declares lxml>=6.0.2."
+        ]
+      },
+      {
+        "name": "pycryptodome",
+        "responsibility": "AES-CBC encryption, random key generation, and RSA key handling",
+        "evidence": [
+          "main.py:14-16 import AES, Random, and RSA from Crypto.",
+          "main.py:24 and main.py:26 create random secrets.",
+          "main.py:156-168 implement AES-CBC encryption/decryption.",
+          "requirements.txt:7 declares pycryptodome>=3.23.0."
+        ]
+      },
+      {
+        "name": "sqlite3",
+        "responsibility": "Default SQL backend",
+        "evidence": [
+          "main.py:583 defaults --database_type to sqlite.",
+          "main.py:612-614 imports sqlite3 and defines the SQLite table discovery query.",
+          "README.md:42 states the default run uses in-memory sqlite3."
+        ]
+      },
+      {
+        "name": "psycopg2, pymysql, pymssql, cx_Oracle",
+        "responsibility": "Optional external database drivers",
+        "evidence": [
+          "database-requirements.txt:2-5 list optional database packages.",
+          "main.py:598-618 imports database drivers based on --database_type.",
+          "README.md:46-52 describes using alternate database engines."
+        ]
+      }
+    ],
+    "deploymentAndExecution": {
+      "style": "Direct Python script execution with Flask development server",
+      "defaultBind": "127.0.0.1:4000",
+      "evidence": [
+        "README.md:42-44 describes ./main.py running at http://127.0.0.1:4000.",
+        "main.py:580-581 define --port default 4000 and --address default 127.0.0.1.",
+        "main.py:661 calls app.run(host=args.address, port=args.port)."
+      ]
+    }
+  },
+  "components": [
+    {
+      "id": "web_app",
+      "name": "Flask application",
+      "type": "web server / route registry",
+      "responsibilities": [
+        "Registers HTTP routes",
+        "Reads request parameters, form fields, and cookies",
+        "Builds HTML responses"
+      ],
+      "evidence": [
+        "main.py:296 creates the Flask app.",
+        "main.py:299-540 define the route handlers.",
+        "main.py:661 starts the web server."
+      ]
+    },
+    {
+      "id": "route_index",
+      "name": "Index route",
+      "type": "HTTP handler",
+      "route": "GET /",
+      "responsibilities": [
+        "Lists the application feature routes"
+      ],
+      "evidence": [
+        "main.py:299-316 returns HTML with links to /cookie, /lookup, /evaluate, /xml, /config, /sayhi, /listservices, and /user."
+      ]
+    },
+    {
+      "id": "cookie_workflow",
+      "name": "Cookie set/read handler",
+      "type": "HTTP handler",
+      "route": "GET|POST /cookie",
+      "responsibilities": [
+        "Accepts a form value",
+        "Serializes the value into a cookie",
+        "Reads and deserializes the cookie on later requests"
+      ],
+      "dependencies": [
+        "pickle",
+        "base64",
+        "Flask request/response"
+      ],
+      "evidence": [
+        "main.py:320-346 implement POST form read, pickle.dumps, base64 encoding, cookie setting, and pickle.loads from request cookies."
+      ]
+    },
+    {
+      "id": "lookup_workflow",
+      "name": "DNS lookup handler",
+      "type": "HTTP handler",
+      "route": "GET|POST /lookup",
+      "responsibilities": [
+        "Accepts an address form field",
+        "Runs nslookup through an operating-system command",
+        "Returns command output as HTML"
+      ],
+      "dependencies": [
+        "rp command helper",
+        "os.popen"
+      ],
+      "evidence": [
+        "main.py:171-172 define rp(command) as popen(command).read().",
+        "main.py:353-360 read request.form['address'] and call rp('nslookup ' + address)."
+      ]
+    },
+    {
+      "id": "evaluate_workflow",
+      "name": "Expression evaluation handler",
+      "type": "HTTP handler",
+      "route": "GET|POST /evaluate",
+      "responsibilities": [
+        "Accepts an expression form field",
+        "Evaluates it with Python eval",
+        "Returns the evaluation result"
+      ],
+      "dependencies": [
+        "Python eval"
+      ],
+      "evidence": [
+        "main.py:372-379 read request.form['expression'] and call eval(expression)."
+      ]
+    },
+    {
+      "id": "xml_workflow",
+      "name": "XML parser handler",
+      "type": "HTTP handler",
+      "route": "GET|POST /xml",
+      "responsibilities": [
+        "Accepts XML form input",
+        "Parses XML with lxml",
+        "Returns serialized XML output"
+      ],
+      "dependencies": [
+        "lxml.etree"
+      ],
+      "evidence": [
+        "main.py:392-400 creates etree.XMLParser(no_network=False, load_dtd=True, huge_tree=True), parses form input, and serializes the document."
+      ]
+    },
+    {
+      "id": "config_workflow",
+      "name": "Configuration lookup handler",
+      "type": "HTTP handler",
+      "route": "GET /config",
+      "responsibilities": [
+        "Shows encrypted links for viewable app_* configuration values",
+        "Decrypts a key query parameter",
+        "Returns the matching configuration value"
+      ],
+      "dependencies": [
+        "CONFIG dictionary",
+        "AES-CBC encrypt/decrypt helpers"
+      ],
+      "evidence": [
+        "main.py:39-45 define CONFIG.",
+        "main.py:156-168 implement encrypt/decrypt helpers.",
+        "main.py:417-443 builds encrypted config links and decrypts request.args['key']."
+      ]
+    },
+    {
+      "id": "sayhi_workflow",
+      "name": "Personalized greeting handler",
+      "type": "HTTP handler",
+      "route": "GET|POST /sayhi",
+      "responsibilities": [
+        "Accepts a name form field",
+        "Interpolates it into a template string",
+        "Renders the result through Flask/Jinja"
+      ],
+      "dependencies": [
+        "Flask render_template_string"
+      ],
+      "evidence": [
+        "main.py:450-468 read request.form['name'], interpolate it into template, and call render_template_string."
+      ]
+    },
+    {
+      "id": "services_workflow",
+      "name": "Products/services listing handler",
+      "type": "HTTP handler",
+      "route": "GET /listservices",
+      "responsibilities": [
+        "Reads an optional category query parameter",
+        "Builds a SELECT query against public_stuff",
+        "Renders tabular results with category filter links"
+      ],
+      "dependencies": [
+        "Global database cursor",
+        "DATABASE_TABLES metadata",
+        "query_build helper"
+      ],
+      "evidence": [
+        "main.py:472-490 read request.args['category'], build WHERE clause, execute SELECT through cursor, and convert results to HTML."
+      ]
+    },
+    {
+      "id": "jwt_workflow",
+      "name": "JWT authentication and user handler",
+      "type": "HTTP handlers",
+      "routes": [
+        "GET /user",
+        "GET /user/jwks",
+        "GET|POST /user/login"
+      ],
+      "responsibilities": [
+        "Accepts guest credentials",
+        "Issues RS256 JWT cookies",
+        "Verifies JWT cookies",
+        "Publishes RSA public key material as JWKS",
+        "Displays admin/non-admin user state"
+      ],
+      "dependencies": [
+        "JWT token helper functions",
+        "SIGN_KEY",
+        "VERIFY_KEY",
+        "AUTH_COOKIE"
+      ],
+      "evidence": [
+        "main.py:179-278 define JWT creation and verification helpers.",
+        "main.py:510-528 reads AUTH_COOKIE, verifies it, and checks the sub claim.",
+        "main.py:531-536 publishes JWKS data from VERIFY_KEY.",
+        "main.py:540-572 accepts credentials and sets the authentication cookie."
+      ]
+    },
+    {
+      "id": "database_bootstrap",
+      "name": "Database connection and bootstrap",
+      "type": "startup process",
+      "responsibilities": [
+        "Parses database configuration arguments",
+        "Loads the selected database driver",
+        "Creates the breakdb database when applicable",
+        "Creates missing tables",
+        "Seeds initial public and secret rows"
+      ],
+      "dependencies": [
+        "DATABASE_TABLES",
+        "DATABASE_CONTENTS",
+        "Selected dbmodule"
+      ],
+      "evidence": [
+        "main.py:577-592 parse CLI arguments.",
+        "main.py:598-618 select database modules and metadata queries.",
+        "main.py:620-656 connect, create database/tables, and seed rows.",
+        "README.md:50 states launch populates the database server with needed data."
+      ]
+    }
+  ],
+  "dataArchitecture": {
+    "storageMechanisms": [
+      {
+        "name": "SQLite in-memory database",
+        "role": "Default SQL storage for products/services workflow",
+        "confidence": "confirmed",
+        "evidence": [
+          "README.md:42 states default execution uses an in-memory sqlite3 instance.",
+          "main.py:588 defaults --database_filename to :memory:.",
+          "main.py:640-642 connect to sqlite and enable autocommit."
+        ]
+      },
+      {
+        "name": "External relational databases",
+        "role": "Optional storage backends for SQL workflow",
+        "confidence": "confirmed",
+        "supportedTypes": [
+          "postgres",
+          "mysql",
+          "mssql",
+          "oracle"
+        ],
+        "evidence": [
+          "main.py:583 defines database_type choices for postgres, oracle, mysql, mssql, and sqlite.",
+          "database-requirements.txt:2-5 list the optional driver packages.",
+          "docker_database_setup.md:7-101 documents Docker setup for PostgreSQL, MySQL, MSSQL, and Oracle."
+        ]
+      },
+      {
+        "name": "HTTP cookies",
+        "role": "Client-side storage for serialized value cookie and authentication JWT",
+        "confidence": "confirmed",
+        "evidence": [
+          "main.py:346 sets the value cookie for /cookie.",
+          "main.py:550 sets the authentication cookie for /user."
+        ]
+      },
+      {
+        "name": "Temporary filesystem key files",
+        "role": "Writes generated RSA keys when PRIVATE_KEY_FILE and PUBLIC_KEY_FILE are not supplied",
+        "confidence": "confirmed",
+        "evidence": [
+          "main.py:107-124 read key files from environment variables when present, otherwise generate keys and write private.pem/public.pem to the temp directory."
+        ]
+      }
+    ],
+    "logicalModels": [
+      {
+        "name": "public_stuff",
+        "columns": [
+          "id integer not null",
+          "name varchar(40)",
+          "category varchar(20) not null",
+          "description varchar(400)"
+        ],
+        "usedBy": [
+          "GET /listservices"
+        ],
+        "evidence": [
+          "main.py:49-57 define public_stuff columns.",
+          "main.py:70-76 define seeded public_stuff rows.",
+          "main.py:472-490 query public_stuff."
+        ]
+      },
+      {
+        "name": "secret_stuff",
+        "columns": [
+          "name varchar(40)",
+          "description varchar(400)"
+        ],
+        "usedBy": [],
+        "evidence": [
+          "main.py:59-64 define secret_stuff columns.",
+          "main.py:77-81 define seeded secret_stuff rows.",
+          "No route in main.py directly queries secret_stuff in the observed code."
+        ]
+      },
+      {
+        "name": "CONFIG",
+        "type": "in-memory dictionary",
+        "fields": [
+          "encrypto_key",
+          "secret_admin_value",
+          "app_name",
+          "app_version",
+          "app_philosophy"
+        ],
+        "usedBy": [
+          "GET /",
+          "GET /config"
+        ],
+        "evidence": [
+          "main.py:39-45 define CONFIG.",
+          "main.py:303 uses CONFIG['app_name'] in the index page.",
+          "main.py:423-436 filters and retrieves CONFIG values."
+        ]
+      }
+    ],
+    "dataFlows": [
+      {
+        "name": "Database bootstrap flow",
+        "confidence": "confirmed",
+        "steps": [
+          "CLI arguments choose database type and connection parameters.",
+          "Selected dbmodule connects to the target database.",
+          "Existing tables are discovered.",
+          "Missing tables defined in DATABASE_TABLES are created.",
+          "Seed rows from DATABASE_CONTENTS are inserted."
+        ],
+        "evidence": [
+          "main.py:577-656"
+        ]
+      },
+      {
+        "name": "Services listing flow",
+        "confidence": "confirmed",
+        "steps": [
+          "HTTP query parameter category enters through request.args.",
+          "Handler builds a SQL WHERE clause when category is present.",
+          "Global cursor executes SELECT against public_stuff.",
+          "Rows are rendered into an HTML table."
+        ],
+        "evidence": [
+          "main.py:476-490"
+        ]
+      },
+      {
+        "name": "JWT login flow",
+        "confidence": "confirmed",
+        "steps": [
+          "Username and password enter through POST form fields.",
+          "Only guest/guest is accepted.",
+          "create_token_rsa signs an RS256 token with SIGN_KEY.",
+          "Response stores the token in the authentication cookie.",
+          "/user reads the cookie, verifies the token, and uses sub to determine display state."
+        ],
+        "evidence": [
+          "main.py:179-190",
+          "main.py:510-528",
+          "main.py:540-550"
+        ]
+      }
+    ]
+  },
+  "interfacesAndIntegrations": {
+    "httpRoutes": [
+      {
+        "route": "/",
+        "methods": [
+          "GET"
+        ],
+        "handler": "index",
+        "evidence": "main.py:299-316"
+      },
+      {
+        "route": "/cookie",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handler": "cookie",
+        "evidence": "main.py:320-348"
+      },
+      {
+        "route": "/lookup",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handler": "lookup",
+        "evidence": "main.py:353-368"
+      },
+      {
+        "route": "/evaluate",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handler": "evaluate",
+        "evidence": "main.py:372-387"
+      },
+      {
+        "route": "/xml",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handler": "xml",
+        "evidence": "main.py:392-413"
+      },
+      {
+        "route": "/config",
+        "methods": [
+          "GET"
+        ],
+        "handler": "config",
+        "evidence": "main.py:417-446"
+      },
+      {
+        "route": "/sayhi",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handler": "sayhi",
+        "evidence": "main.py:450-468"
+      },
+      {
+        "route": "/listservices",
+        "methods": [
+          "GET"
+        ],
+        "handler": "listservices",
+        "evidence": "main.py:472-504"
+      },
+      {
+        "route": "/user",
+        "methods": [
+          "GET"
+        ],
+        "handler": "jwtmain",
+        "evidence": "main.py:510-528"
+      },
+      {
+        "route": "/user/jwks",
+        "methods": [
+          "GET"
+        ],
+        "handler": "jwks",
+        "evidence": "main.py:531-536"
+      },
+      {
+        "route": "/user/login",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handler": "login",
+        "evidence": "main.py:540-572"
+      }
+    ],
+    "externalIntegrations": [
+      {
+        "name": "Operating system shell",
+        "direction": "application to host OS",
+        "purpose": "Run nslookup for /lookup",
+        "confidence": "confirmed",
+        "evidence": [
+          "main.py:171-172 define a popen-based command helper.",
+          "main.py:360 invokes nslookup through that helper."
+        ]
+      },
+      {
+        "name": "Relational database server",
+        "direction": "application to database",
+        "purpose": "Create/seed tables and query product/service rows",
+        "confidence": "confirmed",
+        "evidence": [
+          "main.py:620-656 connect and bootstrap selected database.",
+          "main.py:483-485 query public_stuff."
+        ]
+      },
+      {
+        "name": "Docker-managed database instances",
+        "direction": "operator to database infrastructure",
+        "purpose": "Optional local database servers for non-SQLite backends",
+        "confidence": "confirmed from documentation, not invoked by application code",
+        "evidence": [
+          "docker_database_setup.md:7-101 documents PostgreSQL, MySQL, MSSQL, and Oracle container setup."
+        ]
+      }
+    ]
+  },
+  "executionFlow": {
+    "startup": {
+      "confidence": "confirmed",
+      "steps": [
+        "Module import initializes random AES/admin secrets and static app metadata.",
+        "RSA signing and verification keys are loaded from environment-specified files or generated and written to the temp directory.",
+        "Flask app and route handlers are registered at import time.",
+        "When executed as a script, argparse reads web server and database options.",
+        "The selected database driver is imported and connected.",
+        "The database schema and seed data are created if missing.",
+        "Flask development server starts on the selected address and port."
+      ],
+      "evidence": [
+        "main.py:24-45 initialize secrets/config.",
+        "main.py:107-124 initialize RSA keys.",
+        "main.py:296-540 register app/routes.",
+        "main.py:577-661 parse args, bootstrap DB, and run app."
+      ]
+    },
+    "requestHandling": {
+      "confidence": "confirmed",
+      "description": "Each route directly reads Flask request data and constructs an HTML or JSON response in the same function. There is no separate service layer, template directory, router module, ORM layer, or controller abstraction in the observed files.",
+      "evidence": [
+        "main.py:320-572 define route handlers with inline request parsing and response construction.",
+        "rg --files found no additional Python modules or templates beyond main.py."
+      ]
+    },
+    "inferredRuntimeRelationships": [
+      {
+        "relationship": "The global cursor created at startup is shared by /listservices requests.",
+        "basis": "The cursor variable is assigned in main.py:647 and referenced by listservices at main.py:484. Python name resolution makes this a module-global variable when the script has executed the startup block.",
+        "confidence": "inferred from Python runtime semantics and direct references"
+      },
+      {
+        "relationship": "Routes depending on cursor/query_build require the script startup block to have run.",
+        "basis": "query_build and cursor are assigned under if __name__ == '__main__' at main.py:594 and main.py:647, while /listservices references them at main.py:484.",
+        "confidence": "inferred from module execution structure"
+      }
+    ]
+  },
+  "securityRelevantImplementation": {
+    "note": "This section identifies implemented controls and sensitive operations only. It is not a threat model, vulnerability scan, or remediation plan.",
+    "authentication": [
+      {
+        "mechanism": "Form login with hard-coded guest credentials",
+        "confidence": "confirmed",
+        "evidence": [
+          "main.py:34 defines ALLOWED_USER = 'guest'.",
+          "main.py:543-547 accepts only username == guest and password == guest."
+        ]
+      },
+      {
+        "mechanism": "JWT authentication cookie",
+        "confidence": "confirmed",
+        "evidence": [
+          "main.py:35 defines AUTH_COOKIE = 'authentication'.",
+          "main.py:547-550 creates a token and sets the cookie.",
+          "main.py:513-516 reads and verifies the cookie."
+        ]
+      }
+    ],
+    "authorization": [
+      {
+        "mechanism": "Admin display state based on JWT sub claim matching ADMIN_USER",
+        "confidence": "confirmed",
+        "evidence": [
+          "main.py:36 defines ADMIN_USER = 'admin'.",
+          "main.py:519-523 checks the sub claim and displays admin/non-admin content."
+        ]
+      }
+    ],
+    "cryptographyAndSecrets": [
+      {
+        "mechanism": "Random AES key for config link encryption",
+        "confidence": "confirmed",
+        "evidence": [
+          "main.py:24 defines KEY from Random.new().read(32).",
+          "main.py:156-168 implement AES-CBC encryption/decryption.",
+          "main.py:424-431 uses these helpers in /config."
+        ]
+      },
+      {
+        "mechanism": "RSA signing/verification keys from environment files or generated temporary keys",
+        "confidence": "confirmed",
+        "evidence": [
+          "main.py:107-124 handle PRIVATE_KEY_FILE/PUBLIC_KEY_FILE or generated temp files.",
+          "main.py:179-190 signs RS256 tokens.",
+          "main.py:211-213 verifies RS256 tokens."
+        ]
+      }
+    ],
+    "sensitiveOperations": [
+      {
+        "operation": "Deserialization of client-controlled cookie data",
+        "evidence": [
+          "main.py:329 calls pickle.loads on request.cookies['value']."
+        ]
+      },
+      {
+        "operation": "Host OS command execution",
+        "evidence": [
+          "main.py:171-172 call os.popen.",
+          "main.py:360 builds nslookup command from request input."
+        ]
+      },
+      {
+        "operation": "Python code evaluation",
+        "evidence": [
+          "main.py:379 calls eval(expression)."
+        ]
+      },
+      {
+        "operation": "XML parsing with DTD loading and network access enabled",
+        "evidence": [
+          "main.py:397 creates XMLParser(no_network=False, load_dtd=True)."
+        ]
+      },
+      {
+        "operation": "Dynamic SQL construction from query string input",
+        "evidence": [
+          "main.py:476-484 builds WHERE clause and SELECT query from request.args['category']."
+        ]
+      },
+      {
+        "operation": "Dynamic template rendering from form input",
+        "evidence": [
+          "main.py:454-468 interpolates request.form['name'] into template and renders it."
+        ]
+      },
+      {
+        "operation": "JWT verification allows RS256, HS256, and None branches",
+        "evidence": [
+          "main.py:32 defines ALLOWED_ALGORITHMS = ['RS256', 'HS256', 'None'].",
+          "main.py:267-277 dispatches verification by unverified header alg."
+        ]
+      }
+    ],
+    "documentationMapping": {
+      "confidence": "confirmed",
+      "evidence": [
+        "README.md:10-18 lists the vulnerability classes intentionally present.",
+        "vulnerability_index.md:7-14 maps route numbers to specific vulnerability categories."
+      ]
+    }
+  },
+  "assumptionsAndUnknowns": [
+    {
+      "item": "Production deployment topology",
+      "status": "unknown",
+      "reason": "No WSGI server configuration, Dockerfile, service manifest, CI/CD configuration, or production deployment file was found in the source inventory."
+    },
+    {
+      "item": "Automated tests",
+      "status": "unknown / absent in observed files",
+      "reason": "The file inventory did not include test files or test configuration."
+    },
+    {
+      "item": "Runtime behavior under import by an external WSGI server",
+      "status": "uncertain",
+      "reason": "The database bootstrap and cursor/query_build definitions are inside if __name__ == '__main__'. If imported without executing the script block, routes exist but /listservices would not have the observed startup-created cursor."
+    },
+    {
+      "item": "Exact installed dependency versions",
+      "status": "unknown",
+      "reason": "requirements files specify lower bounds, not a lockfile."
+    }
+  ]
+}

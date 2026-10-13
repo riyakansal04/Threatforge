@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "ThreatForge Post-Fix Verification",
+          "informationUri": "local://Scan%20Report-9/PostFixVerificationReport.md",
+          "rules": [
+            {"id": "BF-STD-001", "name": "Verify pickle cookie deserialization remediation"},
+            {"id": "BF-STD-002", "name": "Verify OS command injection remediation"},
+            {"id": "BF-STD-003", "name": "Verify Python eval injection remediation"}
+          ]
+        }
+      },
+      "automationDetails": {"id": "post-fix-verification-2026-10-05-scan-report-9"},
+      "invocations": [
+        {
+          "executionSuccessful": true,
+          "toolExecutionNotifications": [
+            {"level": "note", "message": {"text": "Focused verification only. No dashboard closure or workflow status was changed."}}
+          ]
+        }
+      ],
+      "results": [
+        {
+          "ruleId": "BF-STD-001",
+          "level": "note",
+          "message": {"text": "Evidence indicates BF-STD-001 is resolved within the tested scope: pickle usage is absent from main.py, JSON cookie helpers are used, and focused regression tests passed."},
+          "locations": [{"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 174}}}, {"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 394}}}],
+          "properties": {"verificationStatus": "fixed", "technicalClosureRecommendation": "ready_for_closure_review", "tests": ["test_cookie_uses_json_not_pickle_and_rejects_invalid_cookie", "test_cookie_route_displays_invalid_cookie_without_deserializing"]}
+        },
+        {
+          "ruleId": "BF-STD-002",
+          "level": "note",
+          "message": {"text": "Evidence indicates BF-STD-002 is resolved within the tested scope: popen/rp command execution is absent from main.py, lookup uses validation plus getaddrinfo, and focused regression tests passed."},
+          "locations": [{"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 189}}}, {"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 427}}}],
+          "properties": {"verificationStatus": "fixed", "technicalClosureRecommendation": "ready_for_closure_review", "tests": ["test_lookup_rejects_command_metacharacters", "test_lookup_uses_resolver_without_shell"]}
+        },
+        {
+          "ruleId": "BF-STD-003",
+          "level": "note",
+          "message": {"text": "Evidence indicates BF-STD-003 is resolved within the tested scope: eval usage is absent from main.py, /evaluate uses safe_eval_expression, and focused regression tests passed."},
+          "locations": [{"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 223}}}, {"physicalLocation": {"artifactLocation": {"uri": "main.py"}, "region": {"startLine": 451}}}],
+          "properties": {"verificationStatus": "fixed", "technicalClosureRecommendation": "ready_for_closure_review", "tests": ["test_safe_eval_preserves_arithmetic_and_rejects_code_execution", "test_evaluate_route_renders_result_without_executing_code"]}
+        }
+      ]
+    }
+  ]
+}

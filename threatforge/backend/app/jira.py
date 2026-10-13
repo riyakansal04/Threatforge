@@ -74,10 +74,21 @@ def _priority_name(record: dict) -> str:
     return "Medium"
 
 
+def _is_priority_record(record: dict) -> bool:
+    return any(_text(record.get(key)) for key in (
+        "priority_id",
+        "priority",
+        "priority_reasoning",
+        "recommended_timeframe",
+        "timeframe_reason",
+    ))
+
+
 def _summary(record: dict) -> str:
-    finding = _first(record, "finding_id", "remediation_id", "id")
-    title = _first(record, "title", "proposed_remediation", "recommendation", "root_cause")
-    summary = f"ThreatForge remediation: {finding} - {title}" if finding else f"ThreatForge remediation: {title}"
+    finding = _first(record, "finding_id", "priority_id", "remediation_id", "id")
+    title = _first(record, "title", "priority_reasoning", "proposed_remediation", "recommendation", "root_cause")
+    prefix = "ThreatForge priority" if _is_priority_record(record) else "ThreatForge remediation"
+    summary = f"{prefix}: {finding} - {title}" if finding else f"{prefix}: {title}"
     return summary[:252] + "..." if len(summary) > 255 else summary
 
 
@@ -90,17 +101,23 @@ def _paragraph(text: str) -> dict:
 
 def _description(record: dict) -> dict:
     lines = [
-        ("Finding", _first(record, "finding_id", "logical_finding_id", "remediation_id")),
-        ("ThreatForge priority", _first(record, "priority", "action_level", "priority_level", "target_period")),
+        ("Finding", _first(record, "finding_id", "logical_finding_id", "priority_id", "remediation_id")),
+        ("ThreatForge priority", _first(record, "priority", "action_level", "priority_level", "target_period", "recommended_timeframe")),
         ("Jira priority", _priority_name(record)),
-        ("Severity", _first(record, "severity", "risk", "priority")),
+        ("Severity", _first(record, "severity", "original_severity", "risk", "priority")),
+        ("Priority rationale", _first(record, "priority_reasoning", "reasoning")),
+        ("Exploitability", _first(record, "exploitability")),
+        ("Exposure", _first(record, "exposure")),
+        ("Impact", _first(record, "impact")),
         ("Root cause", _first(record, "root_cause", "common_root_cause")),
         ("Recommendation", _first(record, "recommendation", "proposed_remediation", "fix_summary")),
+        ("Follow-up", _first(record, "dependencies", "follow_up_required", "uncertainty")),
         ("Validation", _first(record, "security_validation", "functional_validation", "validation")),
         ("Changed files", _first(record, "changed_files", "files")),
-        ("Evidence", _first(record, "evidence", "source_findings", "source_finding_ids")),
+        ("Evidence", _first(record, "evidence", "evidence_references", "source_findings", "source_finding_ids")),
     ]
-    content = [_paragraph("Created from ThreatForge remediation workflow.")]
+    workflow = "prioritization" if _is_priority_record(record) else "remediation"
+    content = [_paragraph(f"Created from ThreatForge {workflow} workflow.")]
     for label, value in lines:
         if value:
             content.append(_paragraph(f"{label}: {value}"))
@@ -108,6 +125,7 @@ def _description(record: dict) -> dict:
 
 
 def _payload(record: dict) -> dict:
+    labels = ["threatforge", "security-priority"] if _is_priority_record(record) else ["threatforge", "security-remediation"]
     return {
         "fields": {
             "project": {"key": JIRA_PROJECT_KEY},
@@ -115,7 +133,7 @@ def _payload(record: dict) -> dict:
             "summary": _summary(record),
             "description": _description(record),
             "priority": {"name": _priority_name(record)},
-            "labels": ["threatforge", "security-remediation"],
+            "labels": labels,
         }
     }
 

@@ -1,0 +1,217 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "ThreatForge Remediation Engineer",
+          "rules": [
+            {
+              "id": "BF-STD-001",
+              "name": "Client-controlled cookie is deserialized with pickle"
+            },
+            {
+              "id": "BF-STD-002",
+              "name": "DNS lookup route concatenates form input into an OS command"
+            },
+            {
+              "id": "BF-STD-003",
+              "name": "Expression evaluation route executes user input with eval"
+            },
+            {
+              "id": "BF-STD-004",
+              "name": "XML parser enables DTD loading and network access"
+            },
+            {
+              "id": "BF-STD-005",
+              "name": "Config endpoint decrypts attacker-controlled ciphertext and returns padding errors"
+            },
+            {
+              "id": "BF-STD-006",
+              "name": "Greeting route renders user input as Jinja template source"
+            },
+            {
+              "id": "BF-STD-007",
+              "name": "Category query parameter is concatenated into SQL"
+            },
+            {
+              "id": "BF-STD-008",
+              "name": "JWT verifier accepts None and HS256 algorithms based on untrusted token header"
+            }
+          ]
+        }
+      },
+      "results": [
+        {
+          "ruleId": "BF-STD-001",
+          "level": "note",
+          "message": {
+            "text": "Finding-scoped remediation patch generated for BF-STD-001."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "main.py"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "patch": "Scan Report-8/patches/BF-STD-001.md",
+            "test": "Scan Report-8/tests/BF-STD-001_test.py.proposed",
+            "status": "patch_generated_not_applied"
+          }
+        },
+        {
+          "ruleId": "BF-STD-002",
+          "level": "note",
+          "message": {
+            "text": "Finding-scoped remediation patch generated for BF-STD-002."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "main.py"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "patch": "Scan Report-8/patches/BF-STD-002.md",
+            "test": "Scan Report-8/tests/BF-STD-002_test.py.proposed",
+            "status": "patch_generated_not_applied"
+          }
+        },
+        {
+          "ruleId": "BF-STD-003",
+          "level": "note",
+          "message": {
+            "text": "Finding-scoped remediation patch generated for BF-STD-003."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "main.py"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "patch": "Scan Report-8/patches/BF-STD-003.md",
+            "test": "Scan Report-8/tests/BF-STD-003_test.py.proposed",
+            "status": "patch_generated_not_applied"
+          }
+        },
+        {
+          "ruleId": "BF-STD-004",
+          "level": "note",
+          "message": {
+            "text": "Finding-scoped remediation patch generated for BF-STD-004."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "main.py"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "patch": "Scan Report-8/patches/BF-STD-004.md",
+            "test": "Scan Report-8/tests/BF-STD-004_test.py.proposed",
+            "status": "patch_generated_not_applied"
+          }
+        },
+        {
+          "ruleId": "BF-STD-005",
+          "level": "note",
+          "message": {
+            "text": "Finding-scoped remediation patch generated for BF-STD-005."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "main.py"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "patch": "Scan Report-8/patches/BF-STD-005.md",
+            "test": "Scan Report-8/tests/BF-STD-005_test.py.proposed",
+            "status": "patch_generated_not_applied"
+          }
+        },
+        {
+          "ruleId": "BF-STD-006",
+          "level": "note",
+          "message": {
+            "text": "Finding-scoped remediation patch generated for BF-STD-006."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "main.py"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "patch": "Scan Report-8/patches/BF-STD-006.md",
+            "test": "Scan Report-8/tests/BF-STD-006_test.py.proposed",
+            "status": "patch_generated_not_applied"
+          }
+        },
+        {
+          "ruleId": "BF-STD-007",
+          "level": "note",
+          "message": {
+            "text": "Finding-scoped remediation patch generated for BF-STD-007."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "main.py"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "patch": "Scan Report-8/patches/BF-STD-007.md",
+            "test": "Scan Report-8/tests/BF-STD-007_test.py.proposed",
+            "status": "patch_generated_not_applied"
+          }
+        },
+        {
+          "ruleId": "BF-STD-008",
+          "level": "note",
+          "message": {
+            "text": "Finding-scoped remediation patch generated for BF-STD-008."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "main.py"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "patch": "Scan Report-8/patches/BF-STD-008.md",
+            "test": "Scan Report-8/tests/BF-STD-008_test.py.proposed",
+            "status": "patch_generated_not_applied"
+          }
+        }
+      ]
+    }
+  ]
+}

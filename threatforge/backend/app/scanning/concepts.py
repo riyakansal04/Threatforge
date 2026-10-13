@@ -47,14 +47,21 @@ FINDING = {
     "title": R("title", "name", "finding", "issue", "vulnerability", "headline"),
     "description": R("description", "detail", "summary"),
     "classification": R("classification", "status", "verdict", "disposition", "determination", "validation"),
+    "confirmation_reason": R("confirmation reason", "why confirmed", "confirmed because", "validation reason"),
     "severity": R("severity", "risk level"),
     "confidence": R("confidence"),
     "cwe": R("cwe"),
+    "rule_id": R("rule id", "rule"),
     "category": R("category", "weakness type", "vulnerability type", "finding type", "issue type", "weakness"),
     "affected_area": R("affected area", "affected component", "affected surface", "area", "component",
                        "module", "affected"),
+    "entry_points": R("entry point", "entrypoint", "entry points"),
+    "related_threats": R("related threat", "related threats", "threat"),
+    "related_scan_focus": R("related scan focus", "scan focus"),
     "code_location": R("code location", "location", "file", "source location", "affected file"),
+    "evidence_items": R("code evidence", "evidence item", "evidence items", "proof item"),
     "root_cause": R("root cause", "cause"),
+    "validation": R("validation"),
     "attack_path": R("attack path", "exploit path", "attack chain"),
     "impact": R("impact", "consequence"),
     "evidence": R("evidence", "proof"),
@@ -69,7 +76,7 @@ FINDING = {
 
 # a record is a finding when it carries at least two of these
 CORE = {"severity", "category", "confidence", "cwe", "root_cause", "impact", "code_location",
-        "recommended_remediation", "affected_area", "attack_path", "observed_behavior",
+        "recommended_remediation", "affected_area", "attack_path", "observed_behavior", "evidence_items",
         "security_identifier", "affected_dependency"}
 
 # ---------------- scan-specific objects ----------------
@@ -160,10 +167,20 @@ SCAN = {
     "source_references": R("source reference", "report reference", "artifact reference"),
 }
 COVKEY = {"coverage": R("coverage")}
-COVERAGE_HINT = {"c": R("coverage", "limitation", "files analyzed", "paths analyzed", "component covered", "not covered")}
+COVERAGE_HINT = {"c": R("coverage", "limitation", "files analyzed", "files reviewed", "paths analyzed",
+                        "component covered", "assessed areas", "open questions", "not covered")}
 COVERAGE = {
     "summary": R("summary", "overview", "description"),
-    "limitations": R("limitation", "gap", "exclusion", "not covered", "out of scope"),
+    "status": R("status", "execution status"),
+    "validation_mode": R("validation mode", "validation"),
+    "runtime_testing": R("runtime testing", "runtime test"),
+    "source_modification": R("source modification", "source modified"),
+    "managed_scan_id": R("managed scan id", "scan id"),
+    "assessed_areas": R("assessed area", "assessed areas", "reviewed area", "coverage area"),
+    "files_reviewed": R("files reviewed", "files fully reviewed", "reviewed files", "files analyzed"),
+    "exclusions": R("exclusion", "excluded activity", "excluded activities"),
+    "open_questions": R("open question", "open questions", "unknowns"),
+    "limitations": R("limitation", "gap", "not covered", "out of scope"),
 }
 MANIFEST = {
     "run_id": R("run id"),

@@ -1,0 +1,11 @@
+import pytest
+from base64 import b64encode, urlsafe_b64encode
+import json
+import time
+import main
+
+def test_config_token_verification_rejects_tampering():
+    token = main.sign_config_key("app_name")
+    assert main.verify_config_key(token) == "app_name"
+    with pytest.raises(ValueError):
+        main.verify_config_key(token + "tampered")

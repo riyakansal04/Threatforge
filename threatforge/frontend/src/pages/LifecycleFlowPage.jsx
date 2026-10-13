@@ -16,7 +16,7 @@ const FALLBACK_SIGNALS = {
   prioritization: [
     { label: 'Priority queue', valueKey: 'priority_queue' },
     { label: 'Risk-ranked items', valueKey: 'priority_queue' },
-    { label: 'Approved findings', valueKey: 'priority_queue' },
+    { label: 'Jira handoff', valueKey: 'priority_queue' },
   ],
   remediation: [
     { label: 'Fix proposals', valueKey: 'remediations' },
@@ -80,7 +80,8 @@ export function StagePreviewCard({ node, overview, onClose }) {
   const signals = previewSignals(node, overview);
 
   const drawer = (
-    <aside className={`flow-preview flow-preview--${state}`}>
+    <div className="flow-preview-backdrop" role="presentation" onMouseDown={onClose}>
+    <aside className={`flow-preview flow-preview--${state}`} onMouseDown={(event) => event.stopPropagation()}>
       <button type="button" className="flow-preview__close" onClick={onClose} aria-label="Close stage details">
         <X size={16} aria-hidden="true" />
       </button>
@@ -124,6 +125,7 @@ export function StagePreviewCard({ node, overview, onClose }) {
         <ArrowRight size={14} aria-hidden="true" />
       </Link>
     </aside>
+    </div>
   );
   return typeof document === 'undefined' ? drawer : createPortal(drawer, document.body);
 }

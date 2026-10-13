@@ -1,0 +1,684 @@
+{
+  "schemaVersion": "threatforge.findings.v1",
+  "scanId": "273eb7b9-0470-443d-8f09-1c9bd5cf012f",
+  "scanType": "Standard Security Scan",
+  "target": {
+    "name": "Breakable Flask",
+    "path": "C:\\Users\\riyakansal\\OneDrive - Nagarro\\Desktop\\Codebase",
+    "scope": "."
+  },
+  "deduplication": {
+    "existingFindingsReviewed": [
+      "No prior canonical findings.json/SARIF artifacts were found in Scan Report-1 through Scan Report-3.",
+      "Threat records from Scan Report-2 were treated as hypotheses and linked, not duplicated as prior findings."
+    ],
+    "dedupeBasis": "ruleId + affected route/component + primary sink line"
+  },
+  "Finding": [
+    {
+      "findingId": "BF-STD-001",
+      "ruleId": "python-pickle-cookie-deserialization",
+      "title": "Client-controlled cookie is deserialized with pickle",
+      "status": "confirmed",
+      "severity": "high",
+      "confidence": "high",
+      "taxonomy": {
+        "category": "insecure deserialization",
+        "cwe": [
+          "CWE-502"
+        ]
+      },
+      "affectedComponents": [
+        "cookie_workflow"
+      ],
+      "entryPoints": [
+        "GET /cookie",
+        "Cookie: value"
+      ],
+      "relatedThreats": [
+        "T001"
+      ],
+      "relatedScanFocus": [
+        "SF-01",
+        "SF-02",
+        "SF-04"
+      ],
+      "locations": [
+        {
+          "path": "main.py",
+          "startLine": 329,
+          "endLine": 329
+        },
+        {
+          "path": "main.py",
+          "startLine": 346,
+          "endLine": 346
+        }
+      ],
+      "codeEvidence": [
+        {
+          "id": "BF-STD-001-E1",
+          "label": "Cookie value is deserialized directly",
+          "path": "main.py",
+          "startLine": 328,
+          "endLine": 329,
+          "language": "python",
+          "code": "elif 'value' in request.cookies:\n        cookieValue = pickle.loads(b64decode(request.cookies['value']))",
+          "explanation": "A browser-controlled cookie is base64-decoded and passed to pickle.loads without authentication, integrity verification, or a safe data parser."
+        },
+        {
+          "id": "BF-STD-001-E2",
+          "label": "Application sets the same cookie as pickle data",
+          "path": "main.py",
+          "startLine": 345,
+          "endLine": 346,
+          "language": "python",
+          "code": "if value:\n        resp.set_cookie('value', b64encode(pickle.dumps(value)))",
+          "explanation": "The server-created cookie format is pickle data, but the later read path trusts client-supplied cookie bytes as valid pickle."
+        }
+      ],
+      "rootCause": {
+        "summary": "The application uses Python pickle as a client-side cookie serialization format and deserializes the cookie on the server without authenticity protection."
+      },
+      "validation": {
+        "summary": "Static validation confirmed an unauthenticated GET request can supply the value cookie and reach pickle.loads. No runtime payload execution was performed.",
+        "method": "static source review",
+        "counterevidence": "The value is base64-encoded when the app sets it, but base64 is reversible and does not provide integrity or authenticity."
+      },
+      "attackPath": {
+        "dataflow": {
+          "summary": "HTTP Cookie value -> b64decode -> pickle.loads -> Python deserialization semantics in the Flask process."
+        },
+        "reachability": {
+          "summary": "/cookie is registered for GET and POST and the cookie read path executes on non-POST requests when the cookie is present."
+        },
+        "prerequisites": [
+          "The attacker can reach /cookie.",
+          "The attacker can set a value cookie in their request."
+        ]
+      },
+      "impact": "A crafted pickle stream may execute code or instantiate attacker-chosen objects in the application process, leading to process compromise or denial of service.",
+      "remediation": "Do not deserialize pickle data from clients. Store only simple signed JSON or server-side session identifiers, and protect client-side state with an authenticated integrity mechanism."
+    },
+    {
+      "findingId": "BF-STD-002",
+      "ruleId": "os-command-injection-lookup",
+      "title": "DNS lookup route concatenates form input into an OS command",
+      "status": "confirmed",
+      "severity": "high",
+      "confidence": "high",
+      "taxonomy": {
+        "category": "command injection",
+        "cwe": [
+          "CWE-78"
+        ]
+      },
+      "affectedComponents": [
+        "lookup_workflow"
+      ],
+      "entryPoints": [
+        "POST /lookup",
+        "Form field: address"
+      ],
+      "relatedThreats": [
+        "T002"
+      ],
+      "relatedScanFocus": [
+        "SF-01",
+        "SF-02",
+        "SF-04"
+      ],
+      "locations": [
+        {
+          "path": "main.py",
+          "startLine": 172,
+          "endLine": 172
+        },
+        {
+          "path": "main.py",
+          "startLine": 357,
+          "endLine": 360
+        }
+      ],
+      "codeEvidence": [
+        {
+          "id": "BF-STD-002-E1",
+          "label": "Command helper invokes os.popen",
+          "path": "main.py",
+          "startLine": 171,
+          "endLine": 172,
+          "language": "python",
+          "code": "def rp(command):\n    return popen(command).read()",
+          "explanation": "The helper passes a command string to os.popen, which executes it through the operating-system command processor."
+        },
+        {
+          "id": "BF-STD-002-E2",
+          "label": "Address form value is concatenated into command string",
+          "path": "main.py",
+          "startLine": 356,
+          "endLine": 360,
+          "language": "python",
+          "code": "if request.method == 'POST':\n        address = request.form['address']\n    return \"\"\"\n    <html>\n       <body>\"\"\" + \"Result:\\n<br>\\n\" + (rp(\"nslookup \" + address).replace('\\n', '\\n<br>')  if address else \"\") + \"\"\"",
+          "explanation": "The address field flows into the command string without validation, escaping, or argument-vector separation."
+        }
+      ],
+      "rootCause": {
+        "summary": "Untrusted form data is concatenated into a shell command and executed through os.popen."
+      },
+      "validation": {
+        "summary": "Static validation confirmed a direct form-input-to-command path. No command payload was executed.",
+        "method": "static source review",
+        "counterevidence": "No allowlist, subprocess argument list, or shell-disabled execution path is present."
+      },
+      "attackPath": {
+        "dataflow": {
+          "summary": "POST /lookup address -> string concatenation into nslookup command -> rp() -> os.popen."
+        },
+        "reachability": {
+          "summary": "/lookup accepts unauthenticated GET and POST requests."
+        },
+        "prerequisites": [
+          "The attacker can reach /lookup.",
+          "The runtime shell honors injected command syntax."
+        ]
+      },
+      "impact": "An attacker can potentially execute arbitrary host commands with the Flask process privileges, exposing local files, environment data, database credentials, or availability.",
+      "remediation": "Avoid shell command construction. Use a DNS resolver library or invoke subprocess with a fixed executable and validated argument list, with shell disabled."
+    },
+    {
+      "findingId": "BF-STD-003",
+      "ruleId": "python-eval-expression-injection",
+      "title": "Expression evaluation route executes user input with eval",
+      "status": "confirmed",
+      "severity": "high",
+      "confidence": "high",
+      "taxonomy": {
+        "category": "code injection",
+        "cwe": [
+          "CWE-94"
+        ]
+      },
+      "affectedComponents": [
+        "evaluate_workflow"
+      ],
+      "entryPoints": [
+        "POST /evaluate",
+        "Form field: expression"
+      ],
+      "relatedThreats": [
+        "T003"
+      ],
+      "relatedScanFocus": [
+        "SF-01",
+        "SF-02"
+      ],
+      "locations": [
+        {
+          "path": "main.py",
+          "startLine": 379,
+          "endLine": 379
+        }
+      ],
+      "codeEvidence": [
+        {
+          "id": "BF-STD-003-E1",
+          "label": "Form expression is evaluated as Python code",
+          "path": "main.py",
+          "startLine": 375,
+          "endLine": 379,
+          "language": "python",
+          "code": "if request.method == 'POST':\n        expression = request.form['expression']\n    return \"\"\"\n    <html>\n       <body>\"\"\" + \"Result: \" + (str(eval(expression)).replace('\\n', '\\n<br>')  if expression else \"\") + \"\"\"",
+          "explanation": "The expression field is evaluated directly with Python eval in the application process."
+        }
+      ],
+      "rootCause": {
+        "summary": "The route treats untrusted HTTP input as executable Python expression text."
+      },
+      "validation": {
+        "summary": "Static validation confirmed direct use of eval on request.form data. No runtime expression was submitted.",
+        "method": "static source review",
+        "counterevidence": "No restricted globals, sandbox, parser, or expression allowlist is supplied to eval."
+      },
+      "attackPath": {
+        "dataflow": {
+          "summary": "POST /evaluate expression -> eval(expression) -> Python interpreter execution context."
+        },
+        "reachability": {
+          "summary": "/evaluate accepts unauthenticated GET and POST requests."
+        },
+        "prerequisites": [
+          "The attacker can reach /evaluate."
+        ]
+      },
+      "impact": "Attacker-controlled Python expression execution can compromise the Flask process, read in-memory configuration/secrets, access files, or disrupt service.",
+      "remediation": "Remove eval for untrusted input. Implement a safe expression parser or a strict allowlist of supported operations with no access to Python objects or globals."
+    },
+    {
+      "findingId": "BF-STD-004",
+      "ruleId": "xxe-enabled-xml-parser",
+      "title": "XML parser enables DTD loading and network access for user-supplied XML",
+      "status": "confirmed",
+      "severity": "medium",
+      "confidence": "high",
+      "taxonomy": {
+        "category": "XML external entity",
+        "cwe": [
+          "CWE-611"
+        ]
+      },
+      "affectedComponents": [
+        "xml_workflow"
+      ],
+      "entryPoints": [
+        "POST /xml",
+        "Form field: xml"
+      ],
+      "relatedThreats": [
+        "T004"
+      ],
+      "relatedScanFocus": [
+        "SF-01",
+        "SF-03",
+        "SF-04"
+      ],
+      "locations": [
+        {
+          "path": "main.py",
+          "startLine": 397,
+          "endLine": 399
+        }
+      ],
+      "codeEvidence": [
+        {
+          "id": "BF-STD-004-E1",
+          "label": "XML parser allows network access and DTD loading",
+          "path": "main.py",
+          "startLine": 395,
+          "endLine": 400,
+          "language": "python",
+          "code": "if request.method == 'POST':\n        xml = request.form['xml']\n        parser = etree.XMLParser(no_network=False, dtd_validation=False, load_dtd=True, huge_tree=True)\n        #try:\n        doc = etree.fromstring(xml.encode(), parser)\n        parsed_xml = etree.tostring(doc).decode('utf8')",
+          "explanation": "The route parses attacker-controlled XML with DTD loading enabled and network access not disabled."
+        }
+      ],
+      "rootCause": {
+        "summary": "Untrusted XML is parsed with lxml options that permit DTD processing and network access."
+      },
+      "validation": {
+        "summary": "Static validation confirmed unsafe parser configuration and direct parsing of request data. Entity resolution was not tested dynamically.",
+        "method": "static source review",
+        "counterevidence": "The route escapes serialized output before HTML rendering, but that does not prevent parser-side file or network access."
+      },
+      "attackPath": {
+        "dataflow": {
+          "summary": "POST /xml xml -> etree.XMLParser(no_network=False, load_dtd=True) -> etree.fromstring."
+        },
+        "reachability": {
+          "summary": "/xml accepts unauthenticated GET and POST requests."
+        },
+        "prerequisites": [
+          "The lxml/libxml2 runtime resolves the submitted external entity or DTD construct.",
+          "The process can access useful local files or network destinations."
+        ]
+      },
+      "impact": "An attacker may be able to read process-accessible files, induce server-side network requests, or trigger parser resource exhaustion depending on runtime behavior.",
+      "remediation": "Disable DTD and external entity processing for untrusted XML. Use a hardened XML parser configuration with network access disabled and entity resolution blocked."
+    },
+    {
+      "findingId": "BF-STD-005",
+      "ruleId": "cbc-padding-oracle-config",
+      "title": "Config endpoint decrypts attacker-controlled ciphertext and returns padding errors",
+      "status": "confirmed",
+      "severity": "medium",
+      "confidence": "high",
+      "taxonomy": {
+        "category": "cryptographic oracle",
+        "cwe": [
+          "CWE-209",
+          "CWE-327"
+        ]
+      },
+      "affectedComponents": [
+        "config_workflow"
+      ],
+      "entryPoints": [
+        "GET /config?key=..."
+      ],
+      "relatedThreats": [
+        "T005"
+      ],
+      "relatedScanFocus": [
+        "SF-01",
+        "SF-03",
+        "SF-04"
+      ],
+      "locations": [
+        {
+          "path": "main.py",
+          "startLine": 140,
+          "endLine": 168
+        },
+        {
+          "path": "main.py",
+          "startLine": 428,
+          "endLine": 433
+        }
+      ],
+      "codeEvidence": [
+        {
+          "id": "BF-STD-005-E1",
+          "label": "AES-CBC decrypt returns padding-specific errors",
+          "path": "main.py",
+          "startLine": 140,
+          "endLine": 168,
+          "language": "python",
+          "code": "def unpad(value, bs=BLOCKSIZE):\n    pv = value[-1]\n    if pv > bs:\n        raise Exception('Bad padding')\n    padding = value[-pv:]\n    if len(padding) != pv or len(set([a for a in padding])) != 1:\n        raise Exception('Bad padding')\n    return value[:-pv]\n...\ndef decrypt(value, key):\n    iv = value[:BLOCKSIZE]\n    decrypt_value = value[BLOCKSIZE:]\n    cipher = AES.new(key, AES.MODE_CBC, iv)\n    decrypted = cipher.decrypt(decrypt_value)\n    return unpad(decrypted)",
+          "explanation": "The decrypt path uses CBC mode and raises distinguishable padding exceptions."
+        },
+        {
+          "id": "BF-STD-005-E2",
+          "label": "Chosen ciphertext is decrypted and exception text is returned",
+          "path": "main.py",
+          "startLine": 428,
+          "endLine": 433,
+          "language": "python",
+          "code": "if key:\n        try:\n            kv = unhexlify(key)\n            decrypted_key = decrypt(kv, KEY).decode('utf8')\n        except Exception as e:\n            return str(e)",
+          "explanation": "The key query parameter is attacker-controlled ciphertext and decryption errors are returned in the HTTP response."
+        }
+      ],
+      "rootCause": {
+        "summary": "The config lookup design exposes unauthenticated AES-CBC decryption of chosen ciphertext and leaks exception text."
+      },
+      "validation": {
+        "summary": "Static validation confirmed attacker-controlled ciphertext reaches decrypt() and padding errors are returned. No iterative oracle exploitation was performed.",
+        "method": "static source review",
+        "counterevidence": "The endpoint restricts normal links to app_* config keys, but that restriction is applied before attacker-chosen key values are decrypted."
+      },
+      "attackPath": {
+        "dataflow": {
+          "summary": "GET /config key -> unhexlify -> AES-CBC decrypt -> unpad -> exception text returned."
+        },
+        "reachability": {
+          "summary": "/config is a GET route and does not require authentication."
+        },
+        "prerequisites": [
+          "The attacker can submit chosen key parameter values.",
+          "The response differences are observable across ciphertext attempts."
+        ]
+      },
+      "impact": "A padding oracle can allow attackers to recover or forge encrypted config-key values, potentially exposing non-viewable CONFIG entries such as secret-bearing values.",
+      "remediation": "Use authenticated encryption or add a message authentication check before decryption. Do not return raw cryptographic exception details to clients."
+    },
+    {
+      "findingId": "BF-STD-006",
+      "ruleId": "jinja-template-injection-sayhi",
+      "title": "Greeting route renders user input as Jinja template source",
+      "status": "confirmed",
+      "severity": "high",
+      "confidence": "high",
+      "taxonomy": {
+        "category": "server-side template injection",
+        "cwe": [
+          "CWE-1336"
+        ]
+      },
+      "affectedComponents": [
+        "sayhi_workflow"
+      ],
+      "entryPoints": [
+        "POST /sayhi",
+        "Form field: name"
+      ],
+      "relatedThreats": [
+        "T006"
+      ],
+      "relatedScanFocus": [
+        "SF-01",
+        "SF-02",
+        "SF-04"
+      ],
+      "locations": [
+        {
+          "path": "main.py",
+          "startLine": 454,
+          "endLine": 468
+        }
+      ],
+      "codeEvidence": [
+        {
+          "id": "BF-STD-006-E1",
+          "label": "User name is interpolated into template before rendering",
+          "path": "main.py",
+          "startLine": 453,
+          "endLine": 468,
+          "language": "python",
+          "code": "if request.method == 'POST':\n      name = '<br>Hello %s!<br><br>' %(request.form['name'])\n...\n   template = \"\"\"\n   <html>\n...\n      %s\n...\n   \"\"\" %(name)\n   return render_template_string(template)",
+          "explanation": "The name field is inserted into the template source and then rendered by Jinja, rather than being passed as an escaped template variable."
+        }
+      ],
+      "rootCause": {
+        "summary": "The route constructs a Jinja template string with untrusted data before calling render_template_string."
+      },
+      "validation": {
+        "summary": "Static validation confirmed request.form['name'] becomes template source. No template payload was executed.",
+        "method": "static source review",
+        "counterevidence": "No Jinja sandbox or escaping is applied before the render_template_string call."
+      },
+      "attackPath": {
+        "dataflow": {
+          "summary": "POST /sayhi name -> string interpolation into template -> render_template_string."
+        },
+        "reachability": {
+          "summary": "/sayhi accepts unauthenticated GET and POST requests."
+        },
+        "prerequisites": [
+          "The attacker can submit name content containing Jinja syntax."
+        ]
+      },
+      "impact": "Server-side template injection can expose application internals and may lead to code execution depending on reachable Jinja objects and runtime configuration.",
+      "remediation": "Render a fixed template and pass user data as a variable. Rely on template escaping for output, and avoid render_template_string with user-controlled template source."
+    },
+    {
+      "findingId": "BF-STD-007",
+      "ruleId": "sql-injection-listservices-category",
+      "title": "Category query parameter is concatenated into SQL",
+      "status": "confirmed",
+      "severity": "high",
+      "confidence": "high",
+      "taxonomy": {
+        "category": "SQL injection",
+        "cwe": [
+          "CWE-89"
+        ]
+      },
+      "affectedComponents": [
+        "services_workflow",
+        "database_bootstrap"
+      ],
+      "entryPoints": [
+        "GET /listservices?category=..."
+      ],
+      "relatedThreats": [
+        "T007",
+        "T009"
+      ],
+      "relatedScanFocus": [
+        "SF-01",
+        "SF-05"
+      ],
+      "locations": [
+        {
+          "path": "main.py",
+          "startLine": 476,
+          "endLine": 484
+        },
+        {
+          "path": "main.py",
+          "startLine": 594,
+          "endLine": 594
+        }
+      ],
+      "codeEvidence": [
+        {
+          "id": "BF-STD-007-E1",
+          "label": "Query parameter is formatted into WHERE clause",
+          "path": "main.py",
+          "startLine": 476,
+          "endLine": 484,
+          "language": "python",
+          "code": "category = request.args.get(param)\n...\nif category:\n        where = \" WHERE {} = '{}'\".format(param, category)\n...\ncursor.execute(query_build('SELECT * from public_stuff{}'.format(where)))",
+          "explanation": "The category query parameter is inserted into SQL with string formatting and executed by the database cursor."
+        },
+        {
+          "id": "BF-STD-007-E2",
+          "label": "Non-Oracle queries receive statement terminator",
+          "path": "main.py",
+          "startLine": 594,
+          "endLine": 594,
+          "language": "python",
+          "code": "query_build = lambda x: x if args.database_type == 'oracle' else x + ';'",
+          "explanation": "The query builder appends a semicolon for most database types, reinforcing that raw SQL strings are built and submitted."
+        }
+      ],
+      "rootCause": {
+        "summary": "The route builds SQL with string interpolation instead of parameterized queries."
+      },
+      "validation": {
+        "summary": "Static validation confirmed the category query parameter reaches cursor.execute as part of a SQL string. No database payload was executed.",
+        "method": "static source review",
+        "counterevidence": "The base query targets public_stuff, but the user-controlled category value is not bound as a parameter."
+      },
+      "attackPath": {
+        "dataflow": {
+          "summary": "GET /listservices category -> WHERE string -> SELECT string -> cursor.execute."
+        },
+        "reachability": {
+          "summary": "/listservices is a GET route and does not require authentication."
+        },
+        "prerequisites": [
+          "The database backend accepts attacker-controlled SQL syntax in the constructed statement.",
+          "The configured database account has access to data or operations of interest."
+        ]
+      },
+      "impact": "An attacker may alter query semantics, read unintended table data such as seeded secret_stuff rows, trigger errors, or affect database state depending on backend and privileges.",
+      "remediation": "Use parameterized queries for category filtering and avoid constructing SQL from request parameters."
+    },
+    {
+      "findingId": "BF-STD-008",
+      "ruleId": "jwt-none-hs256-algorithm-confusion",
+      "title": "JWT verifier accepts None and HS256 algorithms based on untrusted token header",
+      "status": "confirmed",
+      "severity": "high",
+      "confidence": "high",
+      "taxonomy": {
+        "category": "authentication bypass",
+        "cwe": [
+          "CWE-287",
+          "CWE-347"
+        ]
+      },
+      "affectedComponents": [
+        "jwt_workflow"
+      ],
+      "entryPoints": [
+        "GET /user",
+        "GET /user/jwks",
+        "Cookie: authentication"
+      ],
+      "relatedThreats": [
+        "T008"
+      ],
+      "relatedScanFocus": [
+        "SF-01",
+        "SF-03",
+        "SF-04"
+      ],
+      "locations": [
+        {
+          "path": "main.py",
+          "startLine": 32,
+          "endLine": 32
+        },
+        {
+          "path": "main.py",
+          "startLine": 216,
+          "endLine": 277
+        },
+        {
+          "path": "main.py",
+          "startLine": 510,
+          "endLine": 536
+        }
+      ],
+      "codeEvidence": [
+        {
+          "id": "BF-STD-008-E1",
+          "label": "Verifier allows RS256, HS256, and None",
+          "path": "main.py",
+          "startLine": 32,
+          "endLine": 32,
+          "language": "python",
+          "code": "ALLOWED_ALGORITHMS = ['RS256', 'HS256', 'None']",
+          "explanation": "The accepted algorithm list includes unsigned None tokens and symmetric HS256 in addition to RS256."
+        },
+        {
+          "id": "BF-STD-008-E2",
+          "label": "Verification dispatches from unverified header",
+          "path": "main.py",
+          "startLine": 267,
+          "endLine": 277,
+          "language": "python",
+          "code": "headers = jwt.get_unverified_header(token)\n    if headers.get('alg') not in algorithms:\n        raise Exception('Invalid algorithm specified')\n    if headers.get('alg') == 'RS256':\n        return verify_token_rsa(token, verify_key)\n    if headers.get('alg') == 'HS256':\n        return verify_token_hs256(token, verify_key)\n    if headers.get('alg') == 'None':\n        return verify_token_none(token, verify_key)",
+          "explanation": "The token's untrusted alg header selects the verification implementation."
+        },
+        {
+          "id": "BF-STD-008-E3",
+          "label": "None branch accepts empty signature",
+          "path": "main.py",
+          "startLine": 242,
+          "endLine": 261,
+          "language": "python",
+          "code": "def verify_token_none(token: str, key: bytes, audience: str = ALLOWED_AUDIENCE, issuer: str = APP_NAME):\n...\n    if parts[2] == '':\n        claims = json.loads(urlsafe_b64decode(parts[1] + '==').decode('utf8'))\n...\n        return claims",
+          "explanation": "The None branch returns claims from an unsigned token when the signature segment is empty and claims pass basic checks."
+        },
+        {
+          "id": "BF-STD-008-E4",
+          "label": "User page trusts sub claim for admin state and exposes JWKS",
+          "path": "main.py",
+          "startLine": 515,
+          "endLine": 536,
+          "language": "python",
+          "code": "token = request.cookies[AUTH_COOKIE]\n            claims = verify_token(token, VERIFY_KEY)\n...\n            if user == ADMIN_USER:\n                content = '<p><b>Admin achieved!</b></p>'\n...\ndef jwks():\n    pub = import_key(VERIFY_KEY)\n...\n    return json.dumps({'keys': [ {'kty': 'RSA', 'alg': 'RS256', 'kid': KEYID, 'use': 'sig', 'n': n_val, 'e': e_val} ]}, indent=4)",
+          "explanation": "The route uses the verified sub claim to determine admin display state and publishes public key material through JWKS."
+        }
+      ],
+      "rootCause": {
+        "summary": "JWT verification trusts the token header to select the verification algorithm and includes insecure None and HS256 branches."
+      },
+      "validation": {
+        "summary": "Static validation confirmed accepted None/HS256 branches and admin-state dependence on token claims. No forged token was submitted.",
+        "method": "static source review",
+        "counterevidence": "The manual branches do check issuer, audience, and time claims, but those values are attacker-controllable inside an unsigned or attacker-signed token candidate."
+      },
+      "attackPath": {
+        "dataflow": {
+          "summary": "Cookie authentication token -> verify_token -> unverified alg header dispatch -> claims -> sub == admin check."
+        },
+        "reachability": {
+          "summary": "/user reads the authentication cookie if present; /user/jwks is exposed as GET."
+        },
+        "prerequisites": [
+          "The attacker can set an authentication cookie.",
+          "The attacker can construct claims satisfying issuer, audience, nbf, iat, and exp checks."
+        ]
+      },
+      "impact": "An attacker can potentially forge an admin subject claim, bypassing the intended guest identity and any future admin-gated behavior built on this check.",
+      "remediation": "Pin verification to a single expected algorithm for the key type, reject None, do not use public RSA key bytes as an HMAC secret, and avoid dispatching verification behavior from untrusted token headers."
+    }
+  ],
+  "suspectedIssues": [],
+  "coverageLimitations": [
+    "No runtime exploit requests were sent.",
+    "No external database backend was selected or tested.",
+    "Dependency advisories were not checked against exact installed versions because no lockfile or environment inventory is present."
+  ]
+}

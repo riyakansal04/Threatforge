@@ -48,6 +48,7 @@ export const COLS = {
   threats: [
     { label: 'ID', keys: ['threat_id'] },
     { label: 'Scenario', keys: ['scenario'] },
+    { label: 'Status', keys: ['status'] },
     { label: 'Actor', keys: ['actor'] },
     { label: 'Entry point', keys: ['entry_point'] },
     { label: 'Components', keys: ['affected_components'] },
@@ -61,6 +62,8 @@ export const COLS = {
     { label: 'To', keys: ['target_threat_id'] },
     { label: 'Type', keys: ['relationship_type'] },
     { label: 'Why', keys: ['description'] },
+    { label: 'Shared elements', keys: ['shared_elements'] },
+    { label: 'Modeling effect', keys: ['modeling_effect'] },
   ],
   scan_focus: [
     { label: 'Scan type', keys: ['scan_type'] },
@@ -89,12 +92,14 @@ export const COLS = {
   ],
   triage_decisions: [
     { label: 'Finding', keys: ['finding_id'] },
-    { label: 'Classification', keys: ['classification'] },
+    { label: 'Verdict', keys: ['classification'] },
+    { label: 'Rank', keys: ['exploitability_stack_rank'] },
+    { label: 'Severity', keys: ['severity'] },
+    { label: 'Confidence', keys: ['confidence'] },
     { label: 'Supported', keys: ['assessment_supported', 'implementation_support'] },
     { label: 'Reachability', keys: ['reachability'] },
     { label: 'Duplicate of', keys: ['duplicate_of'] },
-    { label: 'Group', keys: ['root_cause_group_id', 'consolidated_finding_id'] },
-    { label: 'Reasoning', keys: ['decision_reasoning', 'correlation_reasoning'] },
+    { label: 'Reasoning', keys: ['technical_conclusion', 'decision_reasoning', 'correlation_reasoning'] },
   ],
   finding_relationships: [
     { label: 'From', keys: ['source_finding_id'] },
@@ -149,10 +154,15 @@ export const COLS = {
 };
 
 export const FIELD_LABELS = {
+  executive_summary: 'Executive summary',
   purpose: 'Review summary',
   repository_scope: 'Repository scope',
   business_functionality: 'Application behavior',
+  primary_workflows: 'Application workflows',
   critical_business_functions: 'Critical workflows',
+  summary: 'Threat model summary',
+  application_context: 'Application context',
+  security_objectives: 'Security objectives',
   entry_points: 'Entry points',
   startup_flow: 'Startup flow',
   runtime_processes: 'Runtime processes',

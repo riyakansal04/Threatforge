@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "threatforge.remediation-coverage.v1",
+  "findingsReceived": [
+    "BF-STD-001",
+    "BF-STD-002",
+    "BF-STD-003",
+    "BF-STD-004",
+    "BF-STD-005",
+    "BF-STD-006",
+    "BF-STD-007",
+    "BF-STD-008"
+  ],
+  "findingsProcessed": [
+    "BF-STD-001",
+    "BF-STD-002",
+    "BF-STD-003",
+    "BF-STD-004",
+    "BF-STD-005",
+    "BF-STD-006",
+    "BF-STD-007",
+    "BF-STD-008"
+  ],
+  "patchesGenerated": {
+    "BF-STD-001": "patches/BF-STD-001.md",
+    "BF-STD-002": "patches/BF-STD-002.md",
+    "BF-STD-003": "patches/BF-STD-003.md",
+    "BF-STD-004": "patches/BF-STD-004.md",
+    "BF-STD-005": "patches/BF-STD-005.md",
+    "BF-STD-006": "patches/BF-STD-006.md",
+    "BF-STD-007": "patches/BF-STD-007.md",
+    "BF-STD-008": "patches/BF-STD-008.md"
+  },
+  "testsGenerated": {
+    "BF-STD-001": "tests/BF-STD-001_test.py.proposed",
+    "BF-STD-002": "tests/BF-STD-002_test.py.proposed",
+    "BF-STD-003": "tests/BF-STD-003_test.py.proposed",
+    "BF-STD-004": "tests/BF-STD-004_test.py.proposed",
+    "BF-STD-005": "tests/BF-STD-005_test.py.proposed",
+    "BF-STD-006": "tests/BF-STD-006_test.py.proposed",
+    "BF-STD-007": "tests/BF-STD-007_test.py.proposed",
+    "BF-STD-008": "tests/BF-STD-008_test.py.proposed"
+  },
+  "excludedFindings": [],
+  "sourceModified": false,
+  "limitations": [
+    "Per-finding patches target the original source baseline. Applying multiple patches together requires normal merge review for shared imports/helpers."
+  ]
+}

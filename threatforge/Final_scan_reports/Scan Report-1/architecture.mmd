@@ -1,0 +1,70 @@
+flowchart TD
+    user[Browser / HTTP Client]
+    flask[Flask App\nmain.py]
+    index[GET /\nRoute catalog]
+    cookie[GET/POST /cookie\nPickle cookie workflow]
+    lookup[GET/POST /lookup\nDNS lookup workflow]
+    evaluate[GET/POST /evaluate\nPython eval workflow]
+    xml[GET/POST /xml\nXML parser workflow]
+    config[GET /config\nEncrypted config lookup]
+    sayhi[GET/POST /sayhi\nTemplate greeting]
+    services[GET /listservices\nProducts/services table]
+    jwtUser[GET /user\nJWT user page]
+    jwks[GET /user/jwks\nJWKS endpoint]
+    login[GET/POST /user/login\nGuest login]
+
+    cookieJar[(Client Cookies\nvalue, authentication)]
+    osShell[Host OS Shell\nnslookup via os.popen]
+    pyRuntime[Python Runtime\neval]
+    lxmlParser[lxml XMLParser]
+    jinja[Jinja / Flask\nrender_template_string]
+    crypto[Crypto Helpers\nAES-CBC, RSA, JWT]
+    configStore[(In-memory CONFIG)]
+    dbBootstrap[Startup DB Bootstrap\nargparse + dbmodule]
+    db[(Relational DB\nSQLite default or Postgres/MySQL/MSSQL/Oracle)]
+    tables[(Tables\npublic_stuff, secret_stuff)]
+    tempFiles[(Temp key files\nprivate.pem, public.pem)]
+
+    user --> flask
+    flask --> index
+    flask --> cookie
+    flask --> lookup
+    flask --> evaluate
+    flask --> xml
+    flask --> config
+    flask --> sayhi
+    flask --> services
+    flask --> jwtUser
+    flask --> jwks
+    flask --> login
+
+    cookie <--> cookieJar
+    login --> crypto
+    login --> cookieJar
+    jwtUser --> cookieJar
+    jwtUser --> crypto
+    jwks --> crypto
+
+    lookup --> osShell
+    evaluate --> pyRuntime
+    xml --> lxmlParser
+    sayhi --> jinja
+
+    config --> crypto
+    config --> configStore
+    crypto --> tempFiles
+
+    dbBootstrap --> db
+    dbBootstrap --> tables
+    db --> tables
+    services --> db
+    services --> tables
+
+    classDef confirmed fill:#e8f4ff,stroke:#2f6f9f,color:#102033;
+    classDef external fill:#fff4df,stroke:#a66a00,color:#1f1600;
+    classDef data fill:#edf8ed,stroke:#377c37,color:#102010;
+
+    class flask,index,cookie,lookup,evaluate,xml,config,sayhi,services,jwtUser,jwks,login,dbBootstrap,crypto confirmed;
+    class osShell,pyRuntime,lxmlParser,jinja external;
+    class cookieJar,configStore,db,tables,tempFiles data;
+

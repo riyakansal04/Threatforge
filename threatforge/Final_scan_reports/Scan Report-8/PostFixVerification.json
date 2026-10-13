@@ -1,0 +1,160 @@
+{
+  "schemaVersion": "threatforge.post-fix-verification.v1",
+  "generatedAt": "2026-10-05T00:00:00+05:30",
+  "processingIdentity": {
+    "name": "Post-Fix Verification",
+    "mode": "focused verification",
+    "sourceRoot": "C:\\Users\\riyakansal\\OneDrive - Nagarro\\Desktop\\Codebase",
+    "outputFolder": "Scan Report-9"
+  },
+  "verificationScope": {
+    "remediationId": "selected-remediations-BF-STD-001-BF-STD-002-BF-STD-003",
+    "findingIds": ["BF-STD-001", "BF-STD-002", "BF-STD-003"],
+    "scopeReason": "The implemented change request explicitly applied only BF-STD-001, BF-STD-002, and BF-STD-003 from Scan Report-8.",
+    "excludedFindings": ["BF-STD-004", "BF-STD-005", "BF-STD-006", "BF-STD-007", "BF-STD-008"]
+  },
+  "inputReferences": {
+    "originalTriagedFindings": "Scan Report-5/TriageFindings.json",
+    "remediationProposal": "Scan Report-8/RemediationRecords.json",
+    "implementedSource": "main.py",
+    "implementedTests": "tests/test_selected_security_remediations.py"
+  },
+  "verificationCommands": [
+    {
+      "command": "python -m py_compile main.py tests\\test_selected_security_remediations.py",
+      "result": "passed"
+    },
+    {
+      "command": "python -m pytest -p no:cacheprovider tests\\test_selected_security_remediations.py",
+      "result": "passed: 6 tests"
+    },
+    {
+      "command": "rg -n \"pickle|from os import popen|def rp\\(|eval\\(\" main.py",
+      "result": "passed: no matches; rg returned exit code 1 because no dangerous sink pattern was found"
+    },
+    {
+      "command": "rg -n \"encode_cookie_value|decode_cookie_value|validate_lookup_address|lookup_address|safe_eval_expression|def cookie|def lookup|def evaluate\" main.py tests\\test_selected_security_remediations.py",
+      "result": "passed: expected remediation helpers, route usages, and tests were present"
+    }
+  ],
+  "Finding": [
+    {
+      "findingId": "BF-STD-001",
+      "title": "Client-controlled cookie is deserialized with pickle",
+      "originalRootCause": "The /cookie route base64-decoded a browser-controlled value cookie and passed it to pickle.loads.",
+      "implementedChangeReviewed": "main.py now defines encode_cookie_value and decode_cookie_value using JSON. The /cookie route calls decode_cookie_value for the incoming value cookie, catches invalid values, HTML-escapes display output, and sets cookies with encode_cookie_value.",
+      "comparisonToProposal": "Matches the intended Scan Report-8 remediation for BF-STD-001 in substance. The implementation keeps client-side cookie storage but removes pickle deserialization from the client-controlled boundary.",
+      "verificationChecks": [
+        {
+          "check": "Static sink check",
+          "result": "No pickle import or pickle.loads/pickle.dumps usage was found in main.py by the focused rg check."
+        },
+        {
+          "check": "Security regression test",
+          "result": "test_cookie_uses_json_not_pickle_and_rejects_invalid_cookie and test_cookie_route_displays_invalid_cookie_without_deserializing passed."
+        },
+        {
+          "check": "Legitimate behavior",
+          "result": "JSON-encoded string cookie values round-trip through encode_cookie_value/decode_cookie_value."
+        }
+      ],
+      "technicalConclusion": "Evidence indicates the original weakness is resolved within the tested scope.",
+      "verifyFixSkillStatus": "fixed",
+      "technicalClosureRecommendation": "Appears technically ready for closure review for BF-STD-001, subject to reviewer acceptance of client-side JSON cookie storage and invalidating old pickle cookies.",
+      "evidenceReferences": [
+        {"path": "main.py", "startLine": 174, "endLine": 183},
+        {"path": "main.py", "startLine": 385, "endLine": 414},
+        {"path": "tests/test_selected_security_remediations.py", "startLine": 8, "endLine": 23}
+      ],
+      "limitations": [
+        "No malicious pickle payload was executed after the fix; verification used source review and focused tests.",
+        "Previously issued pickle cookies are treated as invalid rather than migrated."
+      ]
+    },
+    {
+      "findingId": "BF-STD-002",
+      "title": "DNS lookup route concatenates form input into an OS command",
+      "originalRootCause": "The /lookup route concatenated request.form['address'] into an nslookup command executed through os.popen.",
+      "implementedChangeReviewed": "main.py now validates addresses with validate_lookup_address and resolves them with socket.getaddrinfo through lookup_address. The /lookup route calls lookup_address and escapes rendered output.",
+      "comparisonToProposal": "Matches the intended Scan Report-8 remediation for BF-STD-002 in substance. The implementation removes the shell boundary and validates host/IP input before resolver use.",
+      "verificationChecks": [
+        {
+          "check": "Static sink check",
+          "result": "No from os import popen, def rp, or os.popen-based helper remained in main.py by the focused rg check."
+        },
+        {
+          "check": "Security regression test",
+          "result": "test_lookup_rejects_command_metacharacters passed, showing example shell metacharacter input is rejected before lookup."
+        },
+        {
+          "check": "Legitimate behavior",
+          "result": "test_lookup_uses_resolver_without_shell passed with monkeypatched getaddrinfo returning a valid resolved address."
+        }
+      ],
+      "technicalConclusion": "Evidence indicates the original weakness is resolved within the tested scope.",
+      "verifyFixSkillStatus": "fixed",
+      "technicalClosureRecommendation": "Appears technically ready for closure review for BF-STD-002, with the noted behavior change from raw nslookup output to resolver address output.",
+      "evidenceReferences": [
+        {"path": "main.py", "startLine": 186, "endLine": 207},
+        {"path": "main.py", "startLine": 421, "endLine": 439},
+        {"path": "tests/test_selected_security_remediations.py", "startLine": 27, "endLine": 39}
+      ],
+      "limitations": [
+        "No real DNS/network lookup was required for tests; resolver behavior was tested with monkeypatching.",
+        "The output format changed from nslookup text to resolved addresses."
+      ]
+    },
+    {
+      "findingId": "BF-STD-003",
+      "title": "Expression evaluation route executes user input with eval",
+      "originalRootCause": "The /evaluate route passed request.form['expression'] directly to Python eval.",
+      "implementedChangeReviewed": "main.py now defines safe_eval_expression using ast.parse in eval mode and a strict operator allowlist. The /evaluate route calls safe_eval_expression and escapes rendered output.",
+      "comparisonToProposal": "Matches the intended Scan Report-8 remediation for BF-STD-003 in substance. The implementation replaces general Python evaluation with arithmetic-only evaluation.",
+      "verificationChecks": [
+        {
+          "check": "Static sink check",
+          "result": "No eval( usage remained in main.py by the focused rg check."
+        },
+        {
+          "check": "Security regression test",
+          "result": "test_safe_eval_preserves_arithmetic_and_rejects_code_execution passed; __import__(\"os\").system(\"id\") raises ValueError."
+        },
+        {
+          "check": "Route behavior test",
+          "result": "test_evaluate_route_renders_result_without_executing_code passed; arithmetic returns Result: 7 and malicious expression returns Unsupported expression."
+        }
+      ],
+      "technicalConclusion": "Evidence indicates the original weakness is resolved within the tested scope.",
+      "verifyFixSkillStatus": "fixed",
+      "technicalClosureRecommendation": "Appears technically ready for closure review for BF-STD-003, assuming the intended feature only needs arithmetic expressions.",
+      "evidenceReferences": [
+        {"path": "main.py", "startLine": 210, "endLine": 236},
+        {"path": "main.py", "startLine": 445, "endLine": 463},
+        {"path": "tests/test_selected_security_remediations.py", "startLine": 42, "endLine": 57}
+      ],
+      "limitations": [
+        "The evaluator supports only numeric constants and selected arithmetic operators.",
+        "No broad code-injection scan was performed; verification was limited to the original eval path and direct helper/route tests."
+      ]
+    }
+  ],
+  "verifyFixResultContract": {
+    "results": [
+      {
+        "id": "BF-STD-001",
+        "status": "fixed",
+        "evidence": "main.py uses JSON encode/decode helpers at lines 174-183 and /cookie uses decode_cookie_value/encode_cookie_value at lines 394 and 413. Focused pytest passed, and rg found no pickle usage in main.py."
+      },
+      {
+        "id": "BF-STD-002",
+        "status": "fixed",
+        "evidence": "main.py uses validate_lookup_address/lookup_address at lines 189-207 and /lookup calls lookup_address at line 427. Focused pytest passed, and rg found no popen/rp command execution path in main.py."
+      },
+      {
+        "id": "BF-STD-003",
+        "status": "fixed",
+        "evidence": "main.py uses safe_eval_expression at lines 223-236 and /evaluate calls it at line 451. Focused pytest passed, and rg found no eval( usage in main.py."
+      }
+    ]
+  }
+}

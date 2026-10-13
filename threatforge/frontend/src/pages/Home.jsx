@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Bug,
   CheckCircle2,
@@ -13,13 +14,24 @@ import {
 import { api } from '../api/client.js';
 import { useApi } from '../api/useApi.js';
 import LifecycleFlow from '../components/LifecycleFlow.jsx';
-import { StagePreviewCard } from './LifecycleFlowPage.jsx';
 import { flowNodes } from '../lib/lifecycle.js';
 import { sevClass } from '../lib/scanning.js';
 
 const n = (value) => Number(value) || 0;
 const arr = (value) => (Array.isArray(value) ? value : value ? [value] : []);
 const keyOf = (value) => String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+
+function uniqueCount(fields, pick) {
+  const seen = new Set();
+  fields.forEach((field) => {
+    arr(field).forEach((item) => {
+      const raw = pick(item);
+      const key = String(raw || '').toLowerCase().replace(/`/g, '').replace(/\/+$/, '').trim();
+      if (key) seen.add(key);
+    });
+  });
+  return seen.size;
+}
 
 const SEVERITY = [
   ['critical', '#ff7568'],
@@ -95,10 +107,18 @@ function deriveModel({ nodes, overview, repo, threatModel, baseline, findings, s
   const sb = baseline?.security_baseline || {};
 
   const attackSurface = {
-    entry: arr(repoData.entry_points).length,
-    api: arr(repoData.apis).length + arr(repoData.routes).length + arr(repoData.externally_accessible_interfaces).length,
+    entry: Math.max(arr(repoData.entry_points).length, arr(repoData.startup_flow).length, arr(repoData.runtime_processes).length),
+    api: uniqueCount(
+      [repoData.apis, repoData.routes, repoData.externally_accessible_interfaces],
+      (item) => (item && typeof item === 'object'
+        ? item.path_or_interface || item.path || item.route || item.interface || item.endpoint || item.url || item.name
+        : item)
+    ),
     data: arr(repoData.data_stores).length + arr(repoData.data_flows).length,
-    integration: arr(repoData.integrations).length + arr(repoData.external_services).length + arr(repoData.webhooks).length,
+    integration: uniqueCount(
+      [repoData.integrations, repoData.external_services, repoData.webhooks],
+      (item) => (item && typeof item === 'object' ? item.name || item.service || item.integration || item.url : item)
+    ),
     privileged: arr(repoData.privileged_functionality).length + arr(repoData.sensitive_processing).length,
   };
   const attackTotal = Object.values(attackSurface).reduce((sum, value) => sum + value, 0);
@@ -108,6 +128,11 @@ function deriveModel({ nodes, overview, repo, threatModel, baseline, findings, s
   const evidenceDepth = n(overview.scan_count) + nodes.reduce((sum, node) => sum + n(node.status.runs), 0);
   const readiness = clamp(Math.round((mappedPct * 0.45) + Math.min(evidenceDepth * 8, 32) + Math.min(scanFocus * 3, 23)));
   const surfacePressure = clamp(Math.round(Math.min(attackTotal * 6 + threatPressure * 4, 100)));
+  const triageMetrics = nodes.find((node) => node.stage.id === 'triage')?.status?.metrics || {};
+  const triageDecisions = n(triageMetrics.triage_decisions);
+  const triageApproved = n(triageMetrics.approved_for_priority);
+  const triageRejected = n(triageMetrics.rejected_for_priority);
+  const humanReviewsLeft = n(triageMetrics.pending_human_approval) || Math.max(triageDecisions - triageApproved - triageRejected, 0);
 
   const allFindings = arr(findings);
   const byScan = selectedScan === 'all' ? allFindings : allFindings.filter((finding) => findingScan(finding) === selectedScan);
@@ -132,11 +157,17 @@ function deriveModel({ nodes, overview, repo, threatModel, baseline, findings, s
     const label = findingCategory(finding);
     const key = keyOf(label);
     const severityKey = findingSeverity(finding);
-    acc[key] = acc[key] || { key, label, score: 0, count: 0 };
+    acc[key] = acc[key] || { key, label, score: 0, count: 0, severityCounts: {} };
     acc[key].score += RISK_WEIGHT[severityKey] || 1;
     acc[key].count += 1;
+    acc[key].severityCounts[severityKey] = (acc[key].severityCounts[severityKey] || 0) + 1;
     return acc;
-  }, {})).sort((a, b) => b.score - a.score).slice(0, 6);
+  }, {})).map((item) => {
+    const topSeverity = Object.entries(item.severityCounts)
+      .sort((a, b) => (RISK_WEIGHT[b[0]] || 0) - (RISK_WEIGHT[a[0]] || 0) || b[1] - a[1])[0]?.[0] || 'info';
+    const color = SEVERITY.find(([key]) => key === topSeverity)?.[1] || '#37e4b2';
+    return { ...item, topSeverity, color };
+  }).sort((a, b) => b.score - a.score || b.count - a.count || a.label.localeCompare(b.label)).slice(0, 6);
   return {
     mapped,
     mappedPct,
@@ -145,6 +176,7 @@ function deriveModel({ nodes, overview, repo, threatModel, baseline, findings, s
     attackTotal,
     threatPressure,
     scanFocus,
+    humanReviewsLeft,
     surfacePressure,
     scanSignals,
     severity,
@@ -283,7 +315,7 @@ function SeverityCard({ model, selectedSeverity, onSelectSeverity, selectedScan,
 function RiskConcentrationGraph({ model }) {
   const max = Math.max(...model.riskConcentration.map((item) => item.score), 1);
   return (
-    <article className="insight-card insight-card--wide">
+    <article className="insight-card insight-card--wide insight-card--risk-chart">
       <header className="insight-card__head">
         <div>
           <span>SECURITY RISK OVERVIEW</span>
@@ -296,7 +328,7 @@ function RiskConcentrationGraph({ model }) {
           {model.riskConcentration.map((item, index) => (
             <div className="risk-column" key={item.key} title={item.label}>
               <span>
-                <i style={{ height: `${Math.max((item.score / max) * 100, 12)}%`, '--delay': `${index * 70}ms` }} />
+                <i style={{ height: `${Math.max((item.score / max) * 92, 12)}%`, '--delay': `${index * 70}ms` }} />
               </span>
               <b title={item.label}>{item.label}</b>
               <em>{item.score} risk pts</em>
@@ -333,7 +365,7 @@ function GovernanceCard({ model }) {
       </header>
       <div className="readiness-case">
         <div className="readiness-case__gauge" style={{ '--score': `${readyPct}%` }}>
-          <span><strong>{readyPct}</strong><small>% ready</small></span>
+          <span><strong>{readyPct}%</strong><small>Ready</small></span>
         </div>
         <div className="readiness-case__checks">
           {readinessItems.map(([label, ready]) => (
@@ -349,56 +381,37 @@ function GovernanceCard({ model }) {
 }
 
 function Hero({ nodes, overview, statusError }) {
+  const navigate = useNavigate();
   const defaultId = nodes.find((node) => node.state === 'active')?.stage.id || nodes[0]?.stage.id || '';
   const [selectedId, setSelectedId] = useState('');
-  const [previewId, setPreviewId] = useState('');
-  const [touring, setTouring] = useState(false);
-  const [tourStep, setTourStep] = useState(-1);
-  const tourTimer = useRef(null);
-  const tourInterval = useRef(null);
-  const activeId = selectedId || defaultId;
-  const preview = nodes.find((node) => node.stage.id === previewId);
+  const [flowIndex, setFlowIndex] = useState(0);
 
   useEffect(() => {
     if (!nodes.length) return undefined;
-
-    const runFlow = () => {
-      clearTimeout(tourTimer.current);
-      clearInterval(tourInterval.current);
-      setTouring(true);
-      setTourStep(0);
-      setPreviewId('');
-      tourInterval.current = setInterval(() => {
-        setTourStep((current) => {
-          if (current >= nodes.length - 1) return current;
-          return current + 1;
-        });
-      }, 900);
-      tourTimer.current = setTimeout(() => {
-        clearInterval(tourInterval.current);
-        setTouring(false);
-        setTourStep(-1);
-      }, nodes.length * 900 + 450);
-    };
-
-    const firstRun = setTimeout(runFlow, 900);
-    const loop = setInterval(runFlow, nodes.length * 900 + 1000);
-
-    return () => {
-      clearTimeout(firstRun);
-      clearInterval(loop);
-      clearTimeout(tourTimer.current);
-      clearInterval(tourInterval.current);
-    };
+    const flowStepCount = Math.max(nodes.length, 1);
+    setFlowIndex(0);
+    const timer = window.setInterval(() => {
+      setFlowIndex((current) => {
+        if (nodes.length <= 1) return 0;
+        return (current + 1) % flowStepCount;
+      });
+    }, 3450);
+    return () => window.clearInterval(timer);
   }, [nodes.length]);
+
+  const flowTargetId = nodes[Math.min(flowIndex + 1, nodes.length - 1)]?.stage.id || defaultId;
+  const activeId = selectedId || flowTargetId || defaultId;
+
+  const handlePreview = (id) => {
+    const node = nodes.find((item) => item.stage.id === id);
+    if (node?.stage?.to) navigate(node.stage.to);
+  };
 
   return (
     <section className="home-workflow-hero" aria-labelledby="home-title">
       <div className="home-workflow-hero__head">
-        <h1 id="home-title">AI-Led Cyber Risk Intelligence</h1>
-        <p>
-          Transform threat intelligence into governed security decisions, actionable fixes, and verified outcomes.
-        </p>
+        <h1 id="home-title">ThreatForge - Security Assurance Platform</h1>
+        <p>Transform threat intelligence into governed security decisions, actionable fixes, and verified outcomes.</p>
       </div>
 
       {statusError && (
@@ -412,13 +425,12 @@ function Hero({ nodes, overview, statusError }) {
           <LifecycleFlow
             nodes={nodes}
             selectedId={activeId}
-            openId={previewId}
+            openId=""
             onSelect={setSelectedId}
-            onPreview={setPreviewId}
-            isPlaying={touring}
-            playIndex={tourStep}
+            onPreview={handlePreview}
+            isPlaying={nodes.length > 0}
+            playIndex={flowIndex}
           />
-          <StagePreviewCard node={preview} overview={overview} onClose={() => setPreviewId('')} />
         </div>
       )}
     </section>
@@ -473,10 +485,10 @@ export default function Home() {
     <div className="insight-home">
       <Hero nodes={nodes} overview={overview} statusError={statusError} />
       <section className="insight-kpis" aria-label="Derived security insights">
-        <Kpi icon={Target} tone="danger" label="Attack surface pressure" value={model.surfacePressure} hint="Exposed entry points and APIs." />
-        <Kpi icon={Database} tone="accent" label="Evidence Coverage" value={model.readiness} hint="Evidence across your assessment." />
-        <Kpi icon={ScanSearch} tone="info" label="Security Findings" value={model.filteredFindings.length} hint="Findings by severity and scan type." />
-        <Kpi icon={GitPullRequestArrow} tone="warn" label="Areas Under Review" value={model.scanFocus} hint="Application areas being assessed." />
+        <Kpi icon={Target} tone="danger" label="Attack surface pressure" value={model.surfacePressure} />
+        <Kpi icon={Database} tone="accent" label="Evidence Coverage" value={model.readiness} />
+        <Kpi icon={ScanSearch} tone="info" label="Security Findings" value={model.filteredFindings.length} />
+        <Kpi icon={GitPullRequestArrow} tone="warn" label="Areas Under Review" value={model.humanReviewsLeft} />
       </section>
       <section className="insight-grid" aria-label="ThreatForge dashboard visuals">
         <AttackSurfaceMap model={model} />

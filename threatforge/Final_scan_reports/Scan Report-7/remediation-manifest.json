@@ -1,0 +1,20 @@
+{
+  "schemaVersion": "threatforge.remediation-manifest.v2",
+  "processingId": "remediation-separate-patches-2026-10-05-scan-report-8",
+  "outputFolder": "Scan Report-8",
+  "sourceModified": false,
+  "inputArtifacts": [
+    "Scan Report-5/TriageFindings.json",
+    "Scan Report-7/RemediationRecords.json"
+  ],
+  "generatedArtifacts": [
+    "RemediationRecords.json",
+    "remediation-results.sarif",
+    "RemediationReport.md",
+    "CoverageReport.md",
+    "CoverageReport.json",
+    "patches/*.md",
+    "tests/*.py.proposed"
+  ],
+  "status": "completed"
+}

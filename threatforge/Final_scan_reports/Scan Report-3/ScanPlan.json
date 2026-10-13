@@ -1,0 +1,283 @@
+{
+  "metadata": {
+    "scanName": "Scan Report-3",
+    "generatedDate": "2026-10-05",
+    "sourceRoot": "C:\\Users\\riyakansal\\OneDrive - Nagarro\\Desktop\\Codebase",
+    "outputFolder": "C:\\Users\\riyakansal\\OneDrive - Nagarro\\Desktop\\Codebase\\Scan Report-3",
+    "primaryInputs": [
+      "Scan Report-1\\ApplicationIntelligence.json",
+      "Scan Report-2\\ThreatModel.json",
+      "Scan Report-2\\ThreatRecords.json",
+      "Scan Report-2\\ThreatRelationships.json"
+    ],
+    "referencedThreadReviewed": {
+      "threadId": "01a0eb26-5bed-7960-817c-16d392f96b53",
+      "hostId": "local",
+      "useInThisPlan": "Supporting ThreatForge lifecycle terminology only; not used as evidence about Breakable Flask security behavior."
+    },
+    "constraintsApplied": [
+      "Did not execute scans",
+      "Did not modify source code",
+      "Did not invent scan findings or coverage",
+      "Reused existing ApplicationIntelligence and ThreatModel outputs as primary inputs"
+    ]
+  },
+  "assessmentPlan": {
+    "application": "Breakable Flask",
+    "planningGoal": "Define an actionable assessment sequence that investigates the plausible threat scenarios identified in Scan Report-2 without prematurely claiming findings.",
+    "overallPriorityRationale": "The target is a compact single-file Flask application with direct HTTP-to-sensitive-operation paths. The plan prioritizes static confirmation of source-backed issues, exploitability-focused review of the highest-impact paths, controlled runtime validation for environment-dependent behavior, and dependency review for parser/JWT/crypto/web framework risk.",
+    "selectedCapabilities": [
+      {
+        "capability": "Standard Security Scan",
+        "selected": true,
+        "whySelected": "Provides baseline source-backed security review across the whole small codebase and documentation/configuration surface. It can confirm whether each threat has a concrete code path and identify any related issues missed by the architecture model.",
+        "primaryQuestions": [
+          "Which plausible threats have complete source-backed data/control flows from entry point to sensitive operation?",
+          "Are there additional security-relevant paths in main.py or setup documentation not captured by the current threat model?",
+          "What controls, if any, are actually enforced in code?"
+        ],
+        "relatedThreats": [
+          "T001",
+          "T002",
+          "T003",
+          "T004",
+          "T005",
+          "T006",
+          "T007",
+          "T008",
+          "T009"
+        ]
+      },
+      {
+        "capability": "Exploitable Security Scan",
+        "selected": true,
+        "whySelected": "Targets attack-path feasibility for the highest-risk source-backed threats rather than merely listing dangerous patterns. This is appropriate because the threat model distinguishes plausible scenarios from confirmed exploitability.",
+        "primaryQuestions": [
+          "Which threats are reachable by a realistic unauthenticated or guest actor?",
+          "What exact preconditions are needed for exploitability?",
+          "Which chains can produce process compromise, admin claim forgery, or unauthorized data access?"
+        ],
+        "relatedThreats": [
+          "T001",
+          "T002",
+          "T003",
+          "T004",
+          "T005",
+          "T006",
+          "T007",
+          "T008"
+        ]
+      },
+      {
+        "capability": "Runtime / Dynamic Security Validation",
+        "selected": true,
+        "whySelected": "Several threats depend on runtime behavior that static analysis cannot fully settle, including shell interpretation, lxml entity resolution, JWT parser behavior, database driver behavior, and actual response/error differences.",
+        "primaryQuestions": [
+          "Do controlled requests demonstrate the hypothesized behavior in the local lab environment?",
+          "Which threats require a specific database backend or operating-system behavior?",
+          "Do responses expose enough signal to support oracle or exploitability claims?"
+        ],
+        "relatedThreats": [
+          "T001",
+          "T002",
+          "T004",
+          "T005",
+          "T007",
+          "T008",
+          "T009"
+        ]
+      },
+      {
+        "capability": "Supply-Chain / Dependency Security Scan",
+        "selected": true,
+        "whySelected": "The application relies on security-sensitive libraries with lower-bound requirements rather than a lockfile. Dependency behavior and known vulnerabilities may affect Flask routing, JWT parsing, lxml XML handling, pycryptodome crypto, and optional database drivers.",
+        "primaryQuestions": [
+          "Do declared dependencies include known vulnerable versions or unsafe lower bounds?",
+          "Are parser, JWT, crypto, or web framework libraries affected by advisories relevant to the observed routes?",
+          "Do optional database drivers introduce additional deployment-specific risk?"
+        ],
+        "relatedThreats": [
+          "T004",
+          "T005",
+          "T007",
+          "T008",
+          "T009"
+        ]
+      }
+    ],
+    "notSelectedCapabilities": [
+      {
+        "capability": "Deep Security Scan",
+        "selected": false,
+        "reason": "Deferred, not rejected. The application is compact and the current threat model already identifies the main route-level concerns. Use Deep Security Scan only if Standard/Exploitable scans produce ambiguous results, if future code expands beyond the current single-file shape, or if variance reduction is required for formal assurance."
+      },
+      {
+        "capability": "Module Security Scan",
+        "selected": false,
+        "reason": "Deferred because the principal module is main.py and is already in scope for the Standard Security Scan and focused exploitability review. A Module Security Scan becomes useful if future versions split handlers, database logic, JWT helpers, or parsers into separate modules that need isolated ownership."
+      }
+    ],
+    "assessmentObjectives": [
+      {
+        "id": "AO-01",
+        "name": "Confirm source-backed vulnerable boundaries",
+        "expectedToEstablish": "Whether each plausible threat has a complete source path from actor-controlled input to sensitive operation and whether any mitigating control is present.",
+        "linkedThreats": [
+          "T001",
+          "T002",
+          "T003",
+          "T004",
+          "T005",
+          "T006",
+          "T007",
+          "T008"
+        ],
+        "linkedAssets": [
+          "asset_host_execution_context",
+          "asset_auth_tokens",
+          "asset_config_and_crypto_secrets",
+          "asset_database_contents"
+        ],
+        "recommendedCapability": "Standard Security Scan"
+      },
+      {
+        "id": "AO-02",
+        "name": "Determine exploitability and practical preconditions",
+        "expectedToEstablish": "Which threat paths are exploitable as opposed to only pattern-present, and what preconditions are required for reliable exploitation.",
+        "linkedThreats": [
+          "T001",
+          "T002",
+          "T003",
+          "T004",
+          "T005",
+          "T006",
+          "T007",
+          "T008"
+        ],
+        "linkedAssets": [
+          "asset_host_execution_context",
+          "asset_auth_tokens",
+          "asset_database_contents"
+        ],
+        "recommendedCapability": "Exploitable Security Scan"
+      },
+      {
+        "id": "AO-03",
+        "name": "Validate runtime- and environment-dependent behavior",
+        "expectedToEstablish": "Whether shell, parser, JWT, database, and oracle behaviors manifest in a controlled local environment and how deployment settings change exposure.",
+        "linkedThreats": [
+          "T002",
+          "T004",
+          "T005",
+          "T007",
+          "T008",
+          "T009"
+        ],
+        "linkedAssets": [
+          "asset_host_execution_context",
+          "asset_database_contents",
+          "asset_config_and_crypto_secrets"
+        ],
+        "recommendedCapability": "Runtime / Dynamic Security Validation"
+      },
+      {
+        "id": "AO-04",
+        "name": "Evaluate dependency and supply-chain exposure",
+        "expectedToEstablish": "Whether declared dependencies or optional drivers add known vulnerabilities, version ambiguity, or unsafe transitive exposure relevant to threat paths.",
+        "linkedThreats": [
+          "T004",
+          "T005",
+          "T007",
+          "T008",
+          "T009"
+        ],
+        "linkedAssets": [
+          "asset_config_and_crypto_secrets",
+          "asset_database_contents",
+          "asset_host_execution_context"
+        ],
+        "recommendedCapability": "Supply-Chain / Dependency Security Scan"
+      }
+    ],
+    "executionOrder": [
+      "SF-01",
+      "SF-02",
+      "SF-03",
+      "SF-04",
+      "SF-05",
+      "SF-06"
+    ],
+    "dependencies": [
+      {
+        "id": "DEP-01",
+        "description": "Exploitable and runtime validation should consume Standard Security Scan results first to avoid testing irrelevant or unreachable patterns.",
+        "from": "SF-01",
+        "to": [
+          "SF-02",
+          "SF-03",
+          "SF-04",
+          "SF-05"
+        ]
+      },
+      {
+        "id": "DEP-02",
+        "description": "Runtime validation requires an isolated local instance of the app and explicit permission to send crafted inputs. It should not be performed against a shared or production environment.",
+        "from": "environment setup",
+        "to": [
+          "SF-03",
+          "SF-04",
+          "SF-05"
+        ]
+      },
+      {
+        "id": "DEP-03",
+        "description": "Database runtime validation beyond SQLite requires a selected backend, credentials, and disposable database server matching the intended deployment.",
+        "from": "database environment selection",
+        "to": [
+          "SF-05"
+        ]
+      },
+      {
+        "id": "DEP-04",
+        "description": "Dependency analysis should be performed before runtime validation if exact installed versions are not known, because version differences can alter parser/JWT behavior.",
+        "from": "SF-06",
+        "to": [
+          "SF-03",
+          "SF-04"
+        ]
+      }
+    ],
+    "coverageGaps": [
+      {
+        "id": "GAP-01",
+        "question": "What is the risk in production?",
+        "whyUncovered": "No production deployment topology, process user, reverse proxy, container boundary, network exposure, or filesystem permission model is available.",
+        "neededInput": "Deployment manifest or operator-provided runtime environment details."
+      },
+      {
+        "id": "GAP-02",
+        "question": "Which external database behavior is authoritative?",
+        "whyUncovered": "The app supports SQLite, PostgreSQL, MySQL, MSSQL, and Oracle, but no target backend was selected for validation.",
+        "neededInput": "Chosen backend, credentials, driver versions, and disposable database instance."
+      },
+      {
+        "id": "GAP-03",
+        "question": "Which dependency versions are actually installed?",
+        "whyUncovered": "requirements files use lower bounds and no lockfile was observed.",
+        "neededInput": "Resolved environment lockfile or package inventory from the runtime environment."
+      },
+      {
+        "id": "GAP-04",
+        "question": "How should findings be prioritized for a deliberately vulnerable training app?",
+        "whyUncovered": "The application intentionally contains vulnerabilities, so prioritization depends on whether the assessment goal is training coverage, exploit demonstration, or production risk.",
+        "neededInput": "Assessment intent: lab completeness, exploitability demonstration, or hardening readiness."
+      }
+    ],
+    "assumptions": [
+      "Scan Report-1 and Scan Report-2 are authoritative for this planning stage.",
+      "The current target remains the compact Breakable Flask codebase in C:\\Users\\riyakansal\\OneDrive - Nagarro\\Desktop\\Codebase.",
+      "The next phase should plan scans only; it should not execute scans without a separate explicit request.",
+      "The referenced ThreatForge UI thread informs lifecycle vocabulary but does not change the target application's security scope."
+    ]
+  }
+}

@@ -1,0 +1,12 @@
+import pytest
+from base64 import b64encode, urlsafe_b64encode
+import json
+import time
+import main
+
+def test_sayhi_renders_template_payload_as_text():
+    client = main.app.test_client()
+    response = client.post("/sayhi", data={"name": "{{7*7}}"})
+    assert response.status_code == 200
+    assert b"{{7*7}}" in response.data
+    assert b"49" not in response.data

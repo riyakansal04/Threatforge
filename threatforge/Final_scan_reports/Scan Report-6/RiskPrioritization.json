@@ -1,0 +1,254 @@
+{
+  "schemaVersion": "threatforge.risk-prioritization.v1",
+  "generatedAt": "2026-10-05T00:00:00+05:30",
+  "processingIdentity": {
+    "name": "Risk-Based Prioritization",
+    "mode": "evidence-backed priority recommendation",
+    "sourceRoot": "C:\\Users\\riyakansal\\OneDrive - Nagarro\\Desktop\\Codebase",
+    "outputFolder": "Scan Report-6"
+  },
+  "inputReferences": {
+    "triagedFindings": "Scan Report-5/TriageFindings.json",
+    "applicationIntelligence": "Scan Report-1/ApplicationIntelligence.json",
+    "threatModel": "Scan Report-2/ThreatModel.json",
+    "scanPlan": "Scan Report-3/ScanPlan.json",
+    "scanResults": "Scan Report-4/findings.json",
+    "standardScanId": "273eb7b9-0470-443d-8f09-1c9bd5cf012f"
+  },
+  "priorityScale": {
+    "configuredScaleFound": false,
+    "scaleUsed": ["Critical", "High", "Medium", "Low", "Informational"],
+    "note": "No platform-specific priority scale or SLA policy was found in the supplied artifacts."
+  },
+  "businessContext": {
+    "documented": [
+      "Breakable Flask is intentionally vulnerable and intended for learning/testing common web vulnerability exploitation.",
+      "The documented default runtime binds to 127.0.0.1:4000 with an in-memory SQLite database."
+    ],
+    "missing": [
+      "No production deployment, internet exposure, asset criticality, regulatory obligation, customer data, remediation SLA, or risk-acceptance record was supplied."
+    ],
+    "riskInterpretation": "Priorities assume the application may be reachable by untrusted users because the route-level findings cross HTTP trust boundaries. If the application is confirmed to be isolated to an approved training lab, operational urgency may be lower even though the technical weaknesses remain present."
+  },
+  "summary": {
+    "eligibleFindingsAssessed": 8,
+    "critical": 4,
+    "high": 2,
+    "medium": 2,
+    "low": 0,
+    "informational": 0,
+    "findingsWithoutDefinitivePriority": 0,
+    "runtimeValidationPerformed": false,
+    "dashboardDecisionsMade": false
+  },
+  "Finding": [
+    {
+      "findingId": "BF-STD-003",
+      "ruleId": "python-eval-expression-injection",
+      "title": "Expression evaluation route executes user input with eval",
+      "originalSeverity": "high",
+      "triageTechnicalVerdict": "confirmed",
+      "proposedPriority": "Critical",
+      "priorityRationale": "Unauthenticated request input reaches Python eval in the Flask process. This is a direct interpreter-execution path with minimal attacker prerequisites and no observed compensating control.",
+      "riskFactors": {
+        "technicalSeverity": "High technical severity because arbitrary Python expression evaluation can affect process integrity, confidentiality, and availability.",
+        "exploitability": "Technically plausible from static evidence; exploitation was not demonstrated dynamically. Preconditions are limited to reachability of POST /evaluate and ability to submit the expression field.",
+        "exposure": "Route is an HTTP entry point and is not protected by authentication in the observed source. Documented default bind is localhost; broader exposure is unknown.",
+        "impact": "Potential compromise of the Python process, access to in-memory config/secrets, file access through reachable Python objects, or service disruption.",
+        "threatContext": "Maps to T003 and contributes to the documented process-integrity attack path across tb_http_to_app and tb_app_to_host_execution.",
+        "businessContext": "The application is documented as an intentionally vulnerable training app. If isolated to a lab, business urgency may be lower; if reachable by untrusted users, process compromise drives Critical priority.",
+        "compensatingControls": "No authentication, sandbox, restricted globals, or parser allowlist was observed on this path."
+      },
+      "urgencyAndDependencies": {
+        "recommendedTimeframe": null,
+        "timeframeReason": "No approved SLA or remediation policy was supplied.",
+        "dependencies": ["Confirm whether the app is exposed beyond the local training environment."]
+      },
+      "uncertainty": ["Runtime payload behavior was not validated.", "Production exposure is unknown."],
+      "evidenceReferences": [{"path": "main.py", "startLine": 375, "endLine": 379}],
+      "traceability": {"relatedThreats": ["T003"], "relatedScanFocus": ["SF-01", "SF-02"], "triageEvidenceIds": ["BF-STD-003-E1"]}
+    },
+    {
+      "findingId": "BF-STD-002",
+      "ruleId": "os-command-injection-lookup",
+      "title": "DNS lookup route concatenates form input into an OS command",
+      "originalSeverity": "high",
+      "triageTechnicalVerdict": "confirmed",
+      "proposedPriority": "Critical",
+      "priorityRationale": "Unauthenticated form input is concatenated into a shell command executed with os.popen. If reachable by untrusted users, this can cross from HTTP input to host command execution.",
+      "riskFactors": {
+        "technicalSeverity": "High technical severity because command injection can compromise host/process integrity and expose local files or environment data.",
+        "exploitability": "Technically plausible from static evidence. Runtime shell metacharacter behavior was not demonstrated.",
+        "exposure": "POST /lookup is an HTTP entry point without observed authentication. Default bind is localhost; external reachability is not established.",
+        "impact": "Potential command execution with Flask process privileges, data exposure, service disruption, and pivot into local runtime resources.",
+        "threatContext": "Maps to T002 and shares execution-boundary relationships with T003 and deployment-exposure dependency T009.",
+        "businessContext": "Training-purpose context may reduce business urgency if isolated. Exposure beyond a lab would make the issue one of the first remediation candidates.",
+        "compensatingControls": "No allowlist, quoting, subprocess argument isolation, or shell-disabled execution is present in the reviewed evidence."
+      },
+      "urgencyAndDependencies": {
+        "recommendedTimeframe": null,
+        "timeframeReason": "No approved SLA or remediation policy was supplied.",
+        "dependencies": ["Confirm runtime exposure and process privilege context."]
+      },
+      "uncertainty": ["Runtime command injection syntax was not validated.", "Host privileges and network exposure are unknown."],
+      "evidenceReferences": [{"path": "main.py", "startLine": 171, "endLine": 172}, {"path": "main.py", "startLine": 356, "endLine": 360}],
+      "traceability": {"relatedThreats": ["T002"], "relatedScanFocus": ["SF-01", "SF-02", "SF-04"], "triageEvidenceIds": ["BF-STD-002-E1", "BF-STD-002-E2"]}
+    },
+    {
+      "findingId": "BF-STD-001",
+      "ruleId": "python-pickle-cookie-deserialization",
+      "title": "Client-controlled cookie is deserialized with pickle",
+      "originalSeverity": "high",
+      "triageTechnicalVerdict": "confirmed",
+      "proposedPriority": "Critical",
+      "priorityRationale": "A browser-controlled cookie reaches pickle.loads without authenticity protection. Python pickle deserialization of untrusted input is a high-impact process compromise pattern.",
+      "riskFactors": {
+        "technicalSeverity": "High technical severity due to unsafe deserialization semantics and potential arbitrary object/code execution behavior.",
+        "exploitability": "Technically plausible from static evidence. A malicious pickle payload was not executed.",
+        "exposure": "GET /cookie reads the value cookie when present. Any client that can reach the route can submit cookies. Default runtime is localhost; external exposure remains unknown.",
+        "impact": "Potential process compromise, denial of service, or access to in-process secrets and runtime resources.",
+        "threatContext": "Maps to T001 and crosses tb_cookie_to_auth_and_deserialization. Related to BF-STD-008 because both trust browser-controlled cookies.",
+        "businessContext": "If this remains an isolated training app, operational urgency is constrained by lab boundaries. If exposed to untrusted clients, unsafe deserialization warrants Critical priority.",
+        "compensatingControls": "Base64 encoding is not an integrity control. No cookie signing, MAC, safe serialization, or server-side session lookup is observed."
+      },
+      "urgencyAndDependencies": {
+        "recommendedTimeframe": null,
+        "timeframeReason": "No approved SLA or remediation policy was supplied.",
+        "dependencies": ["Confirm whether untrusted users can reach /cookie."]
+      },
+      "uncertainty": ["Malicious pickle behavior was not dynamically validated.", "Deployment exposure is unknown."],
+      "evidenceReferences": [{"path": "main.py", "startLine": 328, "endLine": 329}, {"path": "main.py", "startLine": 345, "endLine": 346}],
+      "traceability": {"relatedThreats": ["T001"], "relatedScanFocus": ["SF-01", "SF-02", "SF-04"], "triageEvidenceIds": ["BF-STD-001-E1", "BF-STD-001-E2"]}
+    },
+    {
+      "findingId": "BF-STD-006",
+      "ruleId": "jinja-template-injection-sayhi",
+      "title": "Greeting route renders user input as Jinja template source",
+      "originalSeverity": "high",
+      "triageTechnicalVerdict": "confirmed",
+      "proposedPriority": "Critical",
+      "priorityRationale": "Unauthenticated form input becomes Jinja template source before rendering. Server-side template injection can expose internals and may lead to code execution depending on reachable objects.",
+      "riskFactors": {
+        "technicalSeverity": "High technical severity because SSTI can cross from user-controlled text to server-side interpretation inside the Flask process.",
+        "exploitability": "Technically plausible from static evidence; exact Jinja object reachability was not dynamically tested.",
+        "exposure": "POST /sayhi is an unauthenticated HTTP entry point in the observed source. External reachability is not established beyond the documented localhost default.",
+        "impact": "Potential server-side information disclosure, application object access, process compromise, or availability impact.",
+        "threatContext": "Maps to T006 and shares execution/interpreter attack-path context with BF-STD-003.",
+        "businessContext": "Training-app context may reduce operational urgency if isolated. If reachable by untrusted users, server-side interpretation of attacker input supports Critical priority.",
+        "compensatingControls": "No fixed template with bound variables, sandbox, or input escaping before render_template_string was observed."
+      },
+      "urgencyAndDependencies": {
+        "recommendedTimeframe": null,
+        "timeframeReason": "No approved SLA or remediation policy was supplied.",
+        "dependencies": ["Confirm exposure and runtime Jinja object reachability if prioritization needs to be calibrated further."]
+      },
+      "uncertainty": ["Runtime Jinja exploitability was not validated.", "Deployment exposure is unknown."],
+      "evidenceReferences": [{"path": "main.py", "startLine": 453, "endLine": 468}],
+      "traceability": {"relatedThreats": ["T006"], "relatedScanFocus": ["SF-01", "SF-02", "SF-04"], "triageEvidenceIds": ["BF-STD-006-E1"]}
+    },
+    {
+      "findingId": "BF-STD-008",
+      "ruleId": "jwt-none-hs256-algorithm-confusion",
+      "title": "JWT verifier accepts None and HS256 algorithms based on untrusted token header",
+      "originalSeverity": "high",
+      "triageTechnicalVerdict": "confirmed",
+      "proposedPriority": "High",
+      "priorityRationale": "The JWT verifier accepts insecure algorithms selected by an untrusted token header. This threatens authentication and authorization integrity, but the observed admin behavior is display-oriented and forged-token acceptance was not dynamically demonstrated.",
+      "riskFactors": {
+        "technicalSeverity": "High technical severity because token integrity failure can allow identity claim forgery.",
+        "exploitability": "Technically plausible from static evidence. A forged None or HS256 token was not submitted.",
+        "exposure": "/user reads the authentication cookie and /user/jwks is exposed as GET. Any client that can set its authentication cookie can exercise this boundary if the app is reachable.",
+        "impact": "Potential bypass of intended guest/admin distinction and any future admin-gated behavior using the same claim.",
+        "threatContext": "Maps to T008 and relates to T005 through cryptographic correctness and T001 through cookie trust.",
+        "businessContext": "No business process or sensitive admin operation beyond the observed admin display state was documented, which tempers priority relative to direct execution findings.",
+        "compensatingControls": "Issuer, audience, and time checks exist, but in the unsigned path they are applied to attacker-controlled claims. They do not materially reduce the identified risk."
+      },
+      "urgencyAndDependencies": {
+        "recommendedTimeframe": null,
+        "timeframeReason": "No approved SLA or remediation policy was supplied.",
+        "dependencies": ["Confirm whether any real privileged operations depend on the admin sub claim."]
+      },
+      "uncertainty": ["Forged-token acceptance was not dynamically validated.", "Business impact of admin state is not documented beyond rendered content."],
+      "evidenceReferences": [{"path": "main.py", "startLine": 32, "endLine": 32}, {"path": "main.py", "startLine": 242, "endLine": 277}, {"path": "main.py", "startLine": 515, "endLine": 536}],
+      "traceability": {"relatedThreats": ["T008"], "relatedScanFocus": ["SF-01", "SF-03", "SF-04"], "triageEvidenceIds": ["BF-STD-008-E1", "BF-STD-008-E2", "BF-STD-008-E3", "BF-STD-008-E4"]}
+    },
+    {
+      "findingId": "BF-STD-007",
+      "ruleId": "sql-injection-listservices-category",
+      "title": "Category query parameter is concatenated into SQL",
+      "originalSeverity": "high",
+      "triageTechnicalVerdict": "confirmed",
+      "proposedPriority": "High",
+      "priorityRationale": "The SQL injection path is source-confirmed and unauthenticated, but concrete impact depends on selected database backend, driver behavior, and database privileges.",
+      "riskFactors": {
+        "technicalSeverity": "High technical severity because SQL injection can affect query integrity and potentially confidentiality or integrity of database contents.",
+        "exploitability": "Technically plausible from static evidence. Database-specific payload behavior was not dynamically tested.",
+        "exposure": "GET /listservices accepts category through a query parameter and is not authenticated. Default SQLite behavior and optional external backends may differ.",
+        "impact": "Potential alteration of SELECT semantics, access to unintended rows such as secret_stuff where backend permits, error disclosure, or database state impact depending on privileges.",
+        "threatContext": "Maps to T007 and T009, crossing tb_app_to_database and relying on deployment-specific database authority.",
+        "businessContext": "The documented data is training seed data, and no production data/regulatory context was supplied. This keeps the proposed priority below direct execution findings while preserving high urgency if connected to real data.",
+        "compensatingControls": "No query parameter binding or allowlisted category mapping was observed. The base table being public_stuff does not remove injection risk."
+      },
+      "urgencyAndDependencies": {
+        "recommendedTimeframe": null,
+        "timeframeReason": "No approved SLA or remediation policy was supplied.",
+        "dependencies": ["Confirm selected database backend and privileges before final operational prioritization."]
+      },
+      "uncertainty": ["Backend-specific impact was not validated.", "Actual data sensitivity is undocumented."],
+      "evidenceReferences": [{"path": "main.py", "startLine": 476, "endLine": 484}, {"path": "main.py", "startLine": 594, "endLine": 594}],
+      "traceability": {"relatedThreats": ["T007", "T009"], "relatedScanFocus": ["SF-01", "SF-05"], "triageEvidenceIds": ["BF-STD-007-E1", "BF-STD-007-E2"]}
+    },
+    {
+      "findingId": "BF-STD-004",
+      "ruleId": "xxe-enabled-xml-parser",
+      "title": "XML parser enables DTD loading and network access for user-supplied XML",
+      "originalSeverity": "medium",
+      "triageTechnicalVerdict": "confirmed",
+      "proposedPriority": "Medium",
+      "priorityRationale": "The unsafe parser configuration is source-confirmed and reachable, but concrete impact depends on lxml/libxml2 behavior and available local file or network targets.",
+      "riskFactors": {
+        "technicalSeverity": "Medium technical severity in the triage evidence because XXE may expose files, create server-side requests, or affect availability, but runtime effects remain conditional.",
+        "exploitability": "Technically plausible from parser configuration. Entity resolution and network/file access were not dynamically validated.",
+        "exposure": "POST /xml is an unauthenticated HTTP entry point when reachable.",
+        "impact": "Potential confidentiality impact for accessible local resources, SSRF-like network behavior, or parser resource exhaustion depending on environment.",
+        "threatContext": "Maps to T004 and relates to BF-STD-005 through confidentiality objectives for server-side resources.",
+        "businessContext": "No sensitive local files, production network, or regulated data context was documented; this limits application-specific priority without further environment evidence.",
+        "compensatingControls": "Escaping serialized XML output occurs after parsing and does not mitigate parser-side entity behavior."
+      },
+      "urgencyAndDependencies": {
+        "recommendedTimeframe": null,
+        "timeframeReason": "No approved SLA or remediation policy was supplied.",
+        "dependencies": ["Validate installed lxml/libxml2 behavior and network/file access if higher prioritization is considered."]
+      },
+      "uncertainty": ["Dependency behavior and target environment access are unknown.", "Runtime entity resolution was not tested."],
+      "evidenceReferences": [{"path": "main.py", "startLine": 395, "endLine": 400}],
+      "traceability": {"relatedThreats": ["T004"], "relatedScanFocus": ["SF-01", "SF-03", "SF-04"], "triageEvidenceIds": ["BF-STD-004-E1"]}
+    },
+    {
+      "findingId": "BF-STD-005",
+      "ruleId": "cbc-padding-oracle-config",
+      "title": "Config endpoint decrypts attacker-controlled ciphertext and returns padding errors",
+      "originalSeverity": "medium",
+      "triageTechnicalVerdict": "confirmed",
+      "proposedPriority": "Medium",
+      "priorityRationale": "The chosen-ciphertext decrypt/error pattern is source-confirmed, but practical exploitation requires observable oracle behavior over repeated attempts and affects a narrower config lookup asset than direct execution findings.",
+      "riskFactors": {
+        "technicalSeverity": "Medium technical severity based on cryptographic misuse and error disclosure that can affect confidentiality of encrypted config-key values.",
+        "exploitability": "Technically plausible from static evidence; iterative oracle exploitation was not demonstrated.",
+        "exposure": "GET /config accepts a key query parameter and is not authenticated when the app is reachable.",
+        "impact": "Potential recovery or forgery of encrypted config-key values and exposure of secret-bearing CONFIG entries.",
+        "threatContext": "Maps to T005 and relates to BF-STD-004 through confidentiality and BF-STD-008 through cryptographic security objectives.",
+        "businessContext": "The documented CONFIG values appear part of a training app. No production secret, compliance, or operational dependency was supplied.",
+        "compensatingControls": "Normal links expose only app_* entries, but arbitrary key values are accepted. No authenticated encryption or MAC-before-decrypt control was observed."
+      },
+      "urgencyAndDependencies": {
+        "recommendedTimeframe": null,
+        "timeframeReason": "No approved SLA or remediation policy was supplied.",
+        "dependencies": ["Confirm response distinguishability and whether CONFIG contains production-sensitive secrets before final urgency decisions."]
+      },
+      "uncertainty": ["Oracle reliability was not dynamically validated.", "Business sensitivity of CONFIG values is undocumented."],
+      "evidenceReferences": [{"path": "main.py", "startLine": 140, "endLine": 168}, {"path": "main.py", "startLine": 428, "endLine": 433}],
+      "traceability": {"relatedThreats": ["T005"], "relatedScanFocus": ["SF-01", "SF-03", "SF-04"], "triageEvidenceIds": ["BF-STD-005-E1", "BF-STD-005-E2"]}
+    }
+  ]
+}

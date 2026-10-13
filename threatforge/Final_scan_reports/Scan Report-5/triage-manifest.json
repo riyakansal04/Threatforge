@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "threatforge.triage-manifest.v1",
+  "processingId": "finding-triage-2026-10-05-scan-report-5",
+  "generatedAt": "2026-10-05T00:00:00+05:30",
+  "agentRole": "Finding Triage",
+  "sourceRoot": "C:\\Users\\riyakansal\\OneDrive - Nagarro\\Desktop\\Codebase",
+  "outputFolder": "Scan Report-5",
+  "inputArtifacts": [
+    {"type": "ApplicationIntelligence", "path": "Scan Report-1/ApplicationIntelligence.json"},
+    {"type": "ThreatModel", "path": "Scan Report-2/ThreatModel.json"},
+    {"type": "ThreatRelationships", "path": "Scan Report-2/ThreatRelationships.json"},
+    {"type": "ScanPlan", "path": "Scan Report-3/ScanPlan.json"},
+    {"type": "ScanFocus", "path": "Scan Report-3/ScanFocus.json"},
+    {"type": "Findings", "path": "Scan Report-4/findings.json", "scanId": "273eb7b9-0470-443d-8f09-1c9bd5cf012f"},
+    {"type": "SARIF", "path": "Scan Report-4/results.sarif"}
+  ],
+  "generatedArtifacts": [
+    {"type": "triage-findings-json", "path": "Scan Report-5/TriageFindings.json"},
+    {"type": "sarif", "path": "Scan Report-5/triage-results.sarif"},
+    {"type": "markdown-report", "path": "Scan Report-5/TriageReport.md"},
+    {"type": "coverage-report", "path": "Scan Report-5/CoverageReport.md"},
+    {"type": "manifest", "path": "Scan Report-5/triage-manifest.json"}
+  ],
+  "scope": {
+    "findingsReviewed": ["BF-STD-001", "BF-STD-002", "BF-STD-003", "BF-STD-004", "BF-STD-005", "BF-STD-006", "BF-STD-007", "BF-STD-008"],
+    "reviewMode": "static evidence triage",
+    "sourceModificationAllowed": false,
+    "runtimeValidationAllowed": false,
+    "dashboardWorkflowDecisionsAllowed": false
+  },
+  "results": {
+    "reviewed": 8,
+    "confirmed": 8,
+    "needsReview": 0,
+    "notActionable": 0,
+    "trueDuplicates": 0,
+    "relatedFindingLinks": 10
+  },
+  "configuration": {
+    "dedupeBasis": ["root cause", "affected route", "input source", "sink", "attack preconditions"],
+    "preserveOneAssessmentPerInputFinding": true,
+    "doNotMergeDistinctFindings": true
+  },
+  "limitations": [
+    "No runtime validation was performed.",
+    "No dependency advisory lookup was performed.",
+    "No production deployment context was available.",
+    "No SECURITY.md policy guidance was resolved for the scope.",
+    "codex-security triage-result-contract.md was unavailable in the installed plugin version."
+  ],
+  "status": "completed"
+}

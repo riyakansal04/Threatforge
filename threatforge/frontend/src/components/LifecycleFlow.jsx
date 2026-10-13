@@ -3,10 +3,11 @@ import { Link } from 'react-router-dom';
 import { CheckCircle2, Lock, ListChecks, Radar, ScanSearch, ShieldCheck, TrendingUp, Wrench } from 'lucide-react';
 
 const ICONS = { Radar, ScanSearch, ListChecks, TrendingUp, Wrench, ShieldCheck };
-const STAGE_COLORS = ['#37e4b2', '#66d9ff', '#ff6f66', '#f2b84b', '#a78bfa', '#37e4b2'];
+const STAGE_COLORS = ['#37e4b2', '#2dd4bf', '#66d9ff', '#ff6f66', '#f2b84b', '#a78bfa', '#37e4b2'];
 
 export default function LifecycleFlow({ nodes, selectedId, openId, onSelect, onPreview, isPlaying = false, playIndex = -1 }) {
   const selectedIndex = nodes.findIndex((n) => n.stage.id === selectedId);
+  const flowStepIndex = isPlaying ? Math.min(playIndex + 1, nodes.length - 1) : -1;
 
   return (
     <div className={`lifecycle-flow ${isPlaying ? 'is-playing' : ''}`} aria-label="ThreatForge workflow stages">
@@ -18,8 +19,9 @@ export default function LifecycleFlow({ nodes, selectedId, openId, onSelect, onP
           const prevComplete = index === 0 || nodes[index - 1].state === 'complete';
           const pathFilled = index > 0 && prevComplete && node.state !== 'pending';
           const isFocusEdge = index > 0 && index === selectedIndex;
-          const isFlowEdge = isPlaying && playIndex === index;
-          const isFlowPassed = isPlaying && playIndex > index;
+          const edgeIndex = index - 1;
+          const isFlowEdge = isPlaying && playIndex === edgeIndex;
+          const isFlowPassed = isPlaying && playIndex > edgeIndex;
           const approval = node.stage.approvalBefore;
           return (
             <Fragment key={node.stage.id}>
@@ -28,7 +30,9 @@ export default function LifecycleFlow({ nodes, selectedId, openId, onSelect, onP
                   className={`lifecycle-flow__connector ${pathFilled ? 'is-filled' : ''} ${isFocusEdge ? 'is-focus' : ''} ${approval ? 'has-approval' : ''} ${isFlowEdge ? 'is-flow-edge' : ''} ${isFlowPassed ? 'is-flow-passed' : ''}`}
                   style={{ '--edge-index': index - 1 }}
                 >
-                  <span className="lifecycle-flow__connector-line" />
+                  <span className="lifecycle-flow__connector-line">
+                    <span className="lifecycle-flow__connector-fill" aria-hidden="true" />
+                  </span>
                   {approval && (
                     <Link to={approval.to} className="lifecycle-flow__approval" title={approval.description}>
                       <Lock size={12} aria-hidden="true" />
@@ -40,7 +44,7 @@ export default function LifecycleFlow({ nodes, selectedId, openId, onSelect, onP
               <button
                 type="button"
                 role="listitem"
-                className={`lifecycle-node lifecycle-node--${node.state} ${isSelected ? 'is-selected' : ''} ${isOpen ? 'is-open' : ''} ${playIndex === index ? 'is-flow-step' : ''}`}
+                className={`lifecycle-node lifecycle-node--${node.state} ${isSelected ? 'is-selected' : ''} ${isOpen ? 'is-open' : ''} ${flowStepIndex === index ? 'is-flow-step' : ''}`}
                 style={{ animationDelay: `${index * 70}ms`, '--node-index': index, '--stage-color': STAGE_COLORS[index % STAGE_COLORS.length] }}
                 onClick={() => {
                   onSelect(node.stage.id);

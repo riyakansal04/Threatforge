@@ -1,21 +1,13 @@
-import { GitBranch, Layers3, Radar, ShieldCheck } from 'lucide-react';
 import { api } from '../api/client.js';
 import { useApi } from '../api/useApi.js';
 import DataTable from '../components/DataTable.jsx';
-import { Disclosure, Field, FieldList, LinkCards, PageShell, Sections, Stats } from '../components/Blocks.jsx';
+import { Field, PageShell, Sections, Stats } from '../components/Blocks.jsx';
 import { asArray, cleanPresentationText, count, isEmpty, labelOf, splitEvidence, splitLeadingLabel } from '../lib/format.js';
 
 const TECH_COLS = [
   { label: 'Technology', keys: ['name'] },
   { label: 'Role', keys: ['roles'] },
   { label: 'Version / purpose', keys: ['detail'] },
-  { label: 'Evidence', keys: ['evidence'] },
-];
-
-const STARTUP_COLS = [
-  { label: 'Step', keys: ['step', 'order', 'name'] },
-  { label: 'What happens', keys: ['description', 'summary', 'detail'] },
-  { label: 'Evidence', keys: ['source_references', 'evidence_references', 'evidence'] },
 ];
 
 const STOP_WORDS = new Set([
@@ -179,12 +171,13 @@ function buildTechnologyView(d) {
 
   return {
     rows: rows.map((row) => ({
-      ...row,
+      name: row.name,
+      roles: row.roles,
+      detail: row.detail,
       supporting_notes: row.supporting_notes.length ? row.supporting_notes : undefined,
-      evidence: row.evidence.length ? row.evidence : undefined,
     })),
-    additionalRuntimeNotes,
-    additionalDependencyNotes,
+    additionalRuntimeNotes: uniqueAgainst(additionalRuntimeNotes, rows.map((row) => `${row.name} ${row.detail}`)),
+    additionalDependencyNotes: uniqueAgainst(additionalDependencyNotes, rows.map((row) => `${row.name} ${row.detail}`)),
   };
 }
 
@@ -200,6 +193,49 @@ function uniqueAgainst(items, covered = []) {
   return kept;
 }
 
+function summaryText(value) {
+  const text = cleanPresentationText(value);
+  if (!text) return '';
+  const stop = text.search(/\bThe most important runtime path is\b/i);
+  return stop > 80 ? text.slice(0, stop).trim() : text;
+}
+
+function interfaceCount(d) {
+  const seen = new Set();
+  ['apis', 'routes', 'externally_accessible_interfaces'].forEach((field) => {
+    asArray(d[field]).forEach((item) => {
+      const value = item && typeof item === 'object'
+        ? item.path_or_interface || item.path || item.route || item.interface || item.endpoint || item.url || item.name || labelOf(item)
+        : item;
+      const key = cleanPresentationText(value).toLowerCase().replace(/`/g, '').replace(/\/+$/, '');
+      if (key) seen.add(key);
+    });
+  });
+  return seen.size;
+}
+
+function runtimeSignalCount(d) {
+  return Math.max(count(d.entry_points), count(d.startup_flow), count(d.runtime_processes));
+}
+
+function SummaryNarrative({ d }) {
+  const fields = [
+    ['purpose', 'Purpose'],
+    ['business_functionality', 'Business functionality'],
+    ['repository_scope', 'Repository scope'],
+  ].filter(([key]) => !isEmpty(d[key]));
+  const executive = summaryText(d.executive_summary);
+
+  return (
+    <div className="ri-summary">
+      {fields.map(([key, label]) => (
+        <Field key={key} label={label} value={d[key]} />
+      ))}
+      {executive && <Field label="Executive summary" value={executive} />}
+    </div>
+  );
+}
+
 function StartupTimeline({ items }) {
   const rows = asArray(items);
   if (!rows.length) return null;
@@ -207,13 +243,11 @@ function StartupTimeline({ items }) {
     <div className="runtime-timeline">
       {rows.map((row, index) => {
         const description = row?.description || row?.summary || row?.detail || textOf(row);
-        const refs = refsOf(row);
         return (
           <article className="runtime-step" key={`${description}-${index}`}>
             <span className="runtime-step__index">{row?.step || row?.order || index + 1}</span>
             <div>
               <p>{cleanPresentationText(description)}</p>
-              {!!refs.length && <div className="source-pills">{refs.map((ref) => <span className="source-pill" key={ref}>{ref}</span>)}</div>}
             </div>
           </article>
         );
@@ -233,6 +267,20 @@ function TechnologyStack({ view }) {
   );
 }
 
+function AssumptionsTable({ d }) {
+  const rows = [
+    ...asArray(d.assumptions).map((row) => ({ ...(row && typeof row === 'object' ? row : { item: row }), type: 'Assumption' })),
+    ...asArray(d.unknowns).map((row) => ({ ...(row && typeof row === 'object' ? row : { item: row }), type: 'Unknown' })),
+  ];
+  if (!rows.length) return null;
+  return <DataTable items={rows} columns={[
+    { label: 'Type', keys: ['type'] },
+    { label: 'Item', keys: ['item', 'name', 'title'] },
+    { label: 'Reason', keys: ['reason', 'description'] },
+    { label: 'Status', keys: ['status'] },
+  ]} />;
+}
+
 function RuntimeOperations({ d, runtimeNotes }) {
   const startupTexts = asArray(d.startup_flow).map(textOf);
   const entryPoints = uniqueAgainst(d.entry_points, startupTexts);
@@ -242,16 +290,10 @@ function RuntimeOperations({ d, runtimeNotes }) {
   const services = uniqueAgainst(d.services, serviceTexts);
   const jobTexts = [...serviceTexts, ...services.map(textOf)];
   const scheduledJobs = uniqueAgainst(d.scheduled_jobs, jobTexts);
-
   return (
     <>
       <StartupTimeline items={d.startup_flow} />
-      {!isEmpty(d.startup_flow) && (
-        <Disclosure title="Open complete startup flow table" meta={`${count(d.startup_flow)} step${count(d.startup_flow) === 1 ? '' : 's'}`}>
-          <DataTable items={d.startup_flow} columns={STARTUP_COLS} />
-        </Disclosure>
-      )}
-      <Field label={!isEmpty(d.startup_flow) ? 'Additional entry points' : 'Entry points'} value={entryPoints} />
+      <Field label="Entry points" value={entryPoints} />
       <Field label="Runtime processes" value={runtimeProcesses} />
       <Field label="Services" value={services} />
       <Field label="Scheduled jobs" value={scheduledJobs} />
@@ -263,42 +305,33 @@ export default function RepositoryIntelligence() {
   const { data, loading, error } = useApi(api.repositoryIntelligence);
   const d = data?.data || {};
   const technologyView = buildTechnologyView(d);
-  const purposeText = String(d.purpose || '');
-  const purposeIncludes = (field) => purposeText.toLowerCase().includes(`${field}:`);
-  const summaryFields = [
-    'purpose',
-    ...(!purposeIncludes('repository_scope') ? ['repository_scope'] : []),
-  ];
+  const interfaces = interfaceCount(d);
 
   const sections = [
-    { id: 'overview', title: 'Application summary', hint: 'The shortest useful explanation of what was reviewed.',
+    { id: 'overview', title: 'Application summary',
       render: () => (
         <>
           <Stats items={[
             { label: 'Languages', value: count(d.languages) },
             { label: 'Frameworks', value: count(d.frameworks) },
-            { label: 'Runtime entries', value: count(d.entry_points) },
-            { label: 'Interfaces', value: count(d.apis) + count(d.routes) + count(d.externally_accessible_interfaces) },
+            { label: 'Runtime signals', value: runtimeSignalCount(d) },
+            { label: 'Interfaces', value: interfaces },
           ]} />
-          <FieldList d={d} fields={summaryFields} />
+          <SummaryNarrative d={d} />
         </>
       ) },
+    { id: 'workflows', title: 'Application workflows', hint: 'Feature-level workflows found in the repository.',
+      fields: ['primary_workflows'] },
     { id: 'stack', title: 'Technology stack', hint: 'Languages, frameworks, libraries, runtimes and dependency signals merged into one inventory.',
       isVisible: () => technologyView.rows.length > 0 || !isEmpty(technologyView.additionalDependencyNotes),
       render: () => <TechnologyStack view={technologyView} /> },
-    { id: 'runtime', title: 'Runtime entry points', hint: 'Startup and runtime behavior without repeating the technology inventory.',
+    { id: 'runtime', title: 'Startup and runtime flow', hint: 'How the application initializes and where runtime behavior begins.',
       isVisible: () => !isEmpty(d.entry_points) || !isEmpty(d.startup_flow) || !isEmpty(d.runtime_processes) || !isEmpty(d.services) || !isEmpty(d.scheduled_jobs) || !isEmpty(technologyView.additionalRuntimeNotes),
       render: () => <RuntimeOperations d={d} runtimeNotes={technologyView.additionalRuntimeNotes} /> },
     { id: 'reasoning', title: 'Review notes', fields: ['reasoning', 'analysis_reasoning'] },
-    { id: 'next', title: 'Continue the review', render: () => (
-      <LinkCards items={[
-        { to: '/pre-scan/architecture', icon: Layers3, title: 'Architecture map', text: 'Components, interfaces, data movement and integrations.' },
-        { to: '/pre-scan/threat-model', icon: Radar, title: 'Security context', text: 'Assets, threat actors, trust boundaries and attack paths.' },
-        { to: '/pre-scan/security-review-plan', icon: ShieldCheck, title: 'Security assessment', text: 'Review priorities, open questions and scan targets.' },
-        ...(!isEmpty(d.source_references) ? [{ to: '/evidence', icon: GitBranch, title: 'Source evidence', text: 'Trace this summary back to uploaded files.' }] : []),
-      ]} />
-    ) },
-    { id: 'unknowns', title: 'Assumptions & unknowns', fields: ['assumptions', 'unknowns'] },
+    { id: 'unknowns', title: 'Assumptions & unknowns',
+      isVisible: () => !isEmpty(d.assumptions) || !isEmpty(d.unknowns),
+      render: () => <AssumptionsTable d={d} /> },
   ];
 
   return (
@@ -311,6 +344,7 @@ export default function RepositoryIntelligence() {
       emptyText="Run the codebase overview stage in Codex Security, then upload its output files. This page shows what will appear."
       sections={sections}
       sectionData={d}
+      showHeader={false}
     >
       <Sections d={d} sections={sections} />
     </PageShell>

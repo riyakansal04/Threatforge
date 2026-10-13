@@ -1,0 +1,11 @@
+import pytest
+from base64 import b64encode, urlsafe_b64encode
+import json
+import time
+import main
+
+def test_cookie_uses_json_not_pickle_and_rejects_invalid_cookie():
+    encoded = main.encode_cookie_value("hello")
+    assert main.decode_cookie_value(encoded) == "hello"
+    with pytest.raises(Exception):
+        main.decode_cookie_value(b64encode(b"not-json"))

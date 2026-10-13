@@ -1,0 +1,10 @@
+import pytest
+from base64 import b64encode, urlsafe_b64encode
+import json
+import time
+import main
+
+def test_xml_parser_rejects_external_entity_payload():
+    payload = '<!DOCTYPE foo [<!ENTITY xxe SYSTEM "file:///etc/passwd">]><foo>&xxe;</foo>'
+    with pytest.raises(Exception):
+        main.parse_xml(payload)
